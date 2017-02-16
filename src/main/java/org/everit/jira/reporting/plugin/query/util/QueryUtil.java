@@ -18,6 +18,8 @@ package org.everit.jira.reporting.plugin.query.util;
 import org.everit.jira.querydsl.schema.QAppUser;
 import org.everit.jira.querydsl.schema.QCwdDirectory;
 import org.everit.jira.querydsl.schema.QCwdUser;
+import org.everit.jira.querydsl.schema.QIssuelink;
+import org.everit.jira.querydsl.schema.QIssuelinktype;
 import org.everit.jira.querydsl.schema.QJiraissue;
 import org.everit.jira.querydsl.schema.QProject;
 
@@ -40,6 +42,24 @@ public final class QueryUtil {
       final QProject qProject) {
     StringExpression issueKey = qProject.pkey.concat("-").concat(qIssue.issuenum.stringValue());
     return issueKey;
+  }
+
+  /**
+   * Create expression for querying subtasks for the given issue.
+   */
+  public static SQLQuery<String> createSubTaskExpression(final QJiraissue qIssue) {
+    QJiraissue qParentIssue = new QJiraissue("parentIssue");
+    QIssuelink qIssueLink = new QIssuelink("subtaskLink");
+    QIssuelinktype qIssueLinkType = new QIssuelinktype("subtaskIssueLinkType");
+    QProject qProject = new QProject("parentTaskProject");
+    return SQLExpressions
+        .select(qProject.pkey.concat("-").concat(qParentIssue.issuenum.stringValue()))
+        .from(qIssueLink)
+        .join(qIssueLinkType).on(qIssueLink.linktype.eq(qIssueLinkType.id))
+        .join(qParentIssue).on(qIssueLink.source.eq(qParentIssue.id))
+        .join(qProject).on(qProject.id.eq(qParentIssue.project))
+        .where(qIssueLink.destination.eq(qIssue.id)
+            .and(qIssueLinkType.linkname.eq("jira_subtask_link")));
   }
 
   /**

@@ -48,6 +48,8 @@ public final class WorklogDetailsColumns {
 
   public static final String ISSUE_SUMMARY = "jtrp_col_issueSummary";
 
+  public static final String PARENT_ISSUE_KEY = "jtrp_col_parentIssueKey";
+
   public static final String PRIORITY = "jtrp_col_priority";
 
   public static final String PROJECT = "jtrp_col_project";
@@ -63,6 +65,8 @@ public final class WorklogDetailsColumns {
   public static final String START_TIME = "jtrp_col_startTime";
 
   public static final String STATUS = "jtrp_col_status";
+
+  public static final String SUB_TASKS = "jtrp_col_subTasks";
 
   public static final String TIME_SPENT = "jtrp_col_timeSpent";
 
@@ -111,6 +115,8 @@ public final class WorklogDetailsColumns {
     allColumns.add(WORKLOG_UPDATED);
     allColumns.add(ISSUE_EPIC_NAME);
     allColumns.add(ISSUE_EPIC_LINK);
+    allColumns.add(PARENT_ISSUE_KEY);
+    allColumns.add(SUB_TASKS);
     return allColumns;
   }
 
