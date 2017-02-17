@@ -118,6 +118,8 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
     public static final String PLUGIN_INVALID_END_TIME = "plugin.invalid_endTime";
 
     public static final String PLUGIN_INVALID_TIME_INTERVAL = "plugin.invalid_timeInterval";
+
+    public static final String WORKLOG_OVER_DAY = "plugin.worklogReachNextDay";
   }
 
   private static final String ACTION_DELETE = "delete";
@@ -363,7 +365,7 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
       // check the duration time to not exceed the present day
       workLogEndDateTime = DateUtils.addSeconds(startDateTime, (int) seconds);
       if (!DateUtils.isSameDay(startDateTime, workLogEndDateTime)) {
-        message = PropertiesKey.INVALID_DURATION_TIME;
+        message = PropertiesKey.WORKLOG_OVER_DAY;
         return INPUT;
       }
       return SUCCESS;
