@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -435,10 +436,11 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
     if (validateInputFieldsResult.equals(INPUT)) {
       return INPUT;
     }
-    String result = createWorklog(worklogValues.getIssueKey(), worklogValues.getCommentForActions(),
-        DateTimeServer.getInstanceBasedOnUserTimeZone(currentTimeInUserTimeZone),
-        worklogValues.getStartTime(),
-        timeSpent);
+    String result =
+        createWorklog(worklogValues.getIssueKey(), worklogValues.getCommentForActions(),
+            DateTimeServer.getInstanceBasedOnUserTimeZone(currentTimeInUserTimeZone),
+            worklogValues.getStartTime(),
+            timeSpent);
     if (SUCCESS.equals(result)) {
       if ((actionWorklogId != null) && "copy".equals(actionFlag)) {
         actionFlag = "";
@@ -461,7 +463,7 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
     return result;
   }
 
-  private String createWorklog(final String issueKey, final String commentForActions,
+  private String createWorklog(final List<String> issueKeys, final String commentForActions,
       final DateTimeServer date, final String startTime, final String timeSpent) {
     try {
       RemainingEstimateType remainingEstimateType =
@@ -474,7 +476,7 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
       }
       DateTimeServer dateStartTime = date.addStartTime(startTime);
 
-      WorklogParameter worklogParameter = new WorklogParameter(issueKey,
+      WorklogParameter worklogParameter = new WorklogParameter(issueKeys,
           commentForActions,
           dateStartTime,
           timeSpent,
@@ -639,12 +641,13 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
               DateTimeServer.getInstanceBasedOnUserTimeZone(currentTimeInUserTimeZone)
                   .addStartTime(editWorklog.getStartTime());
 
-          WorklogParameter worklogParameter = new WorklogParameter(editWorklog.getIssue(),
-              editWorklog.getBody(),
-              dateTime,
-              DateTimeConverterUtil.stringTimeToString(editWorklog.getDuration()),
-              "",
-              RemainingEstimateType.AUTO);
+          WorklogParameter worklogParameter =
+              new WorklogParameter(Arrays.asList(editWorklog.getIssue()),
+                  editWorklog.getBody(),
+                  dateTime,
+                  DateTimeConverterUtil.stringTimeToString(editWorklog.getDuration()),
+                  "",
+                  RemainingEstimateType.AUTO);
           worklogManager.editWorklog(editWorklog.getWorklogId(), worklogParameter);
           workLogEndDateTime = DateTimeConverterUtil.stringTimeToDateTime(editWorklog.getEndTime());
         } catch (WorklogException e) {
@@ -863,7 +866,7 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
           worklogValues.setDurationTime(editWorklog.getDuration());
         }
         String comment = editWorklog.getBody();
-        worklogValues.setIssueKey(editWorklog.getIssue());
+        worklogValues.setIssueKey(Arrays.asList(editWorklog.getIssue()));
         comment = comment.replace("\"", "\\\"");
         comment = comment.replace("\r", "\\r");
         comment = comment.replace("\n", "\\n");
@@ -1006,7 +1009,7 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   }
 
   private String validateInputFields() {
-    if (worklogValues.getIssueKey() == null) {
+    if ((worklogValues.getIssueKey() == null) || worklogValues.getIssueKey().isEmpty()) {
       message = PropertiesKey.MISSING_ISSUE;
       return INPUT;
     }
