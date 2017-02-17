@@ -59,6 +59,8 @@ public class WorklogDetailsDTO {
 
     public static final String ISSUE_UPDATED = "issueUpdated";
 
+    public static final String PARENT_ISSUE_KEY = "parentIssueKey";
+
     public static final String PRIORITY_ICON_URL = "priorityIconUrl";
 
     public static final String PRIORITY_NAME = "priorityName";
@@ -123,6 +125,8 @@ public class WorklogDetailsDTO {
 
   private Timestamp issueUpdated;
 
+  private String parentIssueKey;
+
   private String priorityIconUrl;
 
   private String priorityName;
@@ -134,6 +138,8 @@ public class WorklogDetailsDTO {
   private String projectName;
 
   private String resolutionName;
+
+  private List<String> subTasks = Collections.emptyList();
 
   private String worklogBody;
 
@@ -231,6 +237,10 @@ public class WorklogDetailsDTO {
     return (Timestamp) issueUpdated.clone();
   }
 
+  public String getParentIssueKey() {
+    return parentIssueKey;
+  }
+
   public String getPriorityIconUrl() {
     return priorityIconUrl;
   }
@@ -253,6 +263,10 @@ public class WorklogDetailsDTO {
 
   public String getResolutionName() {
     return resolutionName;
+  }
+
+  public List<String> getSubTasks() {
+    return subTasks;
   }
 
   public String getWorklogBody() {
@@ -369,6 +383,10 @@ public class WorklogDetailsDTO {
     this.issueUpdated = issueUpdated;
   }
 
+  public void setParentIssueKey(final String parentIssueKey) {
+    this.parentIssueKey = parentIssueKey;
+  }
+
   public void setPriorityIconUrl(final String priorityIconUrl) {
     this.priorityIconUrl = priorityIconUrl;
   }
@@ -391,6 +409,10 @@ public class WorklogDetailsDTO {
 
   public void setResolutionName(final String resolutionName) {
     this.resolutionName = resolutionName;
+  }
+
+  public void setSubTasks(final List<String> subTasks) {
+    this.subTasks = subTasks;
   }
 
   public void setWorklogBody(final String worklogBody) {

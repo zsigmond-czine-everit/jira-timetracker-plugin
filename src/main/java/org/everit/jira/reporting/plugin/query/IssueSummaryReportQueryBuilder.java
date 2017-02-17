@@ -58,6 +58,7 @@ public class IssueSummaryReportQueryBuilder extends AbstractReportQuery<IssueSum
         qPriority.pname,
         qPriority.iconurl,
         qIssuestatus.pname,
+        qIssue.id,
         userPath };
   }
 
@@ -80,7 +81,8 @@ public class IssueSummaryReportQueryBuilder extends AbstractReportQuery<IssueSum
         qIssue.timeoriginalestimate.min()
             .as(IssueSummaryDTO.AliasNames.ISSUE_ORIGINAL_ESTIMATE_SUM),
         qIssue.timeestimate.min().as(IssueSummaryDTO.AliasNames.ISSUE_TIME_ESTIMATE_SUM),
-        qWorklog.timeworked.sum().as(IssueSummaryDTO.AliasNames.WORKLOGGED_TIME_SUM));
+        qWorklog.timeworked.sum().as(IssueSummaryDTO.AliasNames.WORKLOGGED_TIME_SUM),
+        QueryUtil.createSubTaskExpression(qIssue).as(IssueSummaryDTO.AliasNames.PARENT_ISSUE_KEY));
   }
 
   @Override

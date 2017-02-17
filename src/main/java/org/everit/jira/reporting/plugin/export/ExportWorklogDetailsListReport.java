@@ -90,9 +90,7 @@ public class ExportWorklogDetailsListReport extends AbstractExportListReport {
               .addTimeZoneToTimestamp(worklogDetail.getWorklogStartDate()));
       worklogDetail.setWorklogUpdated(
           DateTimeConverterUtil.addTimeZoneToTimestamp(worklogDetail.getWorklogUpdated()));
-    }
-    for (WorklogDetailsDTO worklogDetailsDTO : worklogDetails) {
-      insertBodyRow(worklogDetailsSheet, worklogDetailsDTO);
+      insertBodyRow(worklogDetailsSheet, worklogDetail);
     }
   }
 
@@ -139,6 +137,10 @@ public class ExportWorklogDetailsListReport extends AbstractExportListReport {
         WorklogDetailsColumns.FIX_VERSIONS, worklogDetailsDTO.getIssueFixedVersions());
     columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
         WorklogDetailsColumns.RESOLUTION, worklogDetailsDTO.getResolutionName());
+    columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
+        WorklogDetailsColumns.PARENT_ISSUE_KEY, worklogDetailsDTO.getParentIssueKey());
+    columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
+        WorklogDetailsColumns.SUB_TASKS, worklogDetailsDTO.getSubTasks());
     columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
         WorklogDetailsColumns.WORKLOG_DESCRIPTION, worklogDetailsDTO.getWorklogBody());
     columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
@@ -187,6 +189,10 @@ public class ExportWorklogDetailsListReport extends AbstractExportListReport {
         insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.FIX_VERSIONS);
     columnIndex =
         insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.RESOLUTION);
+    columnIndex =
+        insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.PARENT_ISSUE_KEY);
+    columnIndex =
+        insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.SUB_TASKS);
     columnIndex =
         insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.WORKLOG_DESCRIPTION);
     columnIndex =

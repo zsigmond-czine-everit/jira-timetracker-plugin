@@ -30,6 +30,7 @@ import org.everit.jira.querydsl.schema.QIssuelink;
 import org.everit.jira.querydsl.schema.QIssuelinktype;
 import org.everit.jira.querydsl.schema.QJiraissue;
 import org.everit.jira.querydsl.schema.QNodeassociation;
+import org.everit.jira.querydsl.schema.QProject;
 import org.everit.jira.querydsl.schema.QProjectversion;
 import org.everit.jira.querydsl.support.QuerydslCallable;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
@@ -78,6 +79,8 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
   private HashMap<String, Expression<?>> orderByMap;
 
   private QCustomfieldvalue qCustomfieldValue = new QCustomfieldvalue("customfieldvalue");
+
+  private SQLQuery<String> subTaskExpression;
 
   private SimpleExpression<String> worklogAuthorExpression;
 
@@ -133,6 +136,8 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
         .then(QueryUtil.selectDisplayNameForUserByUserKey(qWorklog.author))
         .otherwise(qWorklog.author)
         .as(WorklogDetailsDTO.AliasNames.WORKLOG_USER);
+
+    subTaskExpression = QueryUtil.createSubTaskExpression(qIssue);
   }
 
   private void createOrderByMap() {
@@ -157,6 +162,7 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
     orderByMap.put(WorklogDetailsColumns.WORKLOG_UPDATED, qWorklog.updated);
     orderByMap.put(WorklogDetailsColumns.ISSUE_EPIC_NAME, epicName);
     orderByMap.put(WorklogDetailsColumns.ISSUE_EPIC_LINK, epicLink);
+    orderByMap.put(WorklogDetailsColumns.PARENT_ISSUE_KEY, subTaskExpression);
   }
 
   private QBean<WorklogDetailsDTO> createQuerySelectProjection() {
@@ -187,7 +193,8 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
         qWorklog.updated.as(WorklogDetailsDTO.AliasNames.WORKLOG_UPDATED),
         worklogAuthorExpression,
         epicLink,
-        epicName);
+        epicName,
+        subTaskExpression.as(WorklogDetailsDTO.AliasNames.PARENT_ISSUE_KEY));
 
   }
 
@@ -231,6 +238,8 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
 
     Map<Long, List<String>> issueAffectedVersions = selectAffectedVersions(connection,
         configuration, collectIssueIds);
+    Map<Long, List<String>> subTaskIssues =
+        selectSubTaskIssues(connection, configuration, collectIssueIds);
 
     for (WorklogDetailsDTO worklogDetailsDTO : result) {
       Long issueId = worklogDetailsDTO.getIssueId();
@@ -248,6 +257,10 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
       List<String> fixedVersions = issueFixedVersions.get(issueId);
       if (fixedVersions != null) {
         worklogDetailsDTO.setIssueFixedVersions(fixedVersions);
+      }
+      List<String> subTaskForCurrentIssue = subTaskIssues.get(issueId);
+      if (subTaskForCurrentIssue != null) {
+        worklogDetailsDTO.setSubTasks(subTaskForCurrentIssue);
       }
     }
 
@@ -368,5 +381,26 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
             .and(qNodeassociation.sourceNodeEntity.eq(Entity.Name.ISSUE))
             .and(qIssue.id.in(issueIds)))
         .transform(GroupBy.groupBy(qIssue.id).as(GroupBy.list(qProjectversion.vname)));
+  }
+
+  private Map<Long, List<String>> selectSubTaskIssues(final Connection connection,
+      final Configuration configuration,
+      final ConcurrentSkipListSet<Long> collectIssueIds) {
+    QJiraissue qJiraissue = new QJiraissue("subTasks");
+    QIssuelink qIssuelink = new QIssuelink("issueLink");
+    QIssuelinktype qiIssuelinktype = new QIssuelinktype("issueLinkType");
+    QProject qProject = new QProject("project");
+    StringExpression issueKeyExpression =
+        qProject.pkey.concat("-").concat(qJiraissue.issuenum.stringValue()).as("issueKey");
+    return new SQLQuery<>(connection, configuration)
+        .select(qIssuelink.source, issueKeyExpression)
+        .from(qIssuelink)
+        .join(qiIssuelinktype).on(qIssuelink.linktype.eq(qiIssuelinktype.id))
+        .join(qJiraissue).on(qIssuelink.destination.eq(qJiraissue.id))
+        .join(qProject).on(qProject.id.eq(qJiraissue.project))
+        .where(qIssuelink.source.in(collectIssueIds)
+            .and(qiIssuelinktype.linkname.eq("jira_subtask_link")))
+        .transform(GroupBy.groupBy(qIssuelink.source).as(GroupBy.list(issueKeyExpression)));
+
   }
 }
