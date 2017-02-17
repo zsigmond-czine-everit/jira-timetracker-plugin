@@ -104,6 +104,19 @@ public enum UserSettingKey implements SettingsMapper {
 
   },
 
+  REPRTING_FILTER_CONDITION_JSON {
+    @Override
+    public String getSettingsKey() {
+      return JTTPSettingsKey.JTTP_REPORTING_FILTER_CONDITION_JSON;
+    }
+  },
+
+  REPRTING_MORE_FILTER_JSON {
+    @Override
+    public String getSettingsKey() {
+      return JTTPSettingsKey.JTTP_REPORTING_MORE_FILTER_JSON;
+    }
+  },
   SHOW_FUTURE_LOG_WARNING {
 
     @Override

@@ -152,11 +152,18 @@ public final class JTTPSettingsKey {
    */
   public static final String JTTP_PLUGIN_UUID = "PluginUUID";
 
+  public static final String JTTP_REPORTING_FILTER_CONDITION_JSON =
+      "REPORTING_FILTER_CONDITION_JSON";
+
+  /**
+   * The reporting search more json values.
+   */
+  public static final String JTTP_REPORTING_MORE_FILTER_JSON = "REPORTING_SAERCH_MORE_JSON";
+
   /**
    * The update notifier last update time global setting key.
    */
   public static final String JTTP_UPDATE_NOTIFIER_LAST_UPDATE = "UPDATE_NOTIFIER";
-
   /**
    * The update notifier latest version of the JTTP global setting key.
    */

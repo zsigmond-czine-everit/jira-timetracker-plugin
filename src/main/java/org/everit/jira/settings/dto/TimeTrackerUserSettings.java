@@ -179,6 +179,14 @@ public class TimeTrackerUserSettings {
     return pluginSettingsKeyValues;
   }
 
+  public String getReportingFilterConditionJson() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_FILTER_CONDITION_JSON);
+  }
+
+  public String getReprotingSelectedMoreJson() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_MORE_FILTER_JSON);
+  }
+
   /**
    * Get the start time change settings value. The default is 5.
    */
