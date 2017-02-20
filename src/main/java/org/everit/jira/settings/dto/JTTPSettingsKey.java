@@ -152,18 +152,30 @@ public final class JTTPSettingsKey {
    */
   public static final String JTTP_PLUGIN_UUID = "PluginUUID";
 
+  protected static final String JTTP_REPORTING_COLLAPSE_DDETAILS_MODULE_VAL =
+      "REPORTING_COLLAPSE_DDETAILS_MODULE_VAL";
+
+  protected static final String JTTP_REPORTING_COLLAPSED_SUMMARY_MODULE_VAL =
+      "REPORTING_COLLAPSED_SUMMARY_MODULE_VAL";
+
   public static final String JTTP_REPORTING_FILTER_CONDITION_JSON =
       "REPORTING_FILTER_CONDITION_JSON";
-
   /**
    * The reporting search more json values.
    */
   public static final String JTTP_REPORTING_MORE_FILTER_JSON = "REPORTING_SAERCH_MORE_JSON";
 
+  protected static final String JTTP_REPORTING_SELECTED_ACTIVE_TAB =
+      "REPORTING_SELECTED_ACTIVE_TAB";
+
+  protected static final String JTTP_REPORTING_SELECTED_WORKLOG_DETAILS_COLUMNS =
+      "REPORTING_SELECTED_WORKLOG_DETAILS_COLUMNS";
+
   /**
    * The update notifier last update time global setting key.
    */
   public static final String JTTP_UPDATE_NOTIFIER_LAST_UPDATE = "UPDATE_NOTIFIER";
+
   /**
    * The update notifier latest version of the JTTP global setting key.
    */

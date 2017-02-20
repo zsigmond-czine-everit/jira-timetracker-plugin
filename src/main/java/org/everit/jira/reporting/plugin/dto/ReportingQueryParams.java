@@ -20,7 +20,8 @@ import java.io.Serializable;
 /**
  * Session data for the reporting page.
  */
-public class ReportingSessionData implements Serializable {
+// TODO delete fields or the full class??
+public class ReportingQueryParams implements Serializable {
 
   /**
    * Serial Version UID.
@@ -39,32 +40,47 @@ public class ReportingSessionData implements Serializable {
 
   public String selectedWorklogDetailsColumnsJson;
 
-  public ReportingSessionData collapsedDetailsModuleVal(final String collapsedDetailsModuleVal) {
+  public ReportingQueryParams collapsedDetailsModuleVal(final String collapsedDetailsModuleVal) {
     this.collapsedDetailsModuleVal = collapsedDetailsModuleVal;
     return this;
   }
 
-  public ReportingSessionData collapsedSummaryModuleVal(final String collapsedSummaryModuleVal) {
+  public ReportingQueryParams collapsedSummaryModuleVal(final String collapsedSummaryModuleVal) {
     this.collapsedSummaryModuleVal = collapsedSummaryModuleVal;
     return this;
   }
 
-  public ReportingSessionData filterConditionJson(final String filterConditionJson) {
+  public ReportingQueryParams filterConditionJson(final String filterConditionJson) {
     this.filterConditionJson = filterConditionJson;
     return this;
   }
 
-  public ReportingSessionData selectedActiveTab(final String selectedActiveTab) {
+  /**
+   * Check the fields without default value are contains any value.
+   */
+  public boolean hasNullValue() {
+    if ((collapsedDetailsModuleVal == null) ||
+        (collapsedSummaryModuleVal == null) ||
+        (filterConditionJson == null) ||
+        (selectedActiveTab == null) ||
+        (selectedMoreJson == null)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public ReportingQueryParams selectedActiveTab(final String selectedActiveTab) {
     this.selectedActiveTab = selectedActiveTab;
     return this;
   }
 
-  public ReportingSessionData selectedMoreJson(final String selectedMoreJson) {
+  public ReportingQueryParams selectedMoreJson(final String selectedMoreJson) {
     this.selectedMoreJson = selectedMoreJson;
     return this;
   }
 
-  public ReportingSessionData selectedWorklogDetailsColumnsJson(
+  public ReportingQueryParams selectedWorklogDetailsColumnsJson(
       final String selectedWorklogDetailsColumnsJson) {
     this.selectedWorklogDetailsColumnsJson = selectedWorklogDetailsColumnsJson;
     return this;
