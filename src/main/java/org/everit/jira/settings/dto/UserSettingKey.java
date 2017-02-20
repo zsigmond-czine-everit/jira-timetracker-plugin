@@ -87,6 +87,14 @@ public enum UserSettingKey implements SettingsMapper {
     }
 
   },
+  REPORTING_SELECTED_WORKLOG_DETAILS_COLUMNS {
+
+    @Override
+    public String getSettingsKey() {
+      return JTTPSettingsKey.JTTP_PLUGIN_USER_WD_SELECTED_COLUMNS;
+    }
+
+  },
   REPORTING_SETTINGS_PAGER_SIZE {
 
     @Override
@@ -95,6 +103,7 @@ public enum UserSettingKey implements SettingsMapper {
     }
 
   },
+
   REPORTING_SETTINGS_WORKLOG_IN_SEC {
 
     @Override
@@ -117,27 +126,26 @@ public enum UserSettingKey implements SettingsMapper {
       return JTTPSettingsKey.JTTP_REPORTING_COLLAPSED_SUMMARY_MODULE_VAL;
     }
   },
-  
+
   REPRTING_FILTER_CONDITION_JSON {
     @Override
     public String getSettingsKey() {
       return JTTPSettingsKey.JTTP_REPORTING_FILTER_CONDITION_JSON;
     }
   },
-  
   REPRTING_MORE_FILTER_JSON {
     @Override
     public String getSettingsKey() {
       return JTTPSettingsKey.JTTP_REPORTING_MORE_FILTER_JSON;
     }
   },
+
   REPRTING_SELECTED_ACTIVE_TAB {
     @Override
     public String getSettingsKey() {
       return JTTPSettingsKey.JTTP_REPORTING_SELECTED_ACTIVE_TAB;
     }
   },
-
   SHOW_FUTURE_LOG_WARNING {
 
     @Override
@@ -181,14 +189,6 @@ public enum UserSettingKey implements SettingsMapper {
     @Override
     public String getSettingsKey() {
       return JTTPSettingsKey.JTTP_USER_CANCELED_UPDATE;
-    }
-
-  },
-  REPORTING_SELECTED_WORKLOG_DETAILS_COLUMNS {
-
-    @Override
-    public String getSettingsKey() {
-      return JTTPSettingsKey.JTTP_PLUGIN_USER_WD_SELECTED_COLUMNS;
     }
 
   };

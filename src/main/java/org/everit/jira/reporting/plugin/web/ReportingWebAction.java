@@ -110,8 +110,6 @@ public class ReportingWebAction extends JiraWebActionSupport {
    */
   private static final long serialVersionUID = 1L;
 
-  private static final String SESSION_KEY = "jtrpSessionDataKey";
-
   private AnalyticsDTO analyticsDTO;
 
   private AnalyticsSender analyticsSender;
@@ -374,6 +372,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   }
 
   private void defaultInitalizeData(final ReportingQueryParams reportingSavedData) {
+    selectedMore = new ArrayList<>();
     initSelectedFilterCondition(reportingSavedData.selectedWorklogDetailsColumnsJson);
     filterCondition = new FilterCondition();
     if (!hasBrowseUsersPermission) {
@@ -636,7 +635,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   }
 
   private void initializeData() {
-    ReportingQueryParams reportingSavedData = userSettings.getReportingData();
+    ReportingQueryParams reportingSavedData = userSettings.getReportinQueryParams();
     if (!reportingSavedData.hasNullValue()) {
       FilterCondition filterConditionFromSession =
           ConverterUtil.convertJsonToFilterCondition(reportingSavedData.filterConditionJson);
@@ -738,7 +737,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private void saveReportingData(final ReportingQueryParams reportingSavedData) {
     TimeTrackerUserSettings userSettings =
-        new TimeTrackerUserSettings().setReportingSavedData(reportingSavedData);
+        new TimeTrackerUserSettings().setReportingQueryParams(reportingSavedData);
     settingsHelper.saveUserSettings(userSettings);
   }
 

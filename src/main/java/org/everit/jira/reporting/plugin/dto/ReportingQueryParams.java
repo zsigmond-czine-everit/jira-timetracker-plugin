@@ -60,15 +60,11 @@ public class ReportingQueryParams implements Serializable {
    * {@code selectedWorklogDetailsColumnsJson} field has default value.
    */
   public boolean hasNullValue() {
-    if ((collapsedDetailsModuleVal == null) ||
-        (collapsedSummaryModuleVal == null) ||
-        (filterConditionJson == null) ||
-        (selectedActiveTab == null) ||
-        (selectedMoreJson == null)) {
-      return true;
-    } else {
-      return false;
-    }
+    return ((collapsedDetailsModuleVal == null)
+        || (collapsedSummaryModuleVal == null)
+        || (filterConditionJson == null)
+        || (selectedActiveTab == null)
+        || (selectedMoreJson == null));
   }
 
   public ReportingQueryParams selectedActiveTab(final String selectedActiveTab) {
