@@ -56,7 +56,8 @@ public class ReportingQueryParams implements Serializable {
   }
 
   /**
-   * Check the fields without default value are contains any value.
+   * Check the fields without default value are contains any value. Only the
+   * {@code selectedWorklogDetailsColumnsJson} field has default value.
    */
   public boolean hasNullValue() {
     if ((collapsedDetailsModuleVal == null) ||
