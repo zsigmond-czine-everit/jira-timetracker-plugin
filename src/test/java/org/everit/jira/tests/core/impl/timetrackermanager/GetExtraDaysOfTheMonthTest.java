@@ -125,7 +125,7 @@ public class GetExtraDaysOfTheMonthTest {
   @Test
   public void testWithUserTimeZone() throws ParseException {
     List<DateTime> excludeDaysOfTheMonth = timetrackerManager.getIncludeDaysOfTheMonth(
-        new DateTime(1451606400000L, DateTimeZone.forID("Pacific/Apia")),
+        new DateTime(1451606400000L, DateTimeZone.forID("HST")),
         new HashSet<>(
             Arrays.asList(
                 converterUtilForTests.fixFormatStringToUTCDateTime("2016-01-01"),

@@ -75,6 +75,7 @@
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Import-Package>
+             org.joda.time.*;version="[1.6,3)",
               *
             </Import-Package>
             <Export-Package>
@@ -238,10 +239,6 @@
           <artifactId>jta</artifactId>
           <groupId>jta</groupId>
         </exclusion>
-        <exclusion>
-          <artifactId>joda-time</artifactId>
-          <groupId>joda-time</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -284,7 +281,7 @@
     <dependency>
       <groupId>org.everit.jira</groupId>
       <artifactId>jira-querydsl-support</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.atlassian.jira</groupId>
