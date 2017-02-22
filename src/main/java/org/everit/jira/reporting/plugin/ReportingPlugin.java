@@ -15,8 +15,11 @@
  */
 package org.everit.jira.reporting.plugin;
 
+import java.util.List;
+
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
+import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportSearchParam;
 import org.everit.jira.reporting.plugin.dto.UserSummaryReportDTO;
@@ -35,5 +38,7 @@ public interface ReportingPlugin {
 
   WorklogDetailsReportDTO getWorklogDetailsReport(ReportSearchParam reportSearchParam,
       OrderBy orderBy);
+
+  List<PickerVersionDTO> listSuggestedVersions(long maxSuggestedVersion);
 
 }

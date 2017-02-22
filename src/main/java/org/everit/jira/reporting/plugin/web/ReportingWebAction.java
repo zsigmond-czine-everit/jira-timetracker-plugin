@@ -39,11 +39,13 @@ import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
+import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportingSessionData;
 import org.everit.jira.reporting.plugin.dto.UserForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.UserPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.UserSummaryReportDTO;
+import org.everit.jira.reporting.plugin.dto.VersionPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsReportDTO;
 import org.everit.jira.reporting.plugin.exception.JTRPException;
 import org.everit.jira.reporting.plugin.util.ConverterUtil;
@@ -185,6 +187,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private TimeTrackerUserSettings userSettings;
 
   private UserSummaryReportDTO userSummaryReport = new UserSummaryReportDTO();
+
+  private VersionPickerContainerDTO versionPicker = new VersionPickerContainerDTO();
 
   private List<String> worklogDetailsAllColumns = WorklogDetailsColumns.ALL_COLUMNS;
 
@@ -376,6 +380,24 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return users;
   }
 
+  private void createVersionPickersValue() {
+    versionPicker.setIssueAffectedVersions(
+        createVersions(filterCondition.getIssueAffectedVersions()));
+    versionPicker.setIssueFixedVersions(
+        createVersions(filterCondition.getIssueFixedVersions()));
+    versionPicker.setSuggestedVersions(reportingPlugin.listSuggestedVersions(MAXIMUM_HISTORY));
+  }
+
+  private List<PickerVersionDTO> createVersions(final List<String> versions) {
+    List<PickerVersionDTO> result = new ArrayList<>();
+    for (String version : versions) {
+      PickerVersionDTO pickerVersionDTO = new PickerVersionDTO();
+      pickerVersionDTO.setName(version);
+      result.add(pickerVersionDTO);
+    }
+    return result;
+  }
+
   private void defaultInitalizeData() {
     selectedMore = new ArrayList<>();
     filterCondition = new FilterCondition();
@@ -466,6 +488,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     }
 
     createUserPickersValue();
+    createVersionPickersValue();
 
     return createReportResult;
   }
@@ -612,6 +635,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return userSummaryReport;
   }
 
+  public VersionPickerContainerDTO getVersionPicker() {
+    return versionPicker;
+  }
+
   public List<String> getWorklogDetailsAllColumns() {
     return worklogDetailsAllColumns;
   }
@@ -664,6 +691,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     }
 
     createUserPickersValue();
+    createVersionPickersValue();
   }
 
   public boolean isCollapsedDetailsModule() {

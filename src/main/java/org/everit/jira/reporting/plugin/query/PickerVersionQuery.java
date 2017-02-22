@@ -18,6 +18,7 @@ package org.everit.jira.reporting.plugin.query;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 
 import org.everit.jira.querydsl.schema.QProjectversion;
 import org.everit.jira.querydsl.support.QuerydslCallable;
@@ -32,62 +33,38 @@ import com.querydsl.sql.SQLQuery;
  */
 public class PickerVersionQuery implements QuerydslCallable<List<PickerVersionDTO>> {
 
-  /**
-   * Type of picker user query.
-   */
-  public enum PickerVersionQueryType {
-
-    AFFECTED_VERSION,
-
-    DEFAULT,
-
-    FIX_VERSION;
-
-    private static final PickerVersionQueryType[] PICKER_VERSION_QUERY_TYPES =
-        PickerVersionQueryType.values();
-
-    /**
-     * Gets picker version query type based on name.
-     */
-    public static PickerVersionQueryType getPickerVersionQueryType(
-        final String pickerVersionQueryType) {
-      for (PickerVersionQueryType type : PICKER_VERSION_QUERY_TYPES) {
-        if (type.name().equals(pickerVersionQueryType)) {
-          return type;
-        }
-      }
-      return DEFAULT;
-    }
-  }
-
-  private PickerVersionQueryType pickerVersionQueryType;
+  private final long limit;
 
   private QProjectversion qProjectversion;
 
-  public PickerVersionQuery(final PickerVersionQueryType pickerVersionQueryType) {
+  private final String query;
+
+  /**
+   * Simple constructor.
+   */
+  public PickerVersionQuery(final String query, final long limit) {
     qProjectversion = new QProjectversion("p_version");
-    this.pickerVersionQueryType = pickerVersionQueryType;
+    this.query = query;
+    this.limit = limit;
   }
 
   @Override
   public List<PickerVersionDTO> call(final Connection connection, final Configuration configuration)
       throws SQLException {
 
-    List<PickerVersionDTO> result = new SQLQuery<PickerVersionDTO>(connection, configuration)
+    SQLQuery<PickerVersionDTO> sqlQuery = new SQLQuery<PickerVersionDTO>(connection, configuration)
         .select(Projections.bean(PickerVersionDTO.class,
             qProjectversion.vname.as(PickerVersionDTO.AliasNames.VERSION_NAME)))
         .from(qProjectversion)
         .groupBy(qProjectversion.vname)
         .orderBy(qProjectversion.vname.asc())
-        .fetch();
-
-    if (PickerVersionQueryType.AFFECTED_VERSION.equals(pickerVersionQueryType)) {
-      result.add(0, PickerVersionDTO.createNoVersion());
-    } else if (PickerVersionQueryType.FIX_VERSION.equals(pickerVersionQueryType)) {
-      result.add(0, PickerVersionDTO.createUnReleasedVersion());
-      result.add(0, PickerVersionDTO.createReleasedVersion());
-      result.add(0, PickerVersionDTO.createNoVersion());
+        .limit(limit);
+    if (query != null) {
+      sqlQuery = sqlQuery.where(qProjectversion.vname.toLowerCase()
+          .like("%" + query.toLowerCase(Locale.getDefault()) + "%"));
     }
+    List<PickerVersionDTO> result = sqlQuery.fetch();
+
     return result;
   }
 

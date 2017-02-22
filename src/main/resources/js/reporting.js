@@ -663,52 +663,57 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
   };
   
   function initAffectedVersionSelect(){
-    var selectedArray =  jQuery.makeArray( reporting.values.selectedAffectedVersions ); 
-    jQuery.ajax({
-      async: true,
-      type: 'GET',
-      url : contextPath + "/rest/jttp-rest/1/picker/listVersions?pickerVersionQueryType=AFFECTED_VERSION",
-      data : [],
-      success : function(result){
-        for( var i in result) {
-          var obj = result[i];
-          var selected = checkSelected(obj.name, selectedArray);
-          jQuery("#affectedVersionPicker").append('<option value="'+obj.name+ '" '+ selected + '>' +obj.name +'</option>');
+    var jttpUserPicker = new AJS.CheckboxMultiSelect({
+      element:  jQuery("#affectedVersionPicker"),
+      submitInputVal: true,
+      maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
+      content: "mixed",
+      ajaxOptions: {
+        url: AJS.contextPath() + "/rest/jttp-rest/1/picker/listVersions",
+        query: true,
+        formatResponse: function (items) {
+          return _.map(items, function (item) {
+               return new AJS.ItemDescriptor({
+                 highlighted: true,
+                 html: item.name,
+                 label: item.name,
+                 value: item.name
+               });
+          })
         }
-        var options= initializeOptionsForSelect(result.length,"#affectedVersionPicker");
-        var pp = new AJS.CheckboxMultiSelect(options);
-        updatePickerButtonText("#affectedVersionPicker" , "#affectedVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.affects.version"));
-        jQuery("#affectedVersionPicker").on("change unselect", function() {
-          updatePickerButtonText("#affectedVersionPicker" , "#affectedVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.affects.version"));
-        });
-      },
-      error : function(XMLHttpRequest, status, error){
       }
     });
+    updatePickerButtonText("#affectedVersionPicker" , "#affectedVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.affects.version"));
+    jQuery("#affectedVersionPicker").on("change unselect", function() {
+      updatePickerButtonText("#affectedVersionPicker" , "#affectedVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.affects.version"));
+    });
+    
   };
   
   function initFixVersionSelect(){
-    var selectedArray =  jQuery.makeArray( reporting.values.selectedFixVersions ); 
-    jQuery.ajax({
-      async: true,
-      type: 'GET',
-      url : contextPath + "/rest/jttp-rest/1/picker/listVersions?pickerVersionQueryType=FIX_VERSION", 
-      data : [],
-      success : function(result){
-        for( var i in result) {
-          var obj = result[i];
-          var selected = checkSelected(obj.name, selectedArray);
-          jQuery("#fixVersionPicker").append('<option value="'+obj.name+ '" '+ selected + '>' +obj.name +'</option>');
+    var jttpUserPicker = new AJS.CheckboxMultiSelect({
+      element:  jQuery("#fixVersionPicker"),
+      submitInputVal: true,
+      maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
+      content: "mixed",
+      ajaxOptions: {
+        url: AJS.contextPath() + "/rest/jttp-rest/1/picker/listVersions",
+        query: true,
+        formatResponse: function (items) {
+          return _.map(items, function (item) {
+            return new AJS.ItemDescriptor({
+              highlighted: true,
+              html: item.name,
+              label: item.name,
+              value: item.name
+            });
+          })
         }
-        var options= initializeOptionsForSelect(result.length,"#fixVersionPicker");
-        var pp = new AJS.CheckboxMultiSelect(options);
-        updatePickerButtonText("#fixVersionPicker" , "#fixVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.fix.version"));
-        jQuery("#fixVersionPicker").on("change unselect", function() {
-          updatePickerButtonText("#fixVersionPicker" , "#fixVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.fix.version"));
-        });
-      },
-      error : function(XMLHttpRequest, status, error){
       }
+    });
+    updatePickerButtonText("#fixVersionPicker" , "#fixVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.fix.version"));
+    jQuery("#fixVersionPicker").on("change unselect", function() {
+      updatePickerButtonText("#fixVersionPicker" , "#fixVersionPickerButton", AJS.I18n.getText("jtrp.picker.all.fix.version"));
     });
   };
   

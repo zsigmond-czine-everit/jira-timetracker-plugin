@@ -34,7 +34,6 @@ import org.everit.jira.reporting.plugin.query.PickerComponentQuery;
 import org.everit.jira.reporting.plugin.query.PickerEpicLinkQuery;
 import org.everit.jira.reporting.plugin.query.PickerLabelQuery;
 import org.everit.jira.reporting.plugin.query.PickerVersionQuery;
-import org.everit.jira.reporting.plugin.query.PickerVersionQuery.PickerVersionQueryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +44,8 @@ import org.slf4j.LoggerFactory;
 public class PickerResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PickerResource.class);
+
+  private static final int MAX_LIMIT = 100;
 
   private QuerydslSupport querydslSupport;
 
@@ -103,7 +104,7 @@ public class PickerResource {
   /**
    * List versions.
    *
-   * @param pickerVersionQueryType
+   * @param query
    *          the type name, that define how to modify list (add static no versions to result or
    *          not).
    * @return the versions. If no one return empty list response.
@@ -112,11 +113,10 @@ public class PickerResource {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/listVersions")
   public Response listVersions(
-      @QueryParam("pickerVersionQueryType") final String pickerVersionQueryType) {
-    PickerVersionQueryType type =
-        PickerVersionQueryType.getPickerVersionQueryType(pickerVersionQueryType);
+      @QueryParam("query") final String query) {
 
-    List<PickerVersionDTO> versions = querydslSupport.execute(new PickerVersionQuery(type));
+    List<PickerVersionDTO> versions =
+        querydslSupport.execute(new PickerVersionQuery(query, MAX_LIMIT));
 
     return buildResponse(versions);
   }
