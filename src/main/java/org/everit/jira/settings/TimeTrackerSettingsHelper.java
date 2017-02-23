@@ -70,7 +70,7 @@ public interface TimeTrackerSettingsHelper {
    * Save all specified settings from the {@link TimeTrackerUserSettings} into
    * {@link com.atlassian.sal.api.pluginsettings.PluginSettings}.
    *
-   * @param settings
+   * @param userSettings
    *          the timetracker user settings.
    */
   void saveUserSettings(TimeTrackerUserSettings userSettings);

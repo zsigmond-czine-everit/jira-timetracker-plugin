@@ -119,6 +119,14 @@ public enum UserSettingKey implements SettingsMapper {
       return JTTPSettingsKey.JTTP_PLUGIN_SETTINGS_SHOW_ISSUE_SUMMARY_IN_WORKLOG_TABLE;
     }
   },
+  SHOW_PERIOD_WORKLOGS {
+
+    @Override
+    public String getSettingsKey() {
+      return JTTPSettingsKey.JTTP_PLUGIN_SETTINGS_SHOW_PERIOD_WORKLOGS;
+    }
+
+  },
   SHOW_REMANING_ESTIMATE {
 
     @Override

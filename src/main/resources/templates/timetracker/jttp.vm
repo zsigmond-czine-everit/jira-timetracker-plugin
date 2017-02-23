@@ -63,6 +63,8 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
 				userTimeZoneOffset: ${userTimeZoneOffset},
 				currentServerTime: ${currentTimeInUserTimeZone.getMillis()},
 				jiraFormatedDate: "${currentDateTimeInJSDatePickerFormat}",
+				dateEndFormated: "${endDateInJSDatePickerFormat}",
+				period: ${worklogValues.period}
 			}
 		);
 	})(everit.jttp.main, AJS.$);
@@ -137,6 +139,9 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                 <p>$i18n.getText('jttp.warning.no.permission.to.all.worklogs')</p>
               </div>
             #end
+             <div class="aui-message aui-message-error" style="display:none;">
+                <label id="error_message_label_ed" style="display:none;">$i18n.getText('plugin.invalid_endDate')</label>
+             </div>
         #parse("templates/timetracker/jttp-head.vm")
         #if(!$userSettings.progressIndicatordaily)
           #parse("templates/timetracker/summary.vm")
@@ -283,6 +288,26 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
             #end
             </div>
           </div>
+          #end
+          #if($userSettings.showPeriodWorklogs)
+            <div class="aui-group aui-group-split bottom-module">
+              <div class="aui-item">
+                <label for="usePeriod">$i18n.getText("plugin.jttp.periodworklogs.period"):</label>
+                <input id="usePeriod" type="checkbox" value="usePeriod" class="settings-input" name="usePeriod" onclick="everit.jttp.main.periodCheck();" #if($worklogValues.period) checked #end/>
+              </div>
+              <div class="aui-item enddate-field">
+                 <div class="from-date inline-calendar">
+                   <a href="#" title="Select a date">
+                     <span id="date_trigger_end" class="aui-icon aui-icon-small aui-iconfont-calendar">Select a date</span>
+                   </a>
+                   <input id="enddate" name="enddate" class="text medium-field datepicker-input" style="margin-left: 5px;" placeholder="$i18n.getText('plugin.jttp.periodworklogs.enddate')"/>
+                 </div>
+              </div>
+              <div class="aui-item">
+              </div>
+              <div class="aui-item">
+              </div>
+            </div>
           #end
           <input type="hidden" hidden="hidden" id="remainingEstimateType" name="remainingEstimateType" value="$worklogValues.remainingEstimateType">
           <div class="field-group">

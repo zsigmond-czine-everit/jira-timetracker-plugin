@@ -28,6 +28,7 @@ import org.everit.jira.analytics.event.AnalyticsStatusChangedEvent;
 import org.everit.jira.analytics.event.ProgressIndicatorChangedEvent;
 import org.everit.jira.analytics.event.ShowFutureLogWarningChangedEvent;
 import org.everit.jira.analytics.event.ShowIssueSummaryChangedEvent;
+import org.everit.jira.analytics.event.ShowPeriodWorklogChangedEvent;
 import org.everit.jira.analytics.event.ShowRemaningEstimateChangedEvent;
 import org.everit.jira.settings.dto.GlobalSettingsKey;
 import org.everit.jira.settings.dto.JTTPSettingsKey;
@@ -122,6 +123,22 @@ public class TimeTrackerSettingsHelperImpl
       analyticsSender.send(new ActiveFieldDurationChangedEvent(
           loadGlobalSettings().getPluginUUID(),
           activeFieldDuration));
+    }
+  }
+
+  private void checkAnalyticsForPeriodWorklog(final PluginSettings pluginSettings,
+      final boolean showPeriodWorklog) {
+    Object showPeriodWorklogObj =
+        pluginSettings.get(UserSettingKey.SHOW_PERIOD_WORKLOGS.getSettingsKey());
+    boolean oldShowPeriodWorklog = showPeriodWorklogObj == null
+        ? true
+        : Boolean.parseBoolean(showPeriodWorklogObj.toString());
+
+    if ((oldShowPeriodWorklog != showPeriodWorklog)
+        || (showPeriodWorklogObj == null)) {
+      analyticsSender.send(new ShowPeriodWorklogChangedEvent(
+          loadGlobalSettings().getPluginUUID(),
+          showPeriodWorklog));
     }
   }
 
@@ -305,6 +322,7 @@ public class TimeTrackerSettingsHelperImpl
     checkAnalyticsForShowIssueSummary(pluginSettings, userSettings.isShowIssueSummary());
     checkAnalyticsForActiveFieldDuration(pluginSettings, userSettings.isActiveFieldDuration());
     checkAnalyticsForShowRemaningEstimate(pluginSettings, userSettings.isShowRemaningEstimate());
+    checkAnalyticsForPeriodWorklog(pluginSettings, userSettings.isShowPeriodWorklogs());
     for (Entry<UserSettingKey, String> settingEntry : userSettings.getPluginSettingsKeyValues()
         .entrySet()) {
       pluginSettings.put(settingEntry.getKey().getSettingsKey(),

@@ -36,6 +36,9 @@ public class WorklogValues {
   private String durationTime = "";
 
   @XmlElement
+  private Long endDate;
+
+  @XmlElement
   private String endTime;
 
   @XmlElement
@@ -46,6 +49,9 @@ public class WorklogValues {
 
   @XmlElement
   private String newEstimate = "";
+
+  @XmlElement
+  private Boolean period = Boolean.FALSE;
 
   @XmlElement
   private String remainingEstimateType;
@@ -68,6 +74,10 @@ public class WorklogValues {
 
   public String getDurationTime() {
     return durationTime;
+  }
+
+  public Long getEndDate() {
+    return endDate;
   }
 
   public String getEndTime() {
@@ -94,6 +104,10 @@ public class WorklogValues {
     return isDuration;
   }
 
+  public Boolean isPeriod() {
+    return period;
+  }
+
   public void setAdjustmentAmount(final String adjustmentAmount) {
     this.adjustmentAmount = adjustmentAmount;
   }
@@ -110,6 +124,10 @@ public class WorklogValues {
     this.durationTime = durationTime;
   }
 
+  public void setEndDate(final Long endDate) {
+    this.endDate = endDate;
+  }
+
   public void setEndTime(final String endTime) {
     this.endTime = endTime;
   }
@@ -124,6 +142,10 @@ public class WorklogValues {
 
   public void setNewEstimate(final String newEstimate) {
     this.newEstimate = newEstimate;
+  }
+
+  public void setPeriod(final Boolean period) {
+    this.period = period;
   }
 
   public void setRemainingEstimateType(final String remainingEstimateType) {

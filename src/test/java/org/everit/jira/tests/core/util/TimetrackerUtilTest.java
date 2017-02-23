@@ -276,13 +276,15 @@ public class TimetrackerUtilTest {
 
     worklogValues = TimetrackerUtil.convertJsonToWorklogValues("{\"comment\":\"dummy-comment\","
         + "\"durationTime\":\"dummy-duration\",\"endTime\":\"dummy-endtime\",\"isDuration\":true,"
-        + "\"issueKey\":\"dummy-issuekey\",\"startTime\":\"dummy-starttime\"}");
+        + "\"issueKey\":\"dummy-issuekey\",\"startTime\":\"dummy-starttime\",\"period\":\"true\"}");
     Assert.assertEquals("dummy-comment", worklogValues.getComment());
     Assert.assertEquals("dummy-duration", worklogValues.getDurationTime());
     Assert.assertEquals("dummy-endtime", worklogValues.getEndTime());
     Assert.assertTrue(worklogValues.isDuration());
     Assert.assertEquals("dummy-issuekey", worklogValues.getIssueKey());
     Assert.assertEquals("dummy-starttime", worklogValues.getStartTime());
+    Assert.assertTrue(worklogValues.isPeriod());
+    Assert.assertEquals(null, worklogValues.getEndDate());
   }
 
   @Test
@@ -290,14 +292,15 @@ public class TimetrackerUtilTest {
     WorklogValues worklogValues = new WorklogValues();
     String json = TimetrackerUtil.convertWorklogValuesToJson(worklogValues);
     Assert.assertEquals("{\"adjustmentAmount\":\"\",\"comment\":\"\",\"commentForActions\":\"\","
-        + "\"durationTime\":\"\",\"isDuration\":false,\"issueKey\":\"\",\"newEstimate\":\"\"}",
+        + "\"durationTime\":\"\",\"isDuration\":false,\"issueKey\":\"\",\"newEstimate\":\"\","
+        + "\"period\":false}",
         json);
 
     worklogValues.setComment("dummy-comment");
     json = TimetrackerUtil.convertWorklogValuesToJson(worklogValues);
     Assert.assertEquals("{\"adjustmentAmount\":\"\",\"comment\":\"dummy-comment\","
         + "\"commentForActions\":\"\",\"durationTime\":\"\","
-        + "\"isDuration\":false,\"issueKey\":\"\",\"newEstimate\":\"\"}",
+        + "\"isDuration\":false,\"issueKey\":\"\",\"newEstimate\":\"\",\"period\":false}",
         json);
   }
 

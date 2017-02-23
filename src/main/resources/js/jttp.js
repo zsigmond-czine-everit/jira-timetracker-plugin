@@ -44,6 +44,22 @@ everit.jttp.main = everit.jttp.main || {};
 //  Set the correct jira server date to the date picker   
     jQuery("#dateHidden").val(jttp.options.jiraFormatedDate);
 
+    //set end date 
+    //TODO if hidden?
+    jQuery("#enddate").val(jttp.options.dateEndFormated);
+    
+    var calTo = Calendar.setup({
+      firstDay : jttp.options.firstDay,
+      inputField : jQuery("#enddate"),
+      button : jQuery("#date_trigger_end"),
+      date : jttp.options.dateEndFormated,
+      ifFormat: jttp.options.dateFormat,
+      align : 'Br',
+      electric : false,
+      singleClick : true,
+      showOthers : true,
+      useISO8601WeekNumbers : jttp.options.useISO8601,
+    });
     
     popupCalendarsSetup();
     setExcludeDaysToWeekend(jttp.options.excludeDays);
@@ -59,6 +75,8 @@ everit.jttp.main = everit.jttp.main || {};
         closeable: false,
       });
     }
+
+    jttp.periodCheck();
 
     addTooltips();
     headlineProgressIndicator();
@@ -191,17 +209,27 @@ everit.jttp.main = everit.jttp.main || {};
       jQuery("#radioDuration").prop("checked", true);
     }
   }
-  
-  function millisTimeZoneCorrection(mil){
-    var osTimeZoneOffset =  new Date().getTimezoneOffset() * 60000;
-    var correctMil = mil + osTimeZoneOffset;
+
+  function timeZoneCorrection(date){
+    var osTimeZoneOffset = date.getTimezoneOffset() * -60000;
+    var correctMil = date.getTime() + osTimeZoneOffset;
     return correctMil;
   }
   
-  function dateTimeZoneCorrection(date){
-    var osTimeZoneOffset = date.getTimezoneOffset() * 60000;
-    var correctMil = date.getTime() - osTimeZoneOffset;
-    return correctMil;
+  jttp.periodCheck = function(){
+    if(jttp.options.actionFlag != "edit"){
+      if (jQuery("#usePeriod").is(":checked")) {
+        document.getElementById("enddate").disabled = false;
+      } else {
+        document.getElementById("enddate").disabled = true;
+      }
+    }else{
+      if (jQuery("#usePeriod").is(":checked")) {
+        document.getElementById("usePeriod").checked = false;
+      }
+      document.getElementById("usePeriod").disabled = true;
+      document.getElementById("enddate").disabled = true;
+    }
   }
   
   jttp.beforeSubmit = function() {
@@ -209,6 +237,10 @@ everit.jttp.main = everit.jttp.main || {};
     //Send back the jira server time
     date.val(jttp.options.currentServerTime);
     var worklogValues = getWorklogValuesJson();
+    if(worklogValues == false){
+      jttpLogworkSaveButtonEnable();
+      return false;
+    }
     var json = JSON.stringify(worklogValues);
     var worklogValuesJson = jQuery('#worklogValuesJson');
     worklogValuesJson.val(json);
@@ -218,37 +250,37 @@ everit.jttp.main = everit.jttp.main || {};
     _paq.push(['trackEvent', 'User', 'Submit']);
     return true;
   }
-    
+
   jttp.setActionFlag = function(flag, id) {
     var actionFlag = jQuery('.actionFlag_'+id);
     actionFlag.val(flag);
     actionFlag.change();
   }
-  
+
   jttp.actionSubmitClick  = function(id) {
     jQuery("#actionSubmit_"+id).click();
   }
-  
+
   jttp.beforeSubmitEditAll = function(){
     var date = jQuery('#date');
     date.val(jttp.options.currentServerTime);
     jQuery("#jttp-editall-form").append(date);
-    
+
     return true;
   }
-  
+
   jttp.beforeSubmitAction = function(id) {
     var date = jQuery('#date');
     date.val(jttp.options.currentServerTime);
     jQuery(".actionForm_"+id).append(date);
-    
+
     return true;
   }
-   
- jttp.cancelClick = function(){
-   window.location = "JiraTimetrackerWebAction.jspa?date="+jttp.options.currentServerTime;
- }
- 
+
+  jttp.cancelClick = function(){
+    window.location = "JiraTimetrackerWebAction.jspa?date="+jttp.options.currentServerTime;
+  }
+
   jttp.beforeSubmitChangeDate = function() {
     var dateHidden = jQuery('#dateHidden').val();
     var currentJiraTime;
@@ -270,6 +302,10 @@ everit.jttp.main = everit.jttp.main || {};
     jQuery("#jttp-datecahnge-form").append(date);
     
     var worklogValues = getWorklogValuesJson();
+    if(worklogValues == false){
+      jttpLogworkSaveButtonEnable();
+      return false;
+    }
     var json = JSON.stringify(worklogValues);
     var worklogValuesJson = jQuery('#worklogValuesJson');
     worklogValuesJson.val(json);
@@ -435,6 +471,12 @@ everit.jttp.main = everit.jttp.main || {};
     });
   }
 
+  function jttpLogworkSaveButtonEnable() {
+    jQuery('#jttp-logwork-save').prop("disabled", false);
+    jQuery('#lw_save').val('false');
+    jQuery('#lw_save').attr('disabled', true);
+  }
+
   function durationSelectionSetup() {
     if(jttp.options.defaultCommand){
       if(jttp.options.activeFieldDuration){
@@ -510,6 +552,25 @@ everit.jttp.main = everit.jttp.main || {};
     var remainingEstimateType = jQuery('#remainingEstimateType').val();
     var newEstimate = jQuery('#newEstimate').val();
     var adjustmentAmount = jQuery('#adjustmentAmount').val();
+    var periodTmp =  jQuery('input[name="usePeriod"]:checked').val();
+    var period = false
+    if(periodTmp != null){
+      period = true;
+    }
+    var endDatePicker = jQuery('#enddate').val();
+    if(endDatePicker != ""){
+      try{
+        var endDate = Date.parseDate(endDatePicker, jttp.options.dateFormat);
+        if(endDatePicker != endDate.print(jttp.options.dateFormat)){
+          showErrorMessage("error_message_label_ed");
+          return false;
+        }
+        var endDateMilis  = timeZoneCorrection(endDate);
+      }catch(err){
+        showErrorMessage("error_message_label_ed");
+        return false;
+      }
+    }
     
     var worklogValues = {
       "startTime": startTime,
@@ -521,10 +582,19 @@ everit.jttp.main = everit.jttp.main || {};
       "remainingEstimateType": remainingEstimateType,
       "newEstimate": newEstimate,
       "adjustmentAmount": adjustmentAmount,
+      "endDate": endDateMilis,
+      "period": period,
     }
     return worklogValues;
   }
   
+  function showErrorMessage(message_key){
+    jQuery('#jttp-panel-head-fields > div.aui-message.aui-message-error > label').hide();
+    var errorMessageLabel = jQuery('#'+message_key);
+    errorMessageLabel.show();
+    var errorMessage = jQuery('#jttp-panel-head-fields > div.aui-message.aui-message-error');
+    errorMessage.show();
+  }
   
   function commentsCSSFormat() {
     var comment = jttp.options.comment;

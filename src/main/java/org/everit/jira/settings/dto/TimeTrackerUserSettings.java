@@ -352,6 +352,10 @@ public class TimeTrackerUserSettings {
     return this;
   }
 
+  public boolean isShowPeriodWorklogs() {
+    return Boolean.parseBoolean(pluginSettingsKeyValues.get(UserSettingKey.SHOW_PERIOD_WORKLOGS));
+  }
+
   public boolean isShowRemaningEstimate() {
     return Boolean.parseBoolean(pluginSettingsKeyValues.get(UserSettingKey.SHOW_REMANING_ESTIMATE));
   }
@@ -387,6 +391,15 @@ public class TimeTrackerUserSettings {
    */
   public TimeTrackerUserSettings selectedColumnsJSon(final String selectedColumnsJson) {
     pluginSettingsKeyValues.put(UserSettingKey.USER_WD_SELECTED_COLUMNS, selectedColumnsJson);
+    return this;
+  }
+
+  /**
+   * Put the show period worklogs value.
+   */
+  public TimeTrackerUserSettings showPeriodWorklogs(final boolean showPeriodWorklogs) {
+    pluginSettingsKeyValues.put(UserSettingKey.SHOW_PERIOD_WORKLOGS,
+        String.valueOf(showPeriodWorklogs));
     return this;
   }
 
