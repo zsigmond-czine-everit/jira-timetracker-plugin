@@ -35,10 +35,12 @@ import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.ReportingCondition;
 import org.everit.jira.reporting.plugin.ReportingPlugin;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
+import org.everit.jira.reporting.plugin.dto.ComponentPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
+import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
 import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportingSessionData;
@@ -73,7 +75,6 @@ import com.atlassian.jira.issue.RendererManager;
 import com.atlassian.jira.issue.fields.renderer.IssueRenderContext;
 import com.atlassian.jira.issue.fields.renderer.JiraRendererPlugin;
 import com.atlassian.jira.issue.search.SearchRequest;
-import com.atlassian.jira.security.JiraAuthenticationContext;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.user.UserHistoryItem;
 import com.atlassian.jira.user.UserHistoryManager;
@@ -124,6 +125,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private boolean collapsedDetailsModule = false;
 
   private boolean collapsedSummaryModule = false;
+
+  private ComponentPickerContainerDTO componentPicker = new ComponentPickerContainerDTO();
 
   private String contextPath;
 
@@ -216,9 +219,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private void addUserHistory() {
     UserHistoryManager userHistoryManager =
         ComponentAccessor.getComponent(UserHistoryManager.class);
-    JiraAuthenticationContext jiraAuthenticationContext =
-        ComponentAccessor.getJiraAuthenticationContext();
-    ApplicationUser user = jiraAuthenticationContext.getUser();
+    ApplicationUser user = getLoggedInUser();
     for (String userKey : filterCondition.getUsers()) {
       userHistoryManager.addItemToHistory(UserHistoryItem.USED_USER, user, userKey);
     }
@@ -230,15 +231,31 @@ public class ReportingWebAction extends JiraWebActionSupport {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
-    if (!reportingCondition.shouldDisplay(getLoggedInApplicationUser(), null)) {
+    if (!reportingCondition.shouldDisplay(getLoggedInUser(), null)) {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
-    if (!pluginCondition.shouldDisplay(getLoggedInApplicationUser(), null)) {
+    if (!pluginCondition.shouldDisplay(getLoggedInUser(), null)) {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
     return null;
+  }
+
+  private void createComponentPickersValue() {
+    componentPicker.setIssueComponents(createComponents(filterCondition.getIssueComponents()));
+    componentPicker
+        .setSuggestedComponents(reportingPlugin.listSuggestedComponents(MAXIMUM_HISTORY));
+  }
+
+  private List<PickerComponentDTO> createComponents(final List<String> components) {
+    List<PickerComponentDTO> result = new ArrayList<>();
+    for (String component : components) {
+      PickerComponentDTO pickerComponentDTO = new PickerComponentDTO();
+      pickerComponentDTO.setName(component);
+      result.add(pickerComponentDTO);
+    }
+    return result;
   }
 
   private String createReport(final String selectedMoreJson, final String selectedActiveTab,
@@ -321,7 +338,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   }
 
   private void createUserPickersValue() {
-    ApplicationUser loggedUser = ComponentAccessor.getJiraAuthenticationContext().getUser();
+    ApplicationUser loggedUser = getLoggedInUser();
     userPicker.setSuggestedUsers(createSuggestedUsers(loggedUser));
     userPicker.setUsers(createUsers(loggedUser, filterCondition.getUsers()));
     userPicker.setIssueReporters(createUsers(loggedUser, filterCondition.getIssueReporters()));
@@ -424,7 +441,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     loadIssueCollectorSrc();
     normalizeContextPath();
     hasBrowseUsersPermission =
-        PermissionUtil.hasBrowseUserPermission(getLoggedInApplicationUser(), settingsHelper);
+        PermissionUtil.hasBrowseUserPermission(getLoggedInUser(), settingsHelper);
 
     analyticsDTO = JiraTimetrackerAnalytics
         .getAnalyticsDTO(PiwikPropertiesUtil.PIWIK_REPORTING_SITEID, settingsHelper);
@@ -444,7 +461,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
     loadFavoriteFilters();
     hasBrowseUsersPermission =
-        PermissionUtil.hasBrowseUserPermission(getLoggedInApplicationUser(), settingsHelper);
+        PermissionUtil.hasBrowseUserPermission(getLoggedInUser(), settingsHelper);
 
     loadIssueCollectorSrc();
 
@@ -489,6 +506,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
     createUserPickersValue();
     createVersionPickersValue();
+    createComponentPickersValue();
 
     return createReportResult;
   }
@@ -499,6 +517,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   public JiraRendererPlugin getAtlassianWikiRenderer() {
     return atlassianWikiRenderer;
+  }
+
+  public ComponentPickerContainerDTO getComponentPicker() {
+    return componentPicker;
   }
 
   public String getContextPath() {
@@ -692,6 +714,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
     createUserPickersValue();
     createVersionPickersValue();
+    createComponentPickersValue();
+
   }
 
   public boolean isCollapsedDetailsModule() {
@@ -720,7 +744,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     DefaultSearchRequestService defaultSearchRequestService =
         ComponentAccessor.getComponentOfType(DefaultSearchRequestService.class);
     favouriteFilters = new ArrayList<>(
-        defaultSearchRequestService.getFavouriteFilters(getLoggedInApplicationUser()));
+        defaultSearchRequestService.getFavouriteFilters(getLoggedInUser()));
   }
 
   private void loadIssueCollectorSrc() {

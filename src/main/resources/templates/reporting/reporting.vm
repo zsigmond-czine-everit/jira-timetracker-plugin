@@ -373,15 +373,15 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                                      <select  id="affectedVersionPicker" name="affectedVersionPicker" multiple="multiple" >
                                                        <optgroup>
                                                          #foreach( $version in $versionPicker.issueAffectedVersions )
-                                                         <option data-icon="$version.name" value="$version.name" selected="selected" title="$version.name">$version.name</option>
+                                                         <option value="$version.name" selected="selected" title="$version.name">$version.name</option>
                                                          #end
                                                        </optgroup>
                                                        <optgroup>
-                                                        <option data-icon="$versionPicker.noVersion.name" value="$versionPicker.noVersion.name" title="$versionPicker.noVersion.name">$versionPicker.noVersion.name</option>
+                                                        <option value="$versionPicker.noVersion.name" title="$versionPicker.noVersion.name">$versionPicker.noVersion.name</option>
                                                        </optgroup>
-                                                       <optgroup #if(!$versionPicker.suggestedVersions.isEmpty())label="$i18n.getText("jtrp.picker.suggested.version")"#end>
+                                                       <optgroup>
                                                          #foreach( $version in $versionPicker.suggestedVersions )
-                                                         <option data-icon="$version.name" value="$version.name" title="$version.name">$version.name</option>
+                                                         <option value="$version.name" title="$version.name">$version.name</option>
                                                          #end
                                                        <optgroup>
                                                      </select>
@@ -404,17 +404,17 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                                      <select  id="fixVersionPicker" name="fixVersionPicker" multiple="multiple" >
                                                        <optgroup>
                                                          #foreach( $version in $versionPicker.issueFixedVersions )
-                                                         <option data-icon="$version.name" value="$version.name" selected="selected" title="$version.name">$version.name</option>
+                                                         <option value="$version.name" selected="selected" title="$version.name">$version.name</option>
                                                          #end
                                                        </optgroup>
                                                        <optgroup>
-                                                        <option data-icon="$versionPicker.noVersion.name" value="$versionPicker.noVersion.name" title="$versionPicker.noVersion.name">$versionPicker.noVersion.name</option>
-                                                        <option data-icon="$versionPicker.releasedVersion.name" value="$versionPicker.releasedVersion.name" title="$versionPicker.releasedVersion.name">$versionPicker.releasedVersion.name</option>
-                                                        <option data-icon="$versionPicker.unReleasedVersion.name" value="$versionPicker.unReleasedVersion.name" title="$versionPicker.unReleasedVersion.name">$versionPicker.unReleasedVersion.name</option>
+                                                        <option value="$versionPicker.noVersion.name" title="$versionPicker.noVersion.name">$versionPicker.noVersion.name</option>
+                                                        <option value="$versionPicker.releasedVersion.name" title="$versionPicker.releasedVersion.name">$versionPicker.releasedVersion.name</option>
+                                                        <option value="$versionPicker.unReleasedVersion.name" title="$versionPicker.unReleasedVersion.name">$versionPicker.unReleasedVersion.name</option>
                                                        </optgroup>
-                                                       <optgroup #if(!$versionPicker.suggestedVersions.isEmpty())label="$i18n.getText("jtrp.picker.suggested.version")"#end>
+                                                       <optgroup>
                                                          #foreach( $version in $versionPicker.suggestedVersions )
-                                                         <option data-icon="$version.name" value="$version.name" title="$version.name">$version.name</option>
+                                                         <option value="$version.name" title="$version.name">$version.name</option>
                                                          #end
                                                        <optgroup>
                                                      </select>
@@ -435,6 +435,19 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                                  <div class='form-body checkboxmultiselect-container'>
                                                    <div class='field-group aui-field-issuetype'>
                                                      <select  id="componentPicker" name="componentPicker" multiple="multiple" >
+                                                       <optgroup>
+                                                         #foreach( $component in $componentPicker.issueComponents )
+                                                         <option value="$component.name" selected="selected" title="$component.name">$component.name</option>
+                                                         #end
+                                                       </optgroup>
+                                                       <optgroup>
+                                                        <option value="$componentPicker.noComponent.name" title="$componentPicker.noComponent.name">$componentPicker.noComponent.name</option>
+                                                       </optgroup>
+                                                       <optgroup>
+                                                         #foreach( $component in $componentPicker.suggestedComponents )
+                                                         <option value="$component.name" title="$component.name">$component.name</option>
+                                                         #end
+                                                       <optgroup>
                                                      </select>
                                                    </div>
                                                  </div>

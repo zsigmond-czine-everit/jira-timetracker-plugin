@@ -71,8 +71,9 @@ public class PickerResource {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/listComponents")
-  public Response listComponents() {
-    List<PickerComponentDTO> components = querydslSupport.execute(new PickerComponentQuery());
+  public Response listComponents(@QueryParam("query") final String query) {
+    List<PickerComponentDTO> components =
+        querydslSupport.execute(new PickerComponentQuery(query, MAX_LIMIT));
 
     return buildResponse(components);
   }

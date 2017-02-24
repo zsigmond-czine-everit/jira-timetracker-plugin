@@ -663,7 +663,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
   };
   
   function initAffectedVersionSelect(){
-    var jttpUserPicker = new AJS.CheckboxMultiSelect({
+    var versionPicker = new AJS.CheckboxMultiSelect({
       element:  jQuery("#affectedVersionPicker"),
       submitInputVal: true,
       maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
@@ -691,7 +691,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
   };
   
   function initFixVersionSelect(){
-    var jttpUserPicker = new AJS.CheckboxMultiSelect({
+    var versionPicker = new AJS.CheckboxMultiSelect({
       element:  jQuery("#fixVersionPicker"),
       submitInputVal: true,
       maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
@@ -855,27 +855,29 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
   };
   
   function initComponentSelect(){
-    var selectedArray =  jQuery.makeArray( reporting.values.selectedComponents ); 
-    jQuery.ajax({
-      async: true,
-      type: 'GET',
-      url : contextPath + "/rest/jttp-rest/1/picker/listComponents",
-      data : [],
-      success : function(result){
-        for( var i in result) {
-          var obj = result[i];
-          var selected = checkSelected(obj.name, selectedArray);
-          jQuery("#componentPicker").append('<option value="'+obj.name+ '" '+ selected + '>' +obj.name +'</option>');
+  var componentPicker = new AJS.CheckboxMultiSelect({
+      element:  jQuery("#componentPicker"),
+      submitInputVal: true,
+      maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
+      content: "mixed",
+      ajaxOptions: {
+        url: AJS.contextPath() + "/rest/jttp-rest/1/picker/listComponents",
+        query: true,
+        formatResponse: function (items) {
+          return _.map(items, function (item) {
+               return new AJS.ItemDescriptor({
+                 highlighted: true,
+                 html: item.name,
+                 label: item.name,
+                 value: item.name
+               });
+          })
         }
-        var options= initializeOptionsForSelect(result.length,"#componentPicker");
-        var pp = new AJS.CheckboxMultiSelect(options);           
-        updatePickerButtonText("#componentPicker" , "#componentPickerButton", AJS.I18n.getText("jtrp.picker.all.component"));
-        jQuery("#componentPicker").on("change unselect", function() {
-          updatePickerButtonText("#componentPicker" , "#componentPickerButton", AJS.I18n.getText("jtrp.picker.all.component"));
-        });
-      },
-      error : function(XMLHttpRequest, status, error){
       }
+    });
+    updatePickerButtonText("#componentPicker" , "#componentPickerButton", AJS.I18n.getText("jtrp.picker.all.component"));
+    jQuery("#componentPicker").on("change unselect", function() {
+      updatePickerButtonText("#componentPicker" , "#componentPickerButton", AJS.I18n.getText("jtrp.picker.all.component"));
     });
   };
   
