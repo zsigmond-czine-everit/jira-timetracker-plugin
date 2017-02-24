@@ -67,6 +67,7 @@ import com.atlassian.jira.avatar.Avatar;
 import com.atlassian.jira.avatar.Avatar.Size;
 import com.atlassian.jira.avatar.AvatarService;
 import com.atlassian.jira.bc.filter.DefaultSearchRequestService;
+import com.atlassian.jira.bc.group.search.GroupPickerSearchService;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.datetime.DateTimeFormatter;
 import com.atlassian.jira.datetime.DateTimeStyle;
@@ -75,7 +76,6 @@ import com.atlassian.jira.issue.fields.renderer.IssueRenderContext;
 import com.atlassian.jira.issue.fields.renderer.JiraRendererPlugin;
 import com.atlassian.jira.issue.search.SearchRequest;
 import com.atlassian.jira.security.JiraAuthenticationContext;
-import com.atlassian.jira.security.groups.GroupManager;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.user.UserHistoryItem;
 import com.atlassian.jira.user.UserHistoryManager;
@@ -213,13 +213,13 @@ public class ReportingWebAction extends JiraWebActionSupport {
     this.analyticsSender = analyticsSender;
   }
 
-  private void addUserHistory() {
+  private void addUserHistory(final ConvertedSearchParam convertedSearchParam) {
     UserHistoryManager userHistoryManager =
         ComponentAccessor.getComponent(UserHistoryManager.class);
     JiraAuthenticationContext jiraAuthenticationContext =
         ComponentAccessor.getJiraAuthenticationContext();
     ApplicationUser user = jiraAuthenticationContext.getLoggedInUser();
-    for (String userKey : filterCondition.getGroupUsers()) {
+    for (String userKey : convertedSearchParam.reportSearchParam.users) {
       userHistoryManager.addItemToHistory(UserHistoryItem.USED_USER, user, userKey);
     }
   }
@@ -285,14 +285,15 @@ public class ReportingWebAction extends JiraWebActionSupport {
       return INPUT;
     }
 
-    addUserHistory();
+    addUserHistory(convertedSearchParam);
     return SUCCESS;
   }
 
   private List<GroupForPickerDTO> createSuggestedGroups() {
     List<GroupForPickerDTO> result = new ArrayList<>();
-    GroupManager groupManager = ComponentAccessor.getGroupManager();
-    Collection<Group> allGroups = groupManager.getAllGroups();
+    GroupPickerSearchService component =
+        ComponentAccessor.getComponent(GroupPickerSearchService.class);
+    Collection<Group> allGroups = component.findGroups("");
     for (Group group : allGroups) {
       result.add(new GroupForPickerDTO(group.getName()));
 
@@ -334,8 +335,12 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private void createUserPickersValue() {
     ApplicationUser loggedUser = ComponentAccessor.getJiraAuthenticationContext().getUser();
     userPicker.setSuggestedUsers(createSuggestedUsers(loggedUser));
-    userPicker.setGroups(createSuggestedGroups());
-    userPicker.setUsers(createUsers(loggedUser, filterCondition.getGroupUsers()));
+    List<GroupForPickerDTO> groupsForPickerDTOFromFilterCondition =
+        ConverterUtil.getGroupsForPickerDTOFromFilterCondition(filterCondition.getGroupUsers());
+    userPicker.setGroups(groupsForPickerDTOFromFilterCondition);
+    userPicker.setSuggestedGroups(createSuggestedGroups());
+    userPicker.setUsers(createUsers(loggedUser,
+        ConverterUtil.getUsersFromFilterCondition(filterCondition.getGroupUsers())));
     userPicker.setIssueReporters(createUsers(loggedUser, filterCondition.getIssueReporters()));
     userPicker.setIssueAssignees(createUsers(loggedUser, filterCondition.getIssueAssignees()));
 
@@ -348,9 +353,6 @@ public class ReportingWebAction extends JiraWebActionSupport {
     String defaultAvaratar =
         avatarService.getProjectDefaultAvatarAbsoluteURL(Size.SMALL).toString();
 
-    userPicker.setNoneUser(new UserForPickerDTO(defaultAvaratar,
-        TimetrackerUtil.getI18nText(UserForPickerDTO.NONE_DISPLAY_NAME),
-        UserForPickerDTO.NONE_USER_KEY));
     userPicker.setUnassigedUser(new UserForPickerDTO(defaultAvaratar,
         TimetrackerUtil.getI18nText(UserForPickerDTO.UNASSIGNED_DISPLAY_NAME),
         UserForPickerDTO.UNASSIGNED_USER_KEY));
@@ -364,11 +366,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     AvatarService avatarService = ComponentAccessor.getAvatarService();
     for (String userKey : usersForIteration) {
       UserForPickerDTO userForPickerDTO = null;
-      if (UserForPickerDTO.NONE_USER_KEY.equals(userKey)) {
-        userForPickerDTO = new UserForPickerDTO("",
-            TimetrackerUtil.getI18nText(UserForPickerDTO.NONE_DISPLAY_NAME),
-            "none");
-      } else if (UserForPickerDTO.CURRENT_USER_KEY.equals(userKey)) {
+      if (UserForPickerDTO.CURRENT_USER_KEY.equals(userKey)) {
         userForPickerDTO = new UserForPickerDTO("",
             TimetrackerUtil.getI18nText(UserForPickerDTO.CURRENT_USER_DISPLAY_NAME),
             "currentUser");

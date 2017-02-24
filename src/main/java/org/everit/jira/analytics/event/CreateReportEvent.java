@@ -20,9 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.everit.jira.analytics.PiwikUrlBuilder;
-import org.everit.jira.analytics.UserSelection;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
-import org.everit.jira.reporting.plugin.dto.UserForPickerDTO;
 import org.everit.jira.timetracker.plugin.JiraTimetrackerAnalytics;
 import org.everit.jira.timetracker.plugin.util.PiwikPropertiesUtil;
 
@@ -166,7 +164,6 @@ public class CreateReportEvent implements AnalyticsEvent {
         ActiveFilterConditionName.EPIC_NAME);
 
     List<String> users = new ArrayList<>(filterCondition.getGroupUsers());
-    boolean removedNoneUser = users.remove(UserForPickerDTO.NONE_USER_KEY);
     appendActiveFilterCondition(sb, users, ActiveFilterConditionName.USER);
 
     // TODO
@@ -176,15 +173,6 @@ public class CreateReportEvent implements AnalyticsEvent {
 
     String activeFilterCondition = sb.toString();
 
-    UserSelection userSelection;
-    if (removedNoneUser) {
-      userSelection = UserSelection.GROUP;
-    } else if ((users.size() == 1) && UserForPickerDTO.CURRENT_USER_KEY.equals(users.get(0))) {
-      userSelection = UserSelection.ONLY_OWN;
-    } else {
-      userSelection = UserSelection.USER;
-    }
-
     return new PiwikUrlBuilder(ACTION_URL, PiwikPropertiesUtil.PIWIK_REPORTING_SITEID,
         pluginId, hashUserId)
             .addEventCategory(EVENT_CATEGORY)
@@ -193,7 +181,6 @@ public class CreateReportEvent implements AnalyticsEvent {
             .addCustomDimesionSearcherValue(filterCondition.getSearcherValue())
             .addCustomDimesionSelectedWorklogDetailColumns(selectedWorklogDetailColumns)
             .addCustomDimesionActiveFilterCondition(activeFilterCondition)
-            .addCustomDimesionUserSelecton(userSelection)
             .buildUrl();
   }
 

@@ -30,6 +30,7 @@ import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.SearcherValue;
 import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
+import org.everit.jira.reporting.plugin.dto.GroupForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
 import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
@@ -209,23 +210,19 @@ public final class ConverterUtil {
         ComponentAccessor.getJiraAuthenticationContext();
     ApplicationUser user = jiraAuthenticationContext.getLoggedInUser();
     String loggedUserKey = TimetrackerUtil.getLoggedUserKey();
+    boolean currentUserInUsers = false;
+    if (users.remove(UserForPickerDTO.CURRENT_USER_KEY)) {
+      users.add(loggedUserKey);
+      currentUserInUsers = true;
+    }
     if (!PermissionUtil.hasBrowseUserPermission(user, settingsHelper)) {
-      if ((users.size() == 1) && (users.contains(UserForPickerDTO.CURRENT_USER_KEY)
-          || users.contains(loggedUserKey))) {
-        if (users.remove(UserForPickerDTO.CURRENT_USER_KEY)) {
-          users.add(loggedUserKey);
-        }
-      } else {
+      if (!((users.size() == 1) && currentUserInUsers)) {
         throw new IllegalArgumentException(NO_BROWSE_PERMISSION);
       }
     } else {
-      if (!users.isEmpty() && users.contains(UserForPickerDTO.NONE_USER_KEY)) {
-        users = ConverterUtil.queryUsersInGroup(
-            ConverterUtil.getGroupsFromFilterCondition(filterCondition.getGroupUsers()),
-            reportSearchParam);
-      } else if (users.remove(UserForPickerDTO.CURRENT_USER_KEY)) {
-        users.add(loggedUserKey);
-      }
+      users.addAll(ConverterUtil.queryUsersInGroup(
+          ConverterUtil.getGroupsFromFilterCondition(filterCondition.getGroupUsers()),
+          reportSearchParam));
     }
     reportSearchParam.users(users);
   }
@@ -386,8 +383,15 @@ public final class ConverterUtil {
         .asc("ASC".equals(order));
   }
 
-  private static List<String> getGroupsFromFilterCondition(final List<String> userGroups) {
-    return userGroups.stream().filter(p -> p.startsWith("group:"))
+  public static List<GroupForPickerDTO> getGroupsForPickerDTOFromFilterCondition(
+      final List<String> userGroups) {
+    List<String> groupsFromFilterCondition = ConverterUtil.getGroupsFromFilterCondition(userGroups);
+    return groupsFromFilterCondition.stream().map(p -> new GroupForPickerDTO(p))
+        .collect(Collectors.toList());
+  }
+
+  public static List<String> getGroupsFromFilterCondition(final List<String> userGroups) {
+    return userGroups.stream().filter(p -> p.startsWith("group:")).map(p -> p.substring(6))
         .collect(Collectors.toList());
   }
 
@@ -448,8 +452,8 @@ public final class ConverterUtil {
     return userKeys;
   }
 
-  private static List<String> getUsersFromFilterCondition(final List<String> groupUseres) {
-    return groupUseres.stream().filter(p -> p.startsWith("users:"))
+  public static List<String> getUsersFromFilterCondition(final List<String> groupUseres) {
+    return groupUseres.stream().filter(p -> p.startsWith("users:")).map(p -> p.substring(6))
         .collect(Collectors.toList());
   }
 
