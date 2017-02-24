@@ -305,7 +305,7 @@ public class SettingsLoadTest {
     dummyUserSettings.putUserSetting(UserSettingKey.START_TIME_CHANGE,
         "10");
     dummyUserSettings.putUserSetting(UserSettingKey.USER_CANCELED_UPDATE, "12.6.5");
-    dummyUserSettings.putUserSetting(UserSettingKey.USER_WD_SELECTED_COLUMNS, "issue");
+    dummyUserSettings.putUserSetting(UserSettingKey.REPORTING_SELECTED_WORKLOG_DETAILS_COLUMNS, "issue");
     Mockito.when(settingsFactoryMock.createGlobalSettings()).thenReturn(dummyGlobalSettings);
     Mockito.when(settingsFactoryMock.createSettingsForKey(Matchers.anyString()))
         .thenReturn(dummyUserSettings);
@@ -328,7 +328,7 @@ public class SettingsLoadTest {
     Assert.assertEquals(30, loadUserSettings.getPageSize());
     Assert.assertEquals(10, loadUserSettings.getStartTimeChange());
     Assert.assertEquals("12.6.5", loadUserSettings.getUserCanceledUpdate());
-    Assert.assertEquals("issue", loadUserSettings.getUserSelectedColumns());
+    Assert.assertEquals("issue", loadUserSettings.getReportingSelectedWorklogDetailsColumns());
     Assert.assertEquals(false, loadUserSettings.getWorklogTimeInSeconds());
 
   }

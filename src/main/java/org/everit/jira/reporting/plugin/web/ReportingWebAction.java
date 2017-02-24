@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.everit.jira.analytics.AnalyticsDTO;
 import org.everit.jira.analytics.AnalyticsSender;
@@ -40,7 +39,7 @@ import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
-import org.everit.jira.reporting.plugin.dto.ReportingSessionData;
+import org.everit.jira.reporting.plugin.dto.ReportingQueryParams;
 import org.everit.jira.reporting.plugin.dto.UserForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.UserPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.UserSummaryReportDTO;
@@ -110,8 +109,6 @@ public class ReportingWebAction extends JiraWebActionSupport {
    * Serial version UID.
    */
   private static final long serialVersionUID = 1L;
-
-  private static final String SESSION_KEY = "jtrpSessionDataKey";
 
   private AnalyticsDTO analyticsDTO;
 
@@ -246,9 +243,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
     ConvertedSearchParam convertedSearchParam = null;
     filterConditionJson = filterConditionJsonValue;
-    String[] selectedWorklogDetailsColumnsArray =
-        gson.fromJson(selectedWorklogDetailsColumnsJson, String[].class);
-    selectedWorklogDetailsColumns = Arrays.asList(selectedWorklogDetailsColumnsArray);
+    initSelectedFilterCondition(selectedWorklogDetailsColumnsJson);
 
     try {
       filterCondition = ConverterUtil.convertJsonToFilterCondition(filterConditionJson);
@@ -376,15 +371,13 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return users;
   }
 
-  private void defaultInitalizeData() {
+  private void defaultInitalizeData(final ReportingQueryParams reportingSavedData) {
     selectedMore = new ArrayList<>();
+    initSelectedFilterCondition(reportingSavedData.selectedWorklogDetailsColumnsJson);
     filterCondition = new FilterCondition();
     if (!hasBrowseUsersPermission) {
       filterCondition.setUsers(Arrays.asList(UserForPickerDTO.CURRENT_USER_KEY));
     }
-    String[] selectedWorklogDetailsColumnsArray =
-        gson.fromJson(userSettings.getUserSelectedColumns(), String[].class);
-    selectedWorklogDetailsColumns = Arrays.asList(selectedWorklogDetailsColumnsArray);
     initDatesIfNecessary();
   }
 
@@ -455,10 +448,13 @@ public class ReportingWebAction extends JiraWebActionSupport {
             selectedWorklogDetailsColumnsJson, collapsedDetailsModuleVal,
             collapsedSummaryModuleVal);
     if (SUCCESS.equals(createReportResult)) {
-      saveDataToSession(selectedMoreJson, selectedActiveTab, filterConditionJsonValue,
-          selectedWorklogDetailsColumnsJson, collapsedDetailsModuleVal,
-          collapsedSummaryModuleVal);
-      saveUserWorklogDetialsSelectedColumns(selectedWorklogDetailsColumnsJson);
+      ReportingQueryParams reportingSaveData =
+          new ReportingQueryParams().selectedMoreJson(selectedMoreJson)
+              .selectedActiveTab(selectedActiveTab).filterConditionJson(filterConditionJsonValue)
+              .selectedWorklogDetailsColumnsJson(selectedWorklogDetailsColumnsJson)
+              .collapsedDetailsModuleVal(collapsedDetailsModuleVal)
+              .collapsedSummaryModuleVal(collapsedSummaryModuleVal);
+      saveReportingData(reportingSaveData);
       CreateReportEvent analyticsEvent =
           new CreateReportEvent(analyticsDTO.getInstalledPluginId(), filterCondition,
               selectedWorklogDetailsColumns, selectedActiveTab);
@@ -639,19 +635,19 @@ public class ReportingWebAction extends JiraWebActionSupport {
   }
 
   private void initializeData() {
-    ReportingSessionData loadDataFromSession = loadDataFromSession();
-    if (loadDataFromSession != null) {
+    ReportingQueryParams reportingSavedData = userSettings.getReportinQueryParams();
+    if (!reportingSavedData.hasNullValue()) {
       FilterCondition filterConditionFromSession =
-          ConverterUtil.convertJsonToFilterCondition(loadDataFromSession.filterConditionJson);
+          ConverterUtil.convertJsonToFilterCondition(reportingSavedData.filterConditionJson);
       filterConditionFromSession.setLimit(Long.valueOf(pageSizeLimit));
       String filterConditionJsonFixedPageSize =
           ConverterUtil.convertFilterConditionToJson(filterConditionFromSession);
       // String createReportResult =
-      createReport(loadDataFromSession.selectedMoreJson, loadDataFromSession.selectedActiveTab,
+      createReport(reportingSavedData.selectedMoreJson, reportingSavedData.selectedActiveTab,
           filterConditionJsonFixedPageSize,
-          loadDataFromSession.selectedWorklogDetailsColumnsJson,
-          loadDataFromSession.collapsedDetailsModuleVal,
-          loadDataFromSession.collapsedSummaryModuleVal);
+          reportingSavedData.selectedWorklogDetailsColumnsJson,
+          reportingSavedData.collapsedDetailsModuleVal,
+          reportingSavedData.collapsedSummaryModuleVal);
       // FIXME This check is necessary because of the date parse errors not handeled well. In the
       // feature
       // try to avoid the formated dates store, better if we user timestamp
@@ -660,10 +656,16 @@ public class ReportingWebAction extends JiraWebActionSupport {
       // defaultInitalizeData();
       // }
     } else {
-      defaultInitalizeData();
+      defaultInitalizeData(reportingSavedData);
     }
 
     createUserPickersValue();
+  }
+
+  private void initSelectedFilterCondition(final String selectedWorklogDetailsColumnsJson) {
+    String[] selectedWorklogDetailsColumnsArray =
+        gson.fromJson(selectedWorklogDetailsColumnsJson, String[].class);
+    selectedWorklogDetailsColumns = Arrays.asList(selectedWorklogDetailsColumnsArray);
   }
 
   public boolean isCollapsedDetailsModule() {
@@ -676,16 +678,6 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   public boolean isDefaultCommand() {
     return defaultCommand;
-  }
-
-  private ReportingSessionData loadDataFromSession() {
-    HttpSession session = getHttpSession();
-    Object data = session.getAttribute(SESSION_KEY);
-
-    if (!(data instanceof ReportingSessionData)) {
-      return null;
-    }
-    return (ReportingSessionData) data;
   }
 
   private void loadFavoriteFilters() {
@@ -737,27 +729,15 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return new UpdateNotifier(settingsHelper).isShowUpdater();
   }
 
-  private void saveDataToSession(final String selectedMoreJson, final String selectedActiveTab,
-      final String filterConditionJsonValue, final String selectedWorklogDetailsColumnsJson,
-      final String collapsedDetailsModuleVal, final String collapsedSummaryModuleVal) {
-    HttpSession session = getHttpSession();
-    session.setAttribute(SESSION_KEY,
-        new ReportingSessionData().selectedMoreJson(selectedMoreJson)
-            .selectedActiveTab(selectedActiveTab).filterConditionJson(filterConditionJsonValue)
-            .selectedWorklogDetailsColumnsJson(selectedWorklogDetailsColumnsJson)
-            .collapsedDetailsModuleVal(collapsedDetailsModuleVal)
-            .collapsedSummaryModuleVal(collapsedSummaryModuleVal));
-  }
-
   private void saveIsShowTutorial(final boolean isDoNotShow) {
     TimeTrackerUserSettings userSettings =
         new TimeTrackerUserSettings().isShowTutorialDialog(isDoNotShow);
     settingsHelper.saveUserSettings(userSettings);
   }
 
-  private void saveUserWorklogDetialsSelectedColumns(final String selectedColumnsJson) {
+  private void saveReportingData(final ReportingQueryParams reportingSavedData) {
     TimeTrackerUserSettings userSettings =
-        new TimeTrackerUserSettings().selectedColumnsJSon(selectedColumnsJson);
+        new TimeTrackerUserSettings().setReportingQueryParams(reportingSavedData);
     settingsHelper.saveUserSettings(userSettings);
   }
 

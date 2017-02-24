@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
+import org.everit.jira.reporting.plugin.dto.ReportingQueryParams;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.VersionComperatorUtil;
 import org.joda.time.DateTime;
@@ -179,6 +180,53 @@ public class TimeTrackerUserSettings {
     return pluginSettingsKeyValues;
   }
 
+  public String getReportingCollapsedDetailsModuleVal() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_COLLAPSE_DDETAILS_MODULE_VAL);
+  }
+
+  public String getReportingCollapsedSummaryModuleVal() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_COLLAPSED_SUMMARY_MODULE_VAL);
+  }
+
+  public String getReportingFilterConditionJson() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_FILTER_CONDITION_JSON);
+  }
+
+  public String getReportingSelectedActiveTab() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_SELECTED_ACTIVE_TAB);
+  }
+
+  /**
+   * Get the user saved worklog detials selected columns value.
+   *
+   * @return The saved value from settigns.
+   */
+  public String getReportingSelectedWorklogDetailsColumns() {
+    String selectedColumnsJson =
+        pluginSettingsKeyValues.get(UserSettingKey.REPORTING_SELECTED_WORKLOG_DETAILS_COLUMNS);
+    if (selectedColumnsJson != null) {
+      return selectedColumnsJson;
+    }
+    Gson gson = new Gson();
+    return gson.toJson(WorklogDetailsColumns.DEFAULT_COLUMNS);
+  }
+
+  /**
+   * Get reporting query search parameters.
+   */
+  public ReportingQueryParams getReportinQueryParams() {
+    return new ReportingQueryParams().selectedMoreJson(getReprotingSelectedMoreJson())
+        .selectedActiveTab(getReportingSelectedActiveTab())
+        .filterConditionJson(getReportingFilterConditionJson())
+        .selectedWorklogDetailsColumnsJson(getReportingSelectedWorklogDetailsColumns())
+        .collapsedDetailsModuleVal(getReportingCollapsedDetailsModuleVal())
+        .collapsedSummaryModuleVal(getReportingCollapsedSummaryModuleVal());
+  }
+
+  public String getReprotingSelectedMoreJson() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_MORE_FILTER_JSON);
+  }
+
   /**
    * Get the start time change settings value. The default is 5.
    */
@@ -205,21 +253,6 @@ public class TimeTrackerUserSettings {
    */
   public String getUserCanceledUpdate() {
     return pluginSettingsKeyValues.get(UserSettingKey.USER_CANCELED_UPDATE);
-  }
-
-  /**
-   * Get the user saved worklog detials selected columns value.
-   *
-   * @return The saved value from settigns.
-   */
-  public String getUserSelectedColumns() {
-    String selectedColumnsJson =
-        pluginSettingsKeyValues.get(UserSettingKey.USER_WD_SELECTED_COLUMNS);
-    if (selectedColumnsJson != null) {
-      return selectedColumnsJson;
-    }
-    Gson gson = new Gson();
-    return gson.toJson(WorklogDetailsColumns.DEFAULT_COLUMNS);
   }
 
   public String getUserSettingValue(final UserSettingKey key) {
@@ -386,8 +419,46 @@ public class TimeTrackerUserSettings {
    * Put the selected columns in JSON format.
    */
   public TimeTrackerUserSettings selectedColumnsJSon(final String selectedColumnsJson) {
-    pluginSettingsKeyValues.put(UserSettingKey.USER_WD_SELECTED_COLUMNS, selectedColumnsJson);
+    pluginSettingsKeyValues.put(UserSettingKey.REPORTING_SELECTED_WORKLOG_DETAILS_COLUMNS,
+        selectedColumnsJson);
     return this;
+  }
+
+  public void setReportingCollapsedDetailsModuleVal(final String collapsedDetailsModuleVal) {
+    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_COLLAPSE_DDETAILS_MODULE_VAL,
+        collapsedDetailsModuleVal);
+  }
+
+  public void setReportingCollapsedSummaryModuleVal(final String collapsedSummaryModuleVal) {
+    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_COLLAPSED_SUMMARY_MODULE_VAL,
+        collapsedSummaryModuleVal);
+  }
+
+  public void setReportingFilterConditionJson(final String filterConditionJson) {
+    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_FILTER_CONDITION_JSON,
+        filterConditionJson);
+  }
+
+  /**
+   * Set reporting query parameters.
+   */
+  public TimeTrackerUserSettings setReportingQueryParams(
+      final ReportingQueryParams reportingSavedData) {
+    setReportingCollapsedDetailsModuleVal(reportingSavedData.collapsedDetailsModuleVal);
+    setReportingCollapsedSummaryModuleVal(reportingSavedData.collapsedSummaryModuleVal);
+    setReportingFilterConditionJson(reportingSavedData.filterConditionJson);
+    setReportingSelectedActiveTab(reportingSavedData.selectedActiveTab);
+    setReprotingSelectedMoreJson(reportingSavedData.selectedMoreJson);
+    selectedColumnsJSon(reportingSavedData.selectedWorklogDetailsColumnsJson);
+    return this;
+  }
+
+  public void setReportingSelectedActiveTab(final String selectedActiveTab) {
+    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_SELECTED_ACTIVE_TAB, selectedActiveTab);
+  }
+
+  public void setReprotingSelectedMoreJson(final String moreConditionJson) {
+    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_MORE_FILTER_JSON, moreConditionJson);
   }
 
   /**
