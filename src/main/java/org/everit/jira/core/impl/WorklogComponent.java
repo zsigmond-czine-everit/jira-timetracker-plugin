@@ -164,7 +164,6 @@ public class WorklogComponent implements EVWorklogManager {
     WorklogService worklogService = ComponentAccessor.getComponent(WorklogService.class);
     checkPermissionWorklogCreate(issues, serviceContext, worklogService);
 
-    // TODO start create worklogs, only thing if one fail. others fail
     for (MutableIssue issue : issues) {
       Builder builder = getBuilder(issue,
           worklogParameter.getDate().getSystemTimeZoneDate(),
