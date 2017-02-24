@@ -45,6 +45,8 @@
 	                                          <option value="jtrp_col_affectedVersions">$i18n.getText("jtrp.report.wd.col.jtrp_col_affectedVersions")</option>
 	                                          <option value="jtrp_col_fixVersions">$i18n.getText("jtrp.report.wd.col.jtrp_col_fixVersions")</option>
 	                                          <option value="jtrp_col_resolution">$i18n.getText("jtrp.report.wd.col.jtrp_col_resolution")</option>
+	                                          <option value="jtrp_col_parentIssueKey">$i18n.getText("jtrp.report.wd.col.jtrp_col_parentIssueKey")</option>
+	                                          <option value="jtrp_col_subTasks">$i18n.getText("jtrp.report.wd.col.jtrp_col_subTasks")</option>
 	                                          <option value="jtrp_col_worklogDescription">$i18n.getText("jtrp.report.wd.col.jtrp_col_worklogDescription")</option>
 	                                          <option value="jtrp_col_user">$i18n.getText("jtrp.report.wd.col.jtrp_col_user.select")</option>
 	                                          <option value="jtrp_col_startTime">$i18n.getText("jtrp.report.wd.col.jtrp_col_startTime.select")</option>
@@ -119,7 +121,9 @@
                                 #set($isNotShowIssueSummary = !$selectedWorklogDetailsColumns.contains("jtrp_col_issueSummary"))
                                 #set($isNotShowUser = !$selectedWorklogDetailsColumns.contains("jtrp_col_user"))
                                 #set($isNotShowTimeSpent = !$selectedWorklogDetailsColumns.contains("jtrp_col_timeSpent"))
-                                   
+                                #set($isNotShowParentIssueKey = !$selectedWorklogDetailsColumns.contains("jtrp_col_parentIssueKey"))
+                                #set($isNotShowSubTasks = !$selectedWorklogDetailsColumns.contains("jtrp_col_subTasks"))
+                                
                                 #set($defaultOrder = "ASC")
                                 #set($isAscOrder = $order.equals("ASC"))
                                 <thead>
@@ -414,6 +418,33 @@
                                             <span>
                                         </th>
                                         
+                                          #if( $orderColumn.equals("jtrp_col_parentIssueKey") ) 
+                                          #if( $isAscOrder ) 
+                                            #set($orderName = 'DESC') 
+                                            #set($className = 'jttp-tablesorter-headerAsc') 
+                                          #else 
+                                            #set($orderName = 'ASC') 
+                                            #set($className = 'jttp-tablesorter-headerDesc') 
+                                          #end 
+                                        #else 
+                                          #set($orderName = $defaultOrder)
+                                          #set($className = '') 
+                                        #end                                       
+                                        <th onclick="everit.reporting.main.getWorklogDetailsPage(0, 'jtrp_col_parentIssueKey', '$orderName');"
+                                          data-jtrp-col-name="jtrp_col_parentIssueKey"
+                                          class="jtrp_col_parentIssueKey jttp-tablesorter-header $className" style="#if( $isNotShowParentIssueKey )display:none;#end">
+                                            <span class="jttp-aui-table-header-content">
+                                              $i18n.getText("jtrp.report.wd.col.jtrp_col_parentIssueKey")
+                                            <span>
+                                        </th>
+                                        
+                                        <th data-jtrp-col-name="jtrp_col_subTasks"
+                                          class="jtrp_col_worklogDescription jttp-tablesorter-header jttp-aui-table-column-unsortable" style="#if( $isNotShowSubTasks )display:none;#end">
+                                            <span>
+                                              $i18n.getText("jtrp.report.wd.col.jtrp_col_subTasks")
+                                            <span>
+                                        </th>
+                                        
                                         <th data-jtrp-col-name="jtrp_col_worklogDescription"
                                           class="jtrp_col_worklogDescription jttp-tablesorter-header jttp-aui-table-column-unsortable" style="#if( $isNotShowWorklogDescription )display:none;#end">
                                             <span>
@@ -596,6 +627,13 @@
                                         <td class="jtrp_col_affectedVersions" style="#if( $isNotShowAffectedVersions )display:none;#end">#if ( !$wd.issueAffectedVersions.isEmpty() ) #foreach ( $affectedVersion in $wd.issueAffectedVersions )#if($velocityCount> 1),#end $affectedVersion #end #end</td>
                                         <td class="jtrp_col_fixVersions" style="#if( $isNotShowFixVersions )display:none;#end">#if ( !$wd.issueFixedVersions.isEmpty() ) #foreach ( $fixedVersion in $wd.issueFixedVersions )#if($velocityCount> 1),#end $fixedVersion #end #end</td>
                                         <td class="jtrp_col_resolution" style="#if( $isNotShowResolution )display:none;#end">#if ( !$wd.resolutionName )$i18n.getText("jtrp.picker.unresolved.value") #else $wd.resolutionName #end</td>
+                                        <td class="jtrp_col_parentIssueKey" style="#if( $isNotShowParentIssueKey )display:none;#end">#if ( $wd.parentIssueKey ) <a href="$contextPath/browse/$wd.parentIssueKey" onmouseover="everit.reporting.main.onmouseOverParentIssueKey('$wd.parentIssueKey' ,this)" class="issue-link">$wd.parentIssueKey</a>#end</td>
+                                        <td class="jtrp_col_subTasks" style="#if( $isNotShowSubTasks )display:none;#end">#if ( !$wd.subTasks.isEmpty() )
+                                            #set($end=$wd.subTasks.size() - 1)
+                                            #set($range = [0..$end])
+                                            #foreach($i in $range)
+                                            #set($subTask=$wd.subTasks.get($i))
+                                            <a href="$contextPath/browse/$subTask" onmouseover="everit.reporting.main.onmouseOverParentIssueKey('$subTask' ,this)" class="issue-link">$subTask</a>#if($i<$end), #end #end #end</td>
                                         <td class="jtrp_col_worklogDescription" style="#if( $isNotShowWorklogDescription )display:none;#end">$atlassianWikiRenderer.render($wd.worklogBody, $issueRenderContext)</td>
                                         <td class="jtrp_col_issueEpicName" style="#if( $isNotShowIssueEpicName )display:none;#end">#if ( !$wd.issueEpicName ) #else $wd.issueEpicName #end</td>
                                         <td class="jtrp_col_issueEpicLink" style="#if( $isNotShowIssueEpicLink )display:none;#end">#if ( !$wd.issueEpicLink ) #else $wd.issueEpicLink #end</td>

@@ -23,6 +23,7 @@
                                             <th id='is_jtrp_col_priority' title='$i18n.getText("jtrp.report.is.col.jtrp_col_priority.tooltip")'>$i18n.getText("jtrp.report.is.col.jtrp_col_priority")</th>
                                             <th>$i18n.getText("jtrp.report.is.col.jtrp_col_status")</th>
                                             <th>$i18n.getText("jtrp.report.is.col.jtrp_col_assignee")</th>
+                                            <th>$i18n.getText("jtrp.report.is.col.jtrp_col_parentIssueKey")</th>
                                             <th>$i18n.getText("jtrp.report.is.col.jtrp_col_estimated")</th>
                                             <th>$i18n.getText("jtrp.report.is.col.jtrp_col_remaining")</th>
                                             <th>$i18n.getText("jtrp.report.is.col.jtrp_col_totalLogged")</th>
@@ -50,6 +51,7 @@
                                               <span original-title="" class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-$statusCategory.colorName jira-issue-status-lozenge-$statusCategory.key aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="<span class=&quot;jira-issue-status-tooltip-title&quot;>$is.statusName</span>">$is.statusName</span>
                                             </td>
                                             <td>#if ( !$is.assignee ) $i18n.getText("jtrp.picker.unassigned.value") #else $is.assignee #end</td>
+                                            <td>#if ( $is.parentIssueKey ) <a href="$contextPath/browse/$is.parentIssueKey" onmouseover="everit.reporting.main.onmouseOverParentIssueKey('$is.parentIssueKey' ,this)" class="issue-link">$is.parentIssueKey</a>#end</td>
                                             <td>$durationFormatter.exactDuration($is.orginalEstimatedSum)</td>
                                             <td>$durationFormatter.exactDuration($is.reaminingTimeSum)</td>
                                             <td>$durationFormatter.exactDuration($is.workloggedTimeSum)</td>

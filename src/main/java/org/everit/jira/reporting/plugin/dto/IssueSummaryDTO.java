@@ -41,6 +41,8 @@ public class IssueSummaryDTO {
 
     public static final String ISSUE_TYPE_NAME = "issueTypeName";
 
+    public static final String PARENT_ISSUE_KEY = "parentIssueKey";
+
     public static final String PRIORITY_ICON_URL = "priorityIconUrl";
 
     public static final String PRIORITY_NAME = "priorityName";
@@ -68,6 +70,8 @@ public class IssueSummaryDTO {
   private String issueTypeName;
 
   private long orginalEstimatedSum;
+
+  private String parentIssueKey;
 
   private String priorityIconUrl;
 
@@ -110,6 +114,10 @@ public class IssueSummaryDTO {
 
   public long getOrginalEstimatedSum() {
     return orginalEstimatedSum;
+  }
+
+  public String getParentIssueKey() {
+    return parentIssueKey;
   }
 
   public String getPriorityIconUrl() {
@@ -158,6 +166,10 @@ public class IssueSummaryDTO {
 
   public void setOrginalEstimatedSum(final long orginalEstimatedSum) {
     this.orginalEstimatedSum = orginalEstimatedSum;
+  }
+
+  public void setParentIssueKey(final String parentIssueKey) {
+    this.parentIssueKey = parentIssueKey;
   }
 
   public void setPriorityIconUrl(final String priorityIconUrl) {

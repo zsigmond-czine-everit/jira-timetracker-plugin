@@ -30,6 +30,8 @@ public final class IssueSummaryColumns {
 
   public static final String ISSUE_SUMMARY = "jtrp_col_issueSummary";
 
+  public static final String PARENT_ISSUE_KEY = "jtrp_col_parentIssueKey";
+
   public static final String PRIORITY = "jtrp_col_priority";
 
   public static final String REMAINING = "jtrp_col_remaining";

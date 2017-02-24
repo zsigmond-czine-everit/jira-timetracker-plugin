@@ -115,6 +115,7 @@ public class ExportSummariesListReport extends AbstractExportListReport {
     columnIndex = insertBodyCell(row, columnIndex, issueSummaryDTO.getPriorityName());
     columnIndex = insertBodyCell(row, columnIndex, issueSummaryDTO.getStatusName());
     columnIndex = insertBodyCell(row, columnIndex, issueSummaryDTO.getAssignee());
+    columnIndex = insertBodyCell(row, columnIndex, issueSummaryDTO.getParentIssueKey());
     columnIndex =
         insertBodyCell(row, columnIndex, worklogInSec(issueSummaryDTO.getOrginalEstimatedSum()));
     columnIndex =
@@ -145,6 +146,8 @@ public class ExportSummariesListReport extends AbstractExportListReport {
         i18nHelper.getText(ISSUE_SUMMARY_PREFIX + IssueSummaryColumns.STATUS));
     columnIndex = insertHeaderCell(row, columnIndex,
         i18nHelper.getText(ISSUE_SUMMARY_PREFIX + IssueSummaryColumns.ASSIGNEE));
+    columnIndex = insertHeaderCell(row, columnIndex,
+        i18nHelper.getText(ISSUE_SUMMARY_PREFIX + IssueSummaryColumns.PARENT_ISSUE_KEY));
     columnIndex = insertHeaderCellInSec(row, columnIndex,
         i18nHelper.getText(ISSUE_SUMMARY_PREFIX + IssueSummaryColumns.ESTIMATED));
     columnIndex = insertHeaderCellInSec(row, columnIndex,

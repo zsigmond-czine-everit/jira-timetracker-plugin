@@ -1346,5 +1346,22 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
       }
     });
   }
+  reporting.onmouseOverParentIssueKey=function(issueKey, element){
+	  if(jQuery(element).attr('title')){
+		  return;
+	  }
+	  jQuery.ajax({
+	      async: true,
+	      type: 'GET',
+	      url : contextPath + "/rest/api/2/issue/"+ issueKey +"?fields=summary",
+	      data : [],
+	      success : function(result){
+	    	  jQuery(element).prop('title', result.fields.summary);
+	        
+	      },
+	      error : function(XMLHttpRequest, status, error){
+	      }
+	    });
+  }
   
 })(everit.reporting.main, jQuery);
