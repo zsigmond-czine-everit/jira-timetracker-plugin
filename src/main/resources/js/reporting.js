@@ -64,7 +64,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     initMoreSelect();
 
     initGroupUserSelect();
-    initGroupSelect();
+    //initGroupSelect();
 
     initWorklogDetailsColumns();
 

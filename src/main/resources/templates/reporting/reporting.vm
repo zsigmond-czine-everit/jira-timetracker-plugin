@@ -550,24 +550,6 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                            </div>
                                          </div>
                                          <!-- User Dropdown End-->
-                                         <!-- Group Dropdown  BUTTON-->
-                                         <a id="groupPickerButton" href="#groupPickerDropDown" aria-disabled="false" aria-owns="groupPickerDropDown" aria-haspopup="true" class="criteria-selector aui-button aui-button-subtle drop-arrow aui-dropdown2-trigger" title='$i18n.getText("jtrp.picker.group.tooltip")'></a>
-                                         <!-- Group Dropdown -->
-                                         <div id="groupPickerDropDown" class="aui-style-default aui-dropdown2">
-                                           <div class="jttr-filter-field">
-                                             <div class='ajs-layer box-shadow'>
-                                               <div>
-                                                 <div class='form-body'>
-                                                   <div class='field-group aui-field-issuetype'>
-                                                     <select  id="groupPicker" name="groupPicker"  multiple="multiple" >
-                                                     </select>
-                                                   </div>
-                                                 </div>
-                                               </div>
-                                             </div>
-                                           </div>
-                                         </div>
-                                         <!-- Group Dropdown End-->
                                     </div>
                                 </div>
                             </div>
