@@ -52,7 +52,7 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
 				loggedDays : ${loggedDays},
 				isDurationSelected : ${worklogValues.duration},
 				projectsId : ${projectsId},
-				issueKey : '${worklogValues.issueKey}',
+				issueKey : [ #foreach( $tmp in $worklogValues.issueKey)#if($velocityCount> 1),#end "$tmp" #end ],
 				comment: '${worklogValues.comment}',
 				actionFlag: '${actionFlag}',
 				worklogSize: ${worklogs.size()},

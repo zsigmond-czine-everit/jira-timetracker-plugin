@@ -15,6 +15,8 @@
  */
 package org.everit.jira.core.dto;
 
+import java.util.List;
+
 import org.everit.jira.core.RemainingEstimateType;
 import org.everit.jira.core.impl.DateTimeServer;
 
@@ -27,7 +29,7 @@ public class WorklogParameter {
 
   private final DateTimeServer date;
 
-  private final String issueKey;
+  private final List<String> issueKeys;
 
   private final String optinalValue;
 
@@ -38,8 +40,8 @@ public class WorklogParameter {
   /**
    * Simple constructor.
    *
-   * @param issueKey
-   *          the key of the issue.
+   * @param issueKeys
+   *          the keys of the issues.
    * @param comment
    *          the note of the worklog.
    * @param date
@@ -52,10 +54,11 @@ public class WorklogParameter {
    * @param remainingEstimateType
    *          the type of the remaining estimate.
    */
-  public WorklogParameter(final String issueKey, final String comment, final DateTimeServer date,
+  public WorklogParameter(final List<String> issueKeys, final String comment,
+      final DateTimeServer date,
       final String timeSpent, final String optinalValue,
       final RemainingEstimateType remainingEstimateType) {
-    this.issueKey = issueKey;
+    this.issueKeys = issueKeys;
     this.comment = comment;
     this.date = date;
     this.timeSpent = timeSpent;
@@ -71,8 +74,8 @@ public class WorklogParameter {
     return date != null ? date : null;
   }
 
-  public String getIssueKey() {
-    return issueKey;
+  public List<String> getIssueKeys() {
+    return issueKeys;
   }
 
   public String getOptinalValue() {
