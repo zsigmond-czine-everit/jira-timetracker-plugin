@@ -24,7 +24,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
@@ -54,6 +56,9 @@ import org.everit.jira.timetracker.plugin.util.PropertiesUtil;
 import org.everit.jira.timetracker.plugin.util.TimeAutoCompleteUtil;
 import org.everit.jira.updatenotifier.UpdateNotifier;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
 
 import com.atlassian.jira.bc.issue.worklog.TimeTrackingConfiguration;
 import com.atlassian.jira.component.ComponentAccessor;
@@ -116,12 +121,16 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
 
     public static final String MISSING_ISSUE = "plugin.missing_issue";
 
+    public static final String PLUGIN_INVALID_END_DATE = "plugin.invalid_endDate";
+
     public static final String PLUGIN_INVALID_END_TIME = "plugin.invalid_endTime";
 
     public static final String PLUGIN_INVALID_TIME_CONTAINS_SECOND =
         "plugin.invalid_timeContainsSecond";
 
     public static final String PLUGIN_INVALID_TIME_INTERVAL = "plugin.invalid_timeInterval";
+
+    public static final String PLUGIN_WRONG_END_DATE = "plugin.wrong.endDate";
 
     public static final String WORKLOG_OVER_DAY = "plugin.worklogReachNextDay";
   }
@@ -203,6 +212,8 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   private String messageParameter = "";
 
   private List<Long> parsedEditAllIds = Collections.emptyList();
+
+  private DateTime periodEndDate;
 
   private final PluginCondition pluginCondition;
 
@@ -445,11 +456,13 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
     if (validateInputFieldsResult.equals(INPUT)) {
       return INPUT;
     }
-    String result =
-        createWorklog(worklogValues.getIssueKey(), worklogValues.getCommentForActions(),
-            DateTimeServer.getInstanceBasedOnUserTimeZone(currentTimeInUserTimeZone),
-            worklogValues.getStartTime(),
-            timeSpent);
+    String result = createWorklog(worklogValues.getIssueKey(),
+        worklogValues.getCommentForActions(),
+        DateTimeServer.getInstanceBasedOnUserTimeZone(currentTimeInUserTimeZone),
+        worklogValues.getStartTime(),
+        timeSpent,
+        worklogValues.isPeriod(),
+        periodEndDate);
     if (SUCCESS.equals(result)) {
       if ((actionWorklogId != null) && "copy".equals(actionFlag)) {
         actionFlag = "";
@@ -473,31 +486,84 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   }
 
   private String createWorklog(final List<String> issueKeys, final String commentForActions,
-      final DateTimeServer date, final String startTime, final String timeSpent) {
-    try {
-      RemainingEstimateType remainingEstimateType =
-          RemainingEstimateType.valueOf(worklogValues.getRemainingEstimateType());
-      String optinalValue = "";
-      if (RemainingEstimateType.NEW.equals(remainingEstimateType)) {
-        optinalValue = worklogValues.getNewEstimate();
-      } else if (RemainingEstimateType.MANUAL.equals(remainingEstimateType)) {
-        optinalValue = worklogValues.getAdjustmentAmount();
-      }
-      DateTimeServer dateStartTime = date.addStartTime(startTime);
-
-      WorklogParameter worklogParameter = new WorklogParameter(issueKeys,
-          commentForActions,
-          dateStartTime,
-          timeSpent,
-          optinalValue,
-          remainingEstimateType);
-      worklogManager.createWorklog(worklogParameter);
-    } catch (WorklogException e) {
-      message = e.getMessage();
-      messageParameter = e.messageParameter;
-      return INPUT;
+      final DateTimeServer date, final String startTime, final String timeSpent,
+      final boolean period, final DateTime endDate) {
+    List<DateTimeServer> createWorklogDates = new ArrayList<>();
+    if (period) {
+      int daysLimit =
+          Days.daysBetween(date.getUserTimeZone().toLocalDate(),
+              endDate.toLocalDate()).getDays() + 2;
+      // +2 becasue the start and end date not count as between
+      Set<DateTime> excludeDates = globalSettings.getExcludeDates();
+      Set<DateTime> includeDates = globalSettings.getIncludeDates();
+      Stream.iterate(date.getUserTimeZone(), iteratorDate -> iteratorDate.plusDays(1))
+          .limit(daysLimit)
+          .filter(filterDate -> {
+            // TODO check DT equlas
+            if (excludeDates.stream()
+                .filter(excludeDate -> {
+                  return dateTimeComperator(excludeDate, filterDate);
+                })
+                .findAny()
+                .isPresent()) {
+              return false;
+            }
+            if (includeDates.stream()
+                .filter(includeDate -> {
+                  return dateTimeComperator(includeDate, filterDate);
+                }).findAny()
+                .isPresent()) {
+              return true;
+            }
+            if ((filterDate.getDayOfWeek() == DateTimeConstants.SATURDAY)
+                || (filterDate.getDayOfWeek() == DateTimeConstants.SUNDAY)) {
+              return false;
+            }
+            return true;
+          }).forEach(filteredDate -> {
+            // meeh
+            createWorklogDates.add(DateTimeServer.getInstanceBasedOnUserTimeZone(filteredDate));
+          });
+    } else {
+      createWorklogDates.add(date);
     }
+    for (DateTimeServer createWorklog : createWorklogDates) {
+      try {
+        RemainingEstimateType remainingEstimateType =
+            RemainingEstimateType.valueOf(worklogValues.getRemainingEstimateType());
+        String optinalValue = "";
+        if (RemainingEstimateType.NEW.equals(remainingEstimateType)) {
+          optinalValue = worklogValues.getNewEstimate();
+        } else if (RemainingEstimateType.MANUAL.equals(remainingEstimateType)) {
+          optinalValue = worklogValues.getAdjustmentAmount();
+        }
+        DateTimeServer dateStartTime = createWorklog.addStartTime(startTime);
+
+        WorklogParameter worklogParameter = new WorklogParameter(issueKeys,
+            commentForActions,
+            dateStartTime,
+            timeSpent,
+            optinalValue,
+            remainingEstimateType);
+        worklogManager.createWorklog(worklogParameter);
+      } catch (WorklogException e) {
+        message = e.getMessage();
+        messageParameter = e.messageParameter;
+        return INPUT;
+      }
+    }
+    worklogValues.setPeriod(false);
     return SUCCESS;
+  }
+
+  private boolean dateTimeComperator(final DateTime date, final DateTime otherDate) {
+    if ((date.getMonthOfYear() == otherDate.getMonthOfYear())
+        && (date.getYear() == otherDate.getYear())
+        && (date.getEra() == otherDate.getEra())
+        && (date.getDayOfMonth() == otherDate.getDayOfMonth())) {
+      return true;
+    }
+    return false;
   }
 
   private String decideToShowWarningUrl() {
@@ -716,6 +782,19 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
 
   public String getEditAllIds() {
     return editAllIds;
+  }
+
+  /**
+   * Get end date for date picker.
+   */
+  public String getEndDateInJSDatePickerFormat() {
+    if (worklogValues.getEndDate() == null) {
+      return "";
+    } else {
+      return super.getDateTimeFormatter().withStyle(DateTimeStyle.DATE_PICKER)
+          .withZone(DateTimeZone.UTC.toTimeZone())
+          .format(new Date(worklogValues.getEndDate()));
+    }
   }
 
   /**
@@ -1018,6 +1097,20 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   }
 
   private String validateInputFields() {
+    if (worklogValues.isPeriod()) {
+      if (worklogValues.getEndDate() != null) {
+        periodEndDate =
+            new DateTime(worklogValues.getEndDate(),
+                TimetrackerUtil.getLoggedUserTimeZone());
+        if (!periodEndDate.isAfter(currentTimeInUserTimeZone.getMillis())) {
+          message = PropertiesKey.PLUGIN_WRONG_END_DATE;
+          return INPUT;
+        }
+      } else {
+        message = PropertiesKey.PLUGIN_INVALID_END_DATE;
+        return INPUT;
+      }
+    }
     if ((worklogValues.getIssueKey() == null) || worklogValues.getIssueKey().isEmpty()) {
       message = PropertiesKey.MISSING_ISSUE;
       return INPUT;

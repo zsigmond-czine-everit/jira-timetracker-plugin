@@ -288,6 +288,10 @@ div#jttp-logwork-time > div.field-group {
   margin-right: 53px;
 }
 
+.aui-group.aui-group-split>.aui-item.enddate-field{
+  text-align: left
+}
+
 div#jttp-logwork-time > div.field-group > input.text{
   max-width: 90px;
 }

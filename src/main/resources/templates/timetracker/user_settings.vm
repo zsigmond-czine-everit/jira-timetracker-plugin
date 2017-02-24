@@ -117,6 +117,11 @@
           <input id="showRemaningEstimate" type="checkbox" value="showRemaningEstimate" class="settings-input" name="showRemaningEstimate" #if($showRemaningEstimate) checked #end/>
           <div class="description">$i18n.getText("plugin.setting.remainingestimate.options.help")</div>
         </div>
+        <div class="field-group">
+          <label>$i18n.getText("plugin.setting.periodworklogs.options"):</label>
+          <input id="showPeriodWorklogs" type="checkbox" value="showPeriodWorklogs" class="settings-input" name="showPeriodWorklogs" #if($showPeriodWorklogs) checked #end/>
+          <div class="description">$i18n.getText("plugin.setting.periodworklogs.options.help")</div>
+        </div>
         
         <h3>$i18n.getText("plugin.setting.worklog.data.appearance")</h3>
         <div class="field-group">

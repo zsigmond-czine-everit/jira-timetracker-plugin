@@ -120,6 +120,8 @@ public final class JTTPSettingsKey {
   public static final String JTTP_PLUGIN_SETTINGS_SHOW_ISSUE_SUMMARY_IN_WORKLOG_TABLE =
       "showIssueSummaryInWoroklogTable";
 
+  public static final String JTTP_PLUGIN_SETTINGS_SHOW_PERIOD_WORKLOGS = "showPeriodWorklogs";
+
   public static final String JTTP_PLUGIN_SETTINGS_SHOW_REMANING_ESTIMATE = "showRemaningEstimate";
 
   /**
