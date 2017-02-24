@@ -111,6 +111,8 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
 
   private TimeTrackerSettingsHelper settingsHelper;
 
+  private boolean showPeriodWorklogs = false;
+
   private boolean showRemaningEstimate = false;
 
   private String stacktrace = "";
@@ -247,6 +249,10 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
     return activeFieldDuration;
   }
 
+  public boolean isShowPeriodWorklogs() {
+    return showPeriodWorklogs;
+  }
+
   public boolean isShowRemaningEstimate() {
     return showRemaningEstimate;
   }
@@ -274,6 +280,7 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
     activeFieldDuration = loaduserSettings.isActiveFieldDuration();
     defaultStartTime = loaduserSettings.getDefaultStartTime();
     showRemaningEstimate = loaduserSettings.isShowRemaningEstimate();
+    showPeriodWorklogs = loaduserSettings.isShowPeriodWorklogs();
   }
 
   private void pareseCalendarAppearanceSettings(final HttpServletRequest request) {
@@ -285,6 +292,7 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
   private void parseInputFieldsSettings(final HttpServletRequest request,
       final String activeFieldParam) {
     showRemaningEstimate = request.getParameter("showRemaningEstimate") != null;
+    showPeriodWorklogs = request.getParameter("showPeriodWorklogs") != null;
 
     if ("duration".equals(activeFieldParam)) {
       activeFieldDuration = true;
@@ -395,7 +403,8 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
         .isShowFutureLogWarning(isShowFutureLogWarning)
         .activeFieldDuration(activeFieldDuration)
         .defaultStartTime(defaultStartTime)
-        .showRemaningEstimate(showRemaningEstimate);
+        .showRemaningEstimate(showRemaningEstimate)
+        .showPeriodWorklogs(showPeriodWorklogs);
     settingsHelper.saveUserSettings(timeTrackerUserSettings);
   }
 

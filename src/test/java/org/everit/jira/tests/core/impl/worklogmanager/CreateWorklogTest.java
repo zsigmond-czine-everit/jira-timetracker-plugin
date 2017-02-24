@@ -16,6 +16,7 @@
 package org.everit.jira.tests.core.impl.worklogmanager;
 
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -308,7 +309,7 @@ public class CreateWorklogTest {
     String defaultTimeSpent = "1h";
 
     try {
-      worklogManager.createWorklog(new WorklogParameter(invalidIssueId,
+      worklogManager.createWorklog(new WorklogParameter(Arrays.asList(invalidIssueId),
           defaultComment,
           defaultDate,
           defaultTimeSpent,
@@ -320,7 +321,7 @@ public class CreateWorklogTest {
     }
 
     try {
-      worklogManager.createWorklog(new WorklogParameter(noPermissionIssue.getKey(),
+      worklogManager.createWorklog(new WorklogParameter(Arrays.asList(noPermissionIssue.getKey()),
           defaultComment,
           defaultDate,
           defaultTimeSpent,
@@ -347,19 +348,20 @@ public class CreateWorklogTest {
     // }
 
     try {
-      worklogManager.createWorklog(new WorklogParameter(validateProblemIssue.getKey(),
-          defaultComment,
-          defaultDate,
-          defaultTimeSpent,
-          "",
-          RemainingEstimateType.AUTO));
+      worklogManager
+          .createWorklog(new WorklogParameter(Arrays.asList(validateProblemIssue.getKey()),
+              defaultComment,
+              defaultDate,
+              defaultTimeSpent,
+              "",
+              RemainingEstimateType.AUTO));
       Assert.fail("Expect WorklogException");
     } catch (WorklogException e) {
       assertWorklogException(e, "", PropertiesKey.WORKLOG_CREATE_FAIL);
     }
 
     try {
-      worklogManager.createWorklog(new WorklogParameter(createErrorIssue.getKey(),
+      worklogManager.createWorklog(new WorklogParameter(Arrays.asList(createErrorIssue.getKey()),
           defaultComment,
           defaultDate,
           defaultTimeSpent,
@@ -370,7 +372,7 @@ public class CreateWorklogTest {
       assertWorklogException(e, "", PropertiesKey.WORKLOG_CREATE_FAIL);
     }
 
-    worklogManager.createWorklog(new WorklogParameter(succesCreateIssue.getKey(),
+    worklogManager.createWorklog(new WorklogParameter(Arrays.asList(succesCreateIssue.getKey()),
         defaultComment,
         defaultDate,
         defaultTimeSpent,
