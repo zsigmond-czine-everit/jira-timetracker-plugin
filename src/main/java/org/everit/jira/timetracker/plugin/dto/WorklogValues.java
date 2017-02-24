@@ -15,6 +15,9 @@
  */
 package org.everit.jira.timetracker.plugin.dto;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -45,7 +48,7 @@ public class WorklogValues {
   private Boolean isDuration = Boolean.FALSE;
 
   @XmlElement
-  private String issueKey = "";
+  private List<String> issueKey = Collections.emptyList();
 
   @XmlElement
   private String newEstimate = "";
@@ -84,7 +87,7 @@ public class WorklogValues {
     return endTime;
   }
 
-  public String getIssueKey() {
+  public List<String> getIssueKey() {
     return issueKey;
   }
 
@@ -136,7 +139,7 @@ public class WorklogValues {
     this.isDuration = isDuration;
   }
 
-  public void setIssueKey(final String issueKey) {
+  public void setIssueKey(final List<String> issueKey) {
     this.issueKey = issueKey;
   }
 

@@ -19,6 +19,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -261,27 +262,27 @@ public class TimetrackerUtilTest {
     Assert.assertEquals("", worklogValues.getComment());
     Assert.assertEquals("", worklogValues.getDurationTime());
     Assert.assertFalse(worklogValues.isDuration());
-    Assert.assertEquals("", worklogValues.getIssueKey());
+    Assert.assertEquals(Collections.emptyList(), worklogValues.getIssueKey());
     Assert.assertNull("", worklogValues.getStartTime());
 
     worklogValues = TimetrackerUtil.convertJsonToWorklogValues("{\"comment\":\"dummy-comment\","
         + "\"durationTime\":\"dummy-duration\",\"endTime\":\"dummy-endtime\",\"isDuration\":false,"
-        + "\"issueKey\":\"dummy-issuekey\",\"startTime\":\"dummy-starttime\"}");
+        + "\"issueKey\":[\"dummy-issuekey\"],\"startTime\":\"dummy-starttime\"}");
     Assert.assertEquals("dummy-comment", worklogValues.getComment());
     Assert.assertEquals("dummy-duration", worklogValues.getDurationTime());
     Assert.assertEquals("dummy-endtime", worklogValues.getEndTime());
     Assert.assertFalse(worklogValues.isDuration());
-    Assert.assertEquals("dummy-issuekey", worklogValues.getIssueKey());
+    Assert.assertEquals("dummy-issuekey", worklogValues.getIssueKey().get(0));
     Assert.assertEquals("dummy-starttime", worklogValues.getStartTime());
 
     worklogValues = TimetrackerUtil.convertJsonToWorklogValues("{\"comment\":\"dummy-comment\","
         + "\"durationTime\":\"dummy-duration\",\"endTime\":\"dummy-endtime\",\"isDuration\":true,"
-        + "\"issueKey\":\"dummy-issuekey\",\"startTime\":\"dummy-starttime\",\"period\":\"true\"}");
+        + "\"issueKey\":[\"dummy-issuekey\"],\"startTime\":\"dummy-starttime\",\"period\":\"true\"}");
     Assert.assertEquals("dummy-comment", worklogValues.getComment());
     Assert.assertEquals("dummy-duration", worklogValues.getDurationTime());
     Assert.assertEquals("dummy-endtime", worklogValues.getEndTime());
     Assert.assertTrue(worklogValues.isDuration());
-    Assert.assertEquals("dummy-issuekey", worklogValues.getIssueKey());
+    Assert.assertEquals("dummy-issuekey", worklogValues.getIssueKey().get(0));
     Assert.assertEquals("dummy-starttime", worklogValues.getStartTime());
     Assert.assertTrue(worklogValues.isPeriod());
     Assert.assertEquals(null, worklogValues.getEndDate());
@@ -292,7 +293,7 @@ public class TimetrackerUtilTest {
     WorklogValues worklogValues = new WorklogValues();
     String json = TimetrackerUtil.convertWorklogValuesToJson(worklogValues);
     Assert.assertEquals("{\"adjustmentAmount\":\"\",\"comment\":\"\",\"commentForActions\":\"\","
-        + "\"durationTime\":\"\",\"isDuration\":false,\"issueKey\":\"\",\"newEstimate\":\"\","
+        + "\"durationTime\":\"\",\"isDuration\":false,\"issueKey\":[],\"newEstimate\":\"\"},"
         + "\"period\":false}",
         json);
 
@@ -300,7 +301,7 @@ public class TimetrackerUtilTest {
     json = TimetrackerUtil.convertWorklogValuesToJson(worklogValues);
     Assert.assertEquals("{\"adjustmentAmount\":\"\",\"comment\":\"dummy-comment\","
         + "\"commentForActions\":\"\",\"durationTime\":\"\","
-        + "\"isDuration\":false,\"issueKey\":\"\",\"newEstimate\":\"\",\"period\":false}",
+        + "\"isDuration\":false,\"issueKey\":[],\"newEstimate\":\"\",\"period\":false}",
         json);
   }
 

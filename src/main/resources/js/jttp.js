@@ -502,12 +502,15 @@ everit.jttp.main = everit.jttp.main || {};
       currentProjectId : jttp.options.projectsId,
     });
 
-    var issueKey = jttp.options.issueKey;
+    var selectedArray = jQuery.makeArray( jttp.options.issueKey );
     jQuery("#issueSelect-textarea").attr("class", "select2-choices");
-
-    jQuery("#issueSelect-textarea").append(issueKey);
-    jQuery("#issueSelect-textarea").attr("tabindex", "1");
+    
+    selectedArray.forEach(function(element){
+      jQuery("#issueSelect-textarea").append(element);
+      jQuery("#issueSelect-textarea").append(" ");
+    });
     ip.handleFreeInput();
+    jQuery("#issueSelect-textarea").attr("tabindex", "1");
   }
   
   function popupCalendarsSetup() {
@@ -539,7 +542,7 @@ everit.jttp.main = everit.jttp.main || {};
   }
   
   function getWorklogValuesJson(){
-    var issueKey = (!jQuery('#issueSelect').val() || jQuery('#issueSelect').val())[0] || "";
+    var issueKey = jQuery('#issueSelect').val() || [];
     var startTime = jQuery('#startTime').val() || "";
     var endOrDuration = jQuery('input[name="endOrDuration"]:checked').val();
     var endTime = jQuery('#endTime').val() || "";
