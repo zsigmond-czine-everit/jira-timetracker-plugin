@@ -499,7 +499,6 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
       Stream.iterate(date.getUserTimeZone(), iteratorDate -> iteratorDate.plusDays(1))
           .limit(daysLimit)
           .filter(filterDate -> {
-            // TODO check DT equlas
             if (excludeDates.stream()
                 .filter(excludeDate -> {
                   return dateTimeComperator(excludeDate, filterDate);
@@ -775,7 +774,6 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
 
   @Override
   public DateTimeFormatter getDateTimeFormatter() {
-    // TODO use getDmyDateFormatter insted of this??
     return super.getDateTimeFormatter().withStyle(DateTimeStyle.DATE)
         .withZone(TimetrackerUtil.getLoggedUserTimeZone().toTimeZone());
   }
@@ -959,6 +957,8 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
         comment = comment.replace("\r", "\\r");
         comment = comment.replace("\n", "\\n");
         worklogValues.setComment(comment);
+      } else {
+        worklogValues.setStartTime(timetrackerManager.lastEndTime(worklogs));
       }
 
       String editAllValue = getHttpRequest().getParameter(Parameter.EDIT_ALL);
