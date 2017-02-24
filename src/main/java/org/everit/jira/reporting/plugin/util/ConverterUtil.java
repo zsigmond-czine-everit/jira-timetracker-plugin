@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.everit.jira.core.impl.DateTimeServer;
 import org.everit.jira.core.util.TimetrackerUtil;
@@ -203,7 +204,7 @@ public final class ConverterUtil {
 
   private static void collectUsersFromParams(final FilterCondition filterCondition,
       final ReportSearchParam reportSearchParam, final TimeTrackerSettingsHelper settingsHelper) {
-    List<String> users = new ArrayList<>(filterCondition.getUsers());
+    List<String> users = ConverterUtil.getUsersFromFilterCondition(filterCondition.getGroupUsers());
     JiraAuthenticationContext jiraAuthenticationContext =
         ComponentAccessor.getJiraAuthenticationContext();
     ApplicationUser user = jiraAuthenticationContext.getLoggedInUser();
@@ -219,7 +220,9 @@ public final class ConverterUtil {
       }
     } else {
       if (!users.isEmpty() && users.contains(UserForPickerDTO.NONE_USER_KEY)) {
-        users = ConverterUtil.queryUsersInGroup(filterCondition.getGroups(), reportSearchParam);
+        users = ConverterUtil.queryUsersInGroup(
+            ConverterUtil.getGroupsFromFilterCondition(filterCondition.getGroupUsers()),
+            reportSearchParam);
       } else if (users.remove(UserForPickerDTO.CURRENT_USER_KEY)) {
         users.add(loggedUserKey);
       }
@@ -383,6 +386,11 @@ public final class ConverterUtil {
         .asc("ASC".equals(order));
   }
 
+  private static List<String> getGroupsFromFilterCondition(final List<String> userGroups) {
+    return userGroups.stream().filter(p -> p.startsWith("group:"))
+        .collect(Collectors.toList());
+  }
+
   private static List<Long> getIssueKeysFromFilterSearcerValue(
       final FilterCondition filterCondition) throws SearchException, JqlParseException {
     List<Long> searchParamIssueIds;
@@ -438,6 +446,11 @@ public final class ConverterUtil {
       }
     }
     return userKeys;
+  }
+
+  private static List<String> getUsersFromFilterCondition(final List<String> groupUseres) {
+    return groupUseres.stream().filter(p -> p.startsWith("users:"))
+        .collect(Collectors.toList());
   }
 
   private static List<String> queryUsersInGroup(final List<String> groups,

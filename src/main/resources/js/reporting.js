@@ -63,7 +63,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     initStatusSelect();
     initMoreSelect();
 
-    initUserSelect();
+    initGroupUserSelect();
     initGroupSelect();
 
     initWorklogDetailsColumns();
@@ -451,29 +451,47 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     });
   }
   
-  function initUserSelect(){
+  function initGroupUserSelect(){
    var jttpUserPicker = new AJS.CheckboxMultiSelect({
       element:  jQuery("#userPicker"),
       submitInputVal: true,
       maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
       content: "mixed",
       ajaxOptions: {
-        url: AJS.contextPath() + "/rest/api/2/user/picker",
+        url: AJS.contextPath() + "/rest/api/2/groupuserpicker",
         data: {
           showAvatar: true
         },
         query: true,
         formatResponse: function (items) {
-          return _.map(items.users, function (item) {
+        	var users=[];
+        	var groups=[];
+        if(items.users.total){
+           users= _.map(items.users.users, function (item) {
                return new AJS.ItemDescriptor({
                  highlighted: true,
                  html: item.html,
                  icon: item.avatarUrl,
                  label: item.displayName,
-                 value: item.key
+                 value: "user:"  + item.key
                });
-          })
+          });
+          }
+        if(items.groups.total){
+           groups=_.map(items.groups.groups, function (item) {
+              return new AJS.ItemDescriptor({
+                  highlighted: true,
+                  html: item.html,
+                  icon: AJS.contextPath() + "/images/icons/icon_groups_16.png",
+                  label: item.name,
+                  value: "group:" + item.name
+              });
+          });
         }
+          var resultItems = [].concat(users).concat(groups);
+          return [new AJS.GroupDescriptor({items: resultItems})];
+        }
+        
       }
     });
     jttpUserPicker._setDescriptorSelection = function(descriptor, $input) {
@@ -978,9 +996,8 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
       });
     }
     
-    var groups = jQuery('#groupPicker').val() || [];
     
-    var users =jQuery('#userPicker').val() || [];
+    var groupUsers =jQuery('#userPicker').val() || [];
     
     var issueKeys = jQuery('#issuePicker').val() || [];
     
@@ -989,7 +1006,6 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     var searcherValue = jQuery('#formType').val();
     
     var filterCondition = {
-      "groups": groups,
       "issueAffectedVersions": issueAffectedVersions,
       "issueAssignees": issueAssignees,
       "issueComponents": issueComponents,
@@ -1004,7 +1020,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
       "issueTypeIds": issueTypeIds,
       "labels": labels,
       "projectIds": projectIds,
-      "users": users,
+      "groupUsers": groupUsers,
       "filter": filter,
       "searcherValue": searcherValue,
     }

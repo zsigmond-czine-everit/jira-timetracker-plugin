@@ -23,7 +23,6 @@ import org.everit.jira.analytics.PiwikUrlBuilder;
 import org.everit.jira.analytics.UserSelection;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.UserForPickerDTO;
-import org.everit.jira.reporting.plugin.util.ConverterUtil;
 import org.everit.jira.timetracker.plugin.JiraTimetrackerAnalytics;
 import org.everit.jira.timetracker.plugin.util.PiwikPropertiesUtil;
 
@@ -166,13 +165,14 @@ public class CreateReportEvent implements AnalyticsEvent {
     appendActiveFilterCondition(sb, filterCondition.getIssueEpicName(),
         ActiveFilterConditionName.EPIC_NAME);
 
-    List<String> users = new ArrayList<>(filterCondition.getUsers());
+    List<String> users = new ArrayList<>(filterCondition.getGroupUsers());
     boolean removedNoneUser = users.remove(UserForPickerDTO.NONE_USER_KEY);
     appendActiveFilterCondition(sb, users, ActiveFilterConditionName.USER);
 
-    List<String> groups = new ArrayList<>(filterCondition.getGroups());
-    groups.remove(ConverterUtil.VALUE_NEGATIVE_ONE);
-    appendActiveFilterCondition(sb, groups, ActiveFilterConditionName.GROUP);
+    // TODO
+    // List<String> groups = new ArrayList<>(filterCondition.getGroups());
+    // groups.remove(ConverterUtil.VALUE_NEGATIVE_ONE);
+    // appendActiveFilterCondition(sb, groups, ActiveFilterConditionName.GROUP);
 
     String activeFilterCondition = sb.toString();
 

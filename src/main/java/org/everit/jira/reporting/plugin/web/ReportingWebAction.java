@@ -20,6 +20,7 @@ import java.net.URI;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.everit.jira.reporting.plugin.ReportingPlugin;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
 import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
+import org.everit.jira.reporting.plugin.dto.GroupForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
@@ -60,6 +62,7 @@ import org.everit.jira.updatenotifier.UpdateNotifier;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import com.atlassian.crowd.embedded.api.Group;
 import com.atlassian.jira.avatar.Avatar;
 import com.atlassian.jira.avatar.Avatar.Size;
 import com.atlassian.jira.avatar.AvatarService;
@@ -72,6 +75,7 @@ import com.atlassian.jira.issue.fields.renderer.IssueRenderContext;
 import com.atlassian.jira.issue.fields.renderer.JiraRendererPlugin;
 import com.atlassian.jira.issue.search.SearchRequest;
 import com.atlassian.jira.security.JiraAuthenticationContext;
+import com.atlassian.jira.security.groups.GroupManager;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.user.UserHistoryItem;
 import com.atlassian.jira.user.UserHistoryManager;
@@ -214,8 +218,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
         ComponentAccessor.getComponent(UserHistoryManager.class);
     JiraAuthenticationContext jiraAuthenticationContext =
         ComponentAccessor.getJiraAuthenticationContext();
-    ApplicationUser user = jiraAuthenticationContext.getUser();
-    for (String userKey : filterCondition.getUsers()) {
+    ApplicationUser user = jiraAuthenticationContext.getLoggedInUser();
+    for (String userKey : filterCondition.getGroupUsers()) {
       userHistoryManager.addItemToHistory(UserHistoryItem.USED_USER, user, userKey);
     }
   }
@@ -285,6 +289,17 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return SUCCESS;
   }
 
+  private List<GroupForPickerDTO> createSuggestedGroups() {
+    List<GroupForPickerDTO> result = new ArrayList<>();
+    GroupManager groupManager = ComponentAccessor.getGroupManager();
+    Collection<Group> allGroups = groupManager.getAllGroups();
+    for (Group group : allGroups) {
+      result.add(new GroupForPickerDTO(group.getName()));
+
+    }
+    return result;
+  }
+
   private List<UserForPickerDTO> createSuggestedUsers(final ApplicationUser loggedUser) {
     UserHistoryManager userHistoryManager =
         ComponentAccessor.getComponent(UserHistoryManager.class);
@@ -319,7 +334,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private void createUserPickersValue() {
     ApplicationUser loggedUser = ComponentAccessor.getJiraAuthenticationContext().getUser();
     userPicker.setSuggestedUsers(createSuggestedUsers(loggedUser));
-    userPicker.setUsers(createUsers(loggedUser, filterCondition.getUsers()));
+    userPicker.setGroups(createSuggestedGroups());
+    userPicker.setUsers(createUsers(loggedUser, filterCondition.getGroupUsers()));
     userPicker.setIssueReporters(createUsers(loggedUser, filterCondition.getIssueReporters()));
     userPicker.setIssueAssignees(createUsers(loggedUser, filterCondition.getIssueAssignees()));
 
@@ -380,7 +396,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     selectedMore = new ArrayList<>();
     filterCondition = new FilterCondition();
     if (!hasBrowseUsersPermission) {
-      filterCondition.setUsers(Arrays.asList(UserForPickerDTO.CURRENT_USER_KEY));
+      filterCondition.setGroupUsers(Arrays.asList(UserForPickerDTO.CURRENT_USER_KEY));
     }
     String[] selectedWorklogDetailsColumnsArray =
         gson.fromJson(userSettings.getUserSelectedColumns(), String[].class);

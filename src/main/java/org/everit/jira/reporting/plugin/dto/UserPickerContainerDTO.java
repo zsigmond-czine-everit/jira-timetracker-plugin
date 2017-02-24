@@ -26,6 +26,8 @@ public class UserPickerContainerDTO {
 
   private UserForPickerDTO currentUser;
 
+  private List<GroupForPickerDTO> groups = new ArrayList<>();
+
   private List<UserForPickerDTO> issueAssignees = new ArrayList<>();
 
   private List<UserForPickerDTO> issueReporters = new ArrayList<>();
@@ -40,6 +42,10 @@ public class UserPickerContainerDTO {
 
   public UserForPickerDTO getCurrentUser() {
     return currentUser;
+  }
+
+  public List<GroupForPickerDTO> getGroups() {
+    return groups;
   }
 
   public List<UserForPickerDTO> getIssueAssignees() {
@@ -68,6 +74,10 @@ public class UserPickerContainerDTO {
 
   public void setCurrentUser(final UserForPickerDTO currentUser) {
     this.currentUser = currentUser;
+  }
+
+  public void setGroups(final List<GroupForPickerDTO> groups) {
+    this.groups = groups;
   }
 
   public void setIssueAssignees(final List<UserForPickerDTO> issueAssignees) {

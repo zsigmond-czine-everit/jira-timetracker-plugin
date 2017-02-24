@@ -522,7 +522,10 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                                      <select id="userPicker" name="userPicker" multiple="multiple">
                                                        <optgroup>
                                                          #foreach( $user in $userPicker.users )
-                                                         <option data-icon="$user.avatarURL" value="$user.userKey" selected="selected" title="$user.displayName">$user.displayName</option>
+                                                         <option data-icon="$user.avatarURL" value="users:$user.userKey" selected="selected" title="$user.displayName">$user.displayName</option>
+                                                         #end
+                                                         #foreach( $group in $userPicker.groups )
+                                                         <option  value="group:$group.userKey" selected="selected" title="$group.name">$group.name</option>
                                                          #end
                                                        </optgroup>
                                                        <optgroup>
@@ -531,7 +534,12 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                                        </optgroup>
                                                        <optgroup #if(!$userPicker.suggestedUsers.isEmpty())label="$i18n.getText("jtrp.picker.suggested.user")"#end>
                                                          #foreach( $user in $userPicker.suggestedUsers )
-                                                         <option data-icon="$user.avatarURL" value="$user.userKey" title="$user.displayName">$user.displayName</option>
+                                                         <option data-icon="$user.avatarURL" value="users:$user.userKey" title="$user.displayName">$user.displayName</option>
+                                                         #end
+                                                       <optgroup>
+                                                       <optgroup #if(!$userPicker.groups.isEmpty())label="$i18n.getText("jtrp.picker.suggested.group")"#end>
+                                                         #foreach( $group in $userPicker.groups )
+                                                         <option  value="group:$group.name" title="$group.name">$group.name</option>
                                                          #end
                                                        <optgroup>
                                                      </select>
