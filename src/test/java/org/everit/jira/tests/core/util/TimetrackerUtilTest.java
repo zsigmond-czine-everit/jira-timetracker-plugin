@@ -293,7 +293,7 @@ public class TimetrackerUtilTest {
     WorklogValues worklogValues = new WorklogValues();
     String json = TimetrackerUtil.convertWorklogValuesToJson(worklogValues);
     Assert.assertEquals("{\"adjustmentAmount\":\"\",\"comment\":\"\",\"commentForActions\":\"\","
-        + "\"durationTime\":\"\",\"isDuration\":false,\"issueKey\":[],\"newEstimate\":\"\"},"
+        + "\"durationTime\":\"\",\"isDuration\":false,\"issueKey\":[],\"newEstimate\":\"\","
         + "\"period\":false}",
         json);
 
