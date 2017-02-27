@@ -64,6 +64,8 @@ import com.google.gson.Gson;
  */
 public final class ConverterUtil {
 
+  private static final int GROUP_USER_PREFIX_LENGTH = 6;
+
   private static final String KEY_MISSING_JQL = "jtrp.plugin.missing.jql";
 
   private static final String KEY_WRONG_DATES = "plugin.wrong.dates";
@@ -383,6 +385,9 @@ public final class ConverterUtil {
         .asc("ASC".equals(order));
   }
 
+  /**
+   * Get the groups from a list of group and users.
+   */
   public static List<GroupForPickerDTO> getGroupsForPickerDTOFromFilterCondition(
       final List<String> userGroups) {
     List<String> groupsFromFilterCondition = ConverterUtil.getGroupsFromFilterCondition(userGroups);
@@ -390,8 +395,12 @@ public final class ConverterUtil {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Get the groups as string from a list of group and users.
+   */
   public static List<String> getGroupsFromFilterCondition(final List<String> userGroups) {
-    return userGroups.stream().filter(p -> p.startsWith("group:")).map(p -> p.substring(6))
+    return userGroups.stream().filter(p -> p.startsWith("group:"))
+        .map(p -> p.substring(GROUP_USER_PREFIX_LENGTH))
         .collect(Collectors.toList());
   }
 
@@ -452,8 +461,12 @@ public final class ConverterUtil {
     return userKeys;
   }
 
+  /**
+   * Get users as String from group and user list.
+   */
   public static List<String> getUsersFromFilterCondition(final List<String> groupUseres) {
-    return groupUseres.stream().filter(p -> p.startsWith("users:")).map(p -> p.substring(6))
+    return groupUseres.stream().filter(p -> p.startsWith("users:"))
+        .map(p -> p.substring(GROUP_USER_PREFIX_LENGTH))
         .collect(Collectors.toList());
   }
 

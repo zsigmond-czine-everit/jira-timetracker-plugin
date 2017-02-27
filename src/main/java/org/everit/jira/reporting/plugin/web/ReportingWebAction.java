@@ -109,6 +109,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private static final int MAXIMUM_HISTORY = 5;
 
+  private static final int MAXIMUM_NUMBER_OF_SUGGESTED_GROUPS = 5;
+
   /**
    * Serial version UID.
    */
@@ -292,7 +294,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     int counter = 0;
     for (Group group : allGroups) {
       result.add(new GroupForPickerDTO(group.getName()));
-      if (++counter == 5) {
+      if (++counter == MAXIMUM_NUMBER_OF_SUGGESTED_GROUPS) {
         break;
       }
     }
