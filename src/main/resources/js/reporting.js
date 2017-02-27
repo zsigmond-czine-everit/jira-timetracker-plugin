@@ -1254,12 +1254,6 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
       $userPickerTooltip.addClass('jtrp-tooltipped');
     }
     
-    var $groupPickerTooltip = jQuery('#groupPickerButton');
-    if(!$groupPickerTooltip.hasClass('jtrp-tooltipped')) {
-      $groupPickerTooltip.tooltip({gravity: 'w'});
-      $groupPickerTooltip.addClass('jtrp-tooltipped');
-    }
-    
     var $projectExpectedTooltip = jQuery('#project-expected-tooltip');
     if(!$projectExpectedTooltip.hasClass('jtrp-tooltipped')) {
       $projectExpectedTooltip.tooltip();

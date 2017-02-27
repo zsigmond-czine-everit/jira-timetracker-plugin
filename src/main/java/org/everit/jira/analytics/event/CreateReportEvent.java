@@ -163,8 +163,8 @@ public class CreateReportEvent implements AnalyticsEvent {
     appendActiveFilterCondition(sb, filterCondition.getIssueEpicName(),
         ActiveFilterConditionName.EPIC_NAME);
 
-    List<String> users = new ArrayList<>(filterCondition.getGroupUsers());
-    appendActiveFilterCondition(sb, users, ActiveFilterConditionName.USER);
+    List<String> groupUsers = new ArrayList<>(filterCondition.getGroupUsers());
+    appendActiveFilterCondition(sb, groupUsers, ActiveFilterConditionName.USER);
 
     // TODO
     // List<String> groups = new ArrayList<>(filterCondition.getGroups());

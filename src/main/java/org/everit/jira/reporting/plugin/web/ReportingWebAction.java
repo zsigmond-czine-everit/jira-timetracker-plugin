@@ -289,9 +289,12 @@ public class ReportingWebAction extends JiraWebActionSupport {
     GroupPickerSearchService component =
         ComponentAccessor.getComponent(GroupPickerSearchService.class);
     Collection<Group> allGroups = component.findGroups("");
+    int counter = 0;
     for (Group group : allGroups) {
       result.add(new GroupForPickerDTO(group.getName()));
-
+      if (++counter == 5) {
+        break;
+      }
     }
     return result;
   }
