@@ -217,18 +217,20 @@ everit.jttp.main = everit.jttp.main || {};
   }
   
   jttp.periodCheck = function(){
-    if(jttp.options.actionFlag != "edit"){
-      if (jQuery("#usePeriod").is(":checked")) {
-        document.getElementById("enddate").disabled = false;
-      } else {
+    if(jttp.options.showPeriodWorklogs){
+      if(jttp.options.actionFlag != "edit"){
+        if (jQuery("#usePeriod").is(":checked")) {
+          document.getElementById("enddate").disabled = false;
+        } else {
+          document.getElementById("enddate").disabled = true;
+        }
+      }else{
+        if (jQuery("#usePeriod").is(":checked")) {
+          document.getElementById("usePeriod").checked = false;
+        }
+        document.getElementById("usePeriod").disabled = true;
         document.getElementById("enddate").disabled = true;
       }
-    }else{
-      if (jQuery("#usePeriod").is(":checked")) {
-        document.getElementById("usePeriod").checked = false;
-      }
-      document.getElementById("usePeriod").disabled = true;
-      document.getElementById("enddate").disabled = true;
     }
   }
   

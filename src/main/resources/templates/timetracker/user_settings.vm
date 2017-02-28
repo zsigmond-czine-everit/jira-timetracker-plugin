@@ -17,6 +17,11 @@
 <head>
 <title>Timetracker Settings</title>
 </head>
+<script type="text/javascript">
+	window.everit = window.everit || {};
+	everit.jttp = everit.jttp || {};
+	everit.jttp.user_settings = everit.jttp.user_settings || {};
+</script>
 <body>
   $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.plugin.timetracker-user-settings-resources")
   
@@ -42,7 +47,7 @@
   
   <div class="aui-page-panel">
     <div class="aui-page-panel-inner aui-page-panel-content">
-      <form name="settingsForm"  method="post" action="TimetrackerUserSettingsWebAction.jspa" class="aui">
+      <form name="settingsDummayForm" class="aui">
         #if(!$message.isEmpty())
         <div id="error_message">
           $i18n.getText($message) $messageParameter
@@ -51,26 +56,26 @@
         
         <h3>$i18n.getText("plugin.setting.calendar.appearance")</h3>
         <div class="field-group">
-          <label>$i18n.getText("plugin.setting.isactualdate"):</label>
+          <label>$i18n.getText("plugin.setting.isactualdate"): $userSettingsValues.actualDate</label>
           <div>
-            <input id="radioCurrent" type="radio" name="currentOrLast" value="current" class="settings-input"  #if($isActualDate) checked="true" #end>  
+            <input id="radioCurrent" type="radio" name="currentOrLast" value="current" class="settings-input"  #if($userSettingsValues.actualDate) checked="true" #end>  
             <label for="radioCurrent">$i18n.getText("plugin.setting.current")</label>
-            <input id="radioLast" type="radio" name="currentOrLast" value="last" class="settings-input" #if(!$isActualDate) checked="true" #end> 
+            <input id="radioLast" type="radio" name="currentOrLast" value="last" class="settings-input" #if(!$userSettingsValues.actualDate) checked="true" #end> 
             <label for="radioLast">$i18n.getText("plugin.setting.last")</label>
           </div>
           <div class="description">$i18n.getText("plugin.setting.isactualdate.help")</div>
         </div>
         
         <div class="field-group">
-          <label>$i18n.getText("plugin.setting.coloring"):</label>
-          <input id="isColoring" type="checkbox" value="use color" class="settings-input" name="isColoring" #if($isColoring) checked #end/>
+          <label>$i18n.getText("plugin.setting.coloring"): $userSettingsValues.coloring</label>
+          <input id="isColoring" type="checkbox" value="use color" class="settings-input" name="isColoring" #if($userSettingsValues.coloring) checked #end/>
           <div class="description">$i18n.getText("plugin.setting.coloring.help")</div>
         </div>
        
        <h3>$i18n.getText("jttp.future.log.notification")</h3>
         <div class="field-group">
           <label>$i18n.getText("jttp.future.log.notification.title"):</label>
-          <input id="isShowFutureLogWarning" type="checkbox" value="showWarning" class="settings-input" name="isShowFutureLogWarning" #if($isShowFutureLogWarning) checked #end/>
+          <input id="isShowFutureLogWarning" type="checkbox" value="showWarning" class="settings-input" name="isShowFutureLogWarning" #if($userSettingsValues.showFutureLogWarning) checked #end/>
           <div class="description">$i18n.getText("jttp.future.log.notification.help")</div>
         </div>
         
@@ -78,9 +83,9 @@
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.progress.ind"):</label>
           <div>
-            <input id="radioDaily" type="radio" name="progressInd" value="daily" class="settings-input" #if($progressIndDaily) checked="true" #end>
+            <input id="radioDaily" type="radio" name="progressInd" value="daily" class="settings-input" #if($userSettingsValues.progressIndDaily) checked="true" #end>
             <label for="radioDaily">$i18n.getText("plugin.setting.progress.ind.daily")</label>
-            <input id="radioSummary" type="radio" name="progressInd" value="summary" class="settings-input" #if(!$progressIndDaily) checked="true" #end>
+            <input id="radioSummary" type="radio" name="progressInd" value="summary" class="settings-input" #if(!$userSettingsValues.progressIndDaily) checked="true" #end>
             <label for="radioSummary">$i18n.getText("plugin.setting.progress.ind.summary")</label>
           </div>
           <div class="description">$i18n.getText("plugin.setting.progress.ind.help")</div>
@@ -88,58 +93,59 @@
         
         <h3>$i18n.getText("plugin.setting.input.fields.settings")</h3>
         <div class="field-group">
-          <label>$i18n.getText("plugin.setting.active.field"):</label>
+          <label>$i18n.getText("plugin.setting.active.field"): $userSettingsValues.activeFieldDuration</label>
           <div>
-            <input id="radioEndTime" type="radio" name="activeField" value="endtime" class="settings-input" #if(!$activeFieldDuration) checked="true" #end>
+            <input id="radioEndTime" type="radio" name="activeField" value="endtime" class="settings-input" #if(!$userSettingsValues.activeFieldDuration) checked="true" #end>
             <label for="radioEndTime">$i18n.getText("plugin.setting.active.field.endtime")</label>
-            <input id="radioDuration" type="radio" name="activeField" value="duration" class="settings-input" #if($activeFieldDuration) checked="true" #end>
+            <input id="radioDuration" type="radio" name="activeField" value="duration" class="settings-input" #if($userSettingsValues.activeFieldDuration) checked="true" #end>
             <label for="radioDuration">$i18n.getText("plugin.setting.active.field.duration")</label>
           </div>
           <div class="description">$i18n.getText("plugin.setting.active.field.help")</div>
         </div>
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.default.starttime"):</label>
-          <input id="defaultStartTime"  type="text" name="defaultStartTime" value="$defaultStartTime" class="time-input settings-input text short-field"/>
+          <input id="defaultStartTime"  type="text" name="defaultStartTime" value="$userSettingsValues.defaultStartTime" class="time-input settings-input text short-field"/>
           <div class="description">$i18n.getText("plugin.setting.default.starttime.help")</div>
         </div>
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.starttime.value"):</label>
-          <input id="startTime"  type="text" name="startTime" value="$startTime"  class="time-input settings-input text short-field"/> $i18n.getText("plugin.setting.min")
+          <input id="startTime"  type="text" name="startTime" value="$userSettingsValues.startTime"  class="time-input settings-input text short-field"/> $i18n.getText("plugin.setting.min")
           <div class="description">$i18n.getText("plugin.setting.starttime.help")</div>
         </div>
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.endtime.value"):</label>
-          <input id="endTime"  type="text" name="endTime" value="$endTime" class="time-input settings-input text short-field"/> $i18n.getText("plugin.setting.min")
+          <input id="endTime"  type="text" name="endTime" value="$userSettingsValues.endTime" class="time-input settings-input text short-field"/> $i18n.getText("plugin.setting.min")
           <div class="description">$i18n.getText("plugin.setting.starttime.help")</div>
         </div>
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.remainingestimate.options"):</label>
-          <input id="showRemaningEstimate" type="checkbox" value="showRemaningEstimate" class="settings-input" name="showRemaningEstimate" #if($showRemaningEstimate) checked #end/>
+          <input id="showRemaningEstimate" type="checkbox" value="showRemaningEstimate" class="settings-input" name="showRemaningEstimate" #if($userSettingsValues.showRemaningEstimate) checked #end/>
           <div class="description">$i18n.getText("plugin.setting.remainingestimate.options.help")</div>
         </div>
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.periodworklogs.options"):</label>
-          <input id="showPeriodWorklogs" type="checkbox" value="showPeriodWorklogs" class="settings-input" name="showPeriodWorklogs" #if($showPeriodWorklogs) checked #end/>
+          <input id="showPeriodWorklogs" type="checkbox" value="showPeriodWorklogs" class="settings-input" name="showPeriodWorklogs" #if($userSettingsValues.showPeriodWorklogs) checked #end/>
           <div class="description">$i18n.getText("plugin.setting.periodworklogs.options.help")</div>
         </div>
         
         <h3>$i18n.getText("plugin.setting.worklog.data.appearance")</h3>
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.rounded.remaining"):</label>
-          <input id="isRounded" type="checkbox" value="use round" class="settings-input" name="isRounded" #if($isRounded) checked #end/>
+          <input id="isRounded" type="checkbox" value="use round" class="settings-input" name="isRounded" #if($userSettingsValues.rounded) checked #end/>
           <div class="description">$i18n.getText("plugin.setting.rounded.remaining.help")</div>
         </div>
         <div class="field-group">  
-          <label>$i18n.getText("plugin.setting.issue.display.type")</label>
+          <label>$i18n.getText("plugin.setting.issue.display.type") $userSettingsValues.showIssueSummary</label>
           <div>
-            <input id="radioShowIssueKey" type="radio" name="isShowIssueSummary" value="showIssueKey" class="settings-input" #if(!$isShowIssueSummary) checked="true" #end>
+            <input id="radioShowIssueKey" type="radio" name="isShowIssueSummary" value="showIssueKey" class="settings-input" #if(!$userSettingsValues.showIssueSummary) checked="true" #end>
             <label for="radioShowIssueKey">$i18n.getText("plugin.setting.issue.display.type.issue.key")</label>
-            <input id="radioShowIssueSummary" type="radio" name="isShowIssueSummary" value="showIssueSummary" class="settings-input" #if($isShowIssueSummary) checked="true" #end>
+            <input id="radioShowIssueSummary" type="radio" name="isShowIssueSummary" value="showIssueSummary" class="settings-input" #if($userSettingsValues.showIssueSummary) checked="true" #end>
             <label for="radioShowIssueSummary">$i18n.getText("plugin.setting.issue.display.type.issue.summary")</label>
           </div>
           <div class="description">$i18n.getText("plugin.setting.issue.display.type.help")</div>
         </div>
-        
+      </form>
+      <form name="settingsForm"  method="post" action="TimetrackerUserSettingsWebAction.jspa" class="aui" onsubmit="return everit.jttp.user_settings.beforeSubmit();">
         <div class="buttons-container">
           <div class="buttons">
             <input id="savesettings"  type="submit" name="savesettings" value="$i18n.getText('plugin.save')" class="aui-button aui-button-primary"/>
@@ -147,6 +153,7 @@
             <input id="cancelButton"  type="button" name="cancel" value="$i18n.getText('plugin.cancel')" onclick="location.href='JiraTimetrackerWebAction!default.jspa'" class="aui-button"/>
           </div>
         </div>
+        <input type="hidden" id="userSettingsValuesJson" name="userSettingsValuesJson" >
       </form>
     </div>
   </div>

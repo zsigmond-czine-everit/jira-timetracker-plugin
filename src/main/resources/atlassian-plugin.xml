@@ -229,6 +229,7 @@
       <param name="content-type" value="image/png" />
     </resource>
     <resource type="download" name="user_settings.css" location="/css/user_settings.css" />
+    <resource type="download" name="jttp_user_settings.js" location="/js/jttp_user_settings.js" />
   </web-resource>
 
   <web-resource name="JTTP Resources" key="chart_report-resources-${project.version}-${build.time}">
