@@ -15,7 +15,6 @@
  */
 package org.everit.jira.analytics.event;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -162,14 +161,6 @@ public class CreateReportEvent implements AnalyticsEvent {
         ActiveFilterConditionName.CREATED);
     appendActiveFilterCondition(sb, filterCondition.getIssueEpicName(),
         ActiveFilterConditionName.EPIC_NAME);
-
-    List<String> groupUsers = new ArrayList<>(filterCondition.getGroupUsers());
-    appendActiveFilterCondition(sb, groupUsers, ActiveFilterConditionName.USER);
-
-    // TODO
-    // List<String> groups = new ArrayList<>(filterCondition.getGroups());
-    // groups.remove(ConverterUtil.VALUE_NEGATIVE_ONE);
-    // appendActiveFilterCondition(sb, groups, ActiveFilterConditionName.GROUP);
 
     String activeFilterCondition = sb.toString();
 
