@@ -240,6 +240,33 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return null;
   }
 
+  private void createGroupUserPickersValue() {
+    ApplicationUser loggedUser = ComponentAccessor.getJiraAuthenticationContext().getUser();
+    userPicker.setSuggestedUsers(createSuggestedUsers(loggedUser));
+    List<GroupForPickerDTO> groupsForPickerDTOFromFilterCondition =
+        ConverterUtil.getGroupsForPickerDTOFromFilterCondition(filterCondition.getGroupUsers());
+    userPicker.setGroups(groupsForPickerDTOFromFilterCondition);
+    userPicker.setSuggestedGroups(createSuggestedGroups());
+    userPicker.setUsers(createUsers(loggedUser,
+        ConverterUtil.getUsersFromFilterCondition(filterCondition.getGroupUsers())));
+    userPicker.setIssueReporters(createUsers(loggedUser, filterCondition.getIssueReporters()));
+    userPicker.setIssueAssignees(createUsers(loggedUser, filterCondition.getIssueAssignees()));
+
+    AvatarService avatarService = ComponentAccessor.getAvatarService();
+    URI avatarURI = avatarService.getAvatarAbsoluteURL(loggedUser, loggedUser, Size.SMALL);
+    userPicker.setCurrentUser(new UserForPickerDTO(avatarURI.toString(),
+        TimetrackerUtil.getI18nText(UserForPickerDTO.CURRENT_USER_DISPLAY_NAME),
+        UserForPickerDTO.CURRENT_USER_KEY));
+
+    String defaultAvaratar =
+        avatarService.getProjectDefaultAvatarAbsoluteURL(Size.SMALL).toString();
+
+    userPicker.setUnassigedUser(new UserForPickerDTO(defaultAvaratar,
+        TimetrackerUtil.getI18nText(UserForPickerDTO.UNASSIGNED_DISPLAY_NAME),
+        UserForPickerDTO.UNASSIGNED_USER_KEY));
+
+  }
+
   private String createReport(final String selectedMoreJson, final String selectedActiveTab,
       final String filterConditionJsonValue, final String selectedWorklogDetailsColumnsJson,
       final String collapsedDetailsModuleVal, final String collapsedSummaryModuleVal) {
@@ -330,33 +357,6 @@ public class ReportingWebAction extends JiraWebActionSupport {
       suggestedUsers.add(userForPickerDTO);
     }
     return suggestedUsers;
-  }
-
-  private void createUserPickersValue() {
-    ApplicationUser loggedUser = ComponentAccessor.getJiraAuthenticationContext().getUser();
-    userPicker.setSuggestedUsers(createSuggestedUsers(loggedUser));
-    List<GroupForPickerDTO> groupsForPickerDTOFromFilterCondition =
-        ConverterUtil.getGroupsForPickerDTOFromFilterCondition(filterCondition.getGroupUsers());
-    userPicker.setGroups(groupsForPickerDTOFromFilterCondition);
-    userPicker.setSuggestedGroups(createSuggestedGroups());
-    userPicker.setUsers(createUsers(loggedUser,
-        ConverterUtil.getUsersFromFilterCondition(filterCondition.getGroupUsers())));
-    userPicker.setIssueReporters(createUsers(loggedUser, filterCondition.getIssueReporters()));
-    userPicker.setIssueAssignees(createUsers(loggedUser, filterCondition.getIssueAssignees()));
-
-    AvatarService avatarService = ComponentAccessor.getAvatarService();
-    URI avatarURI = avatarService.getAvatarAbsoluteURL(loggedUser, loggedUser, Size.SMALL);
-    userPicker.setCurrentUser(new UserForPickerDTO(avatarURI.toString(),
-        TimetrackerUtil.getI18nText(UserForPickerDTO.CURRENT_USER_DISPLAY_NAME),
-        UserForPickerDTO.CURRENT_USER_KEY));
-
-    String defaultAvaratar =
-        avatarService.getProjectDefaultAvatarAbsoluteURL(Size.SMALL).toString();
-
-    userPicker.setUnassigedUser(new UserForPickerDTO(defaultAvaratar,
-        TimetrackerUtil.getI18nText(UserForPickerDTO.UNASSIGNED_DISPLAY_NAME),
-        UserForPickerDTO.UNASSIGNED_USER_KEY));
-
   }
 
   private List<UserForPickerDTO> createUsers(final ApplicationUser loggedUser,
@@ -480,7 +480,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
       analyticsSender.send(analyticsEvent);
     }
 
-    createUserPickersValue();
+    createGroupUserPickersValue();
 
     return createReportResult;
   }
@@ -678,7 +678,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
       defaultInitalizeData(reportingSavedData);
     }
 
-    createUserPickersValue();
+    createGroupUserPickersValue();
   }
 
   private void initSelectedFilterCondition(final String selectedWorklogDetailsColumnsJson) {
