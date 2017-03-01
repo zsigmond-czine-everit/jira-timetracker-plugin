@@ -27,6 +27,7 @@ import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.PagingDTO;
 import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
+import org.everit.jira.reporting.plugin.dto.PickerLabelDTO;
 import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
@@ -37,6 +38,7 @@ import org.everit.jira.reporting.plugin.dto.WorklogDetailsDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsReportDTO;
 import org.everit.jira.reporting.plugin.query.IssueSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.PickerComponentQuery;
+import org.everit.jira.reporting.plugin.query.PickerLabelQuery;
 import org.everit.jira.reporting.plugin.query.PickerVersionQuery;
 import org.everit.jira.reporting.plugin.query.ProjectSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.UserSummaryReportQueryBuilder;
@@ -228,6 +230,11 @@ public class ReportingPluginImpl implements ReportingPlugin, InitializingBean,
   @Override
   public List<PickerComponentDTO> listSuggestedComponents(final long maxSuggestedVersion) {
     return querydslSupport.execute(new PickerComponentQuery(null, maxSuggestedVersion));
+  }
+
+  @Override
+  public List<PickerLabelDTO> listSuggestedLabels(final long maxSuggestedVersion) {
+    return querydslSupport.execute(new PickerLabelQuery(null, maxSuggestedVersion));
   }
 
   @Override

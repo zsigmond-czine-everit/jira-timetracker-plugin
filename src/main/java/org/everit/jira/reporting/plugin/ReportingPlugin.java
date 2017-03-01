@@ -20,6 +20,7 @@ import java.util.List;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
+import org.everit.jira.reporting.plugin.dto.PickerLabelDTO;
 import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportSearchParam;
@@ -41,6 +42,8 @@ public interface ReportingPlugin {
       OrderBy orderBy);
 
   List<PickerComponentDTO> listSuggestedComponents(long maxSuggestedVersion);
+
+  List<PickerLabelDTO> listSuggestedLabels(long maxSuggestedVersion);
 
   List<PickerVersionDTO> listSuggestedVersions(long maxSuggestedVersion);
 

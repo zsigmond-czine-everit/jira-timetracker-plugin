@@ -96,8 +96,8 @@ public class PickerResource {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/listLabels")
-  public Response listLables() {
-    List<PickerLabelDTO> labels = querydslSupport.execute(new PickerLabelQuery());
+  public Response listLables(@QueryParam("query") final String query) {
+    List<PickerLabelDTO> labels = querydslSupport.execute(new PickerLabelQuery(query, MAX_LIMIT));
 
     return buildResponse(labels);
   }

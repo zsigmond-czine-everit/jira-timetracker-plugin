@@ -39,8 +39,10 @@ import org.everit.jira.reporting.plugin.dto.ComponentPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
+import org.everit.jira.reporting.plugin.dto.LabelPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
+import org.everit.jira.reporting.plugin.dto.PickerLabelDTO;
 import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportingSessionData;
@@ -154,6 +156,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private IssueSummaryReportDTO issueSummaryReport = new IssueSummaryReportDTO();
 
+  private LabelPickerContainerDTO labelPicker = new LabelPickerContainerDTO();
+
   /**
    * The message.
    */
@@ -254,6 +258,21 @@ public class ReportingWebAction extends JiraWebActionSupport {
       PickerComponentDTO pickerComponentDTO = new PickerComponentDTO();
       pickerComponentDTO.setName(component);
       result.add(pickerComponentDTO);
+    }
+    return result;
+  }
+
+  private void createLabelPickerValues() {
+    labelPicker.setLabels(createLabels(filterCondition.getLabels()));
+    labelPicker.setSuggestedLabels(reportingPlugin.listSuggestedLabels(MAXIMUM_HISTORY));
+  }
+
+  private List<PickerLabelDTO> createLabels(final List<String> labels) {
+    List<PickerLabelDTO> result = new ArrayList<>();
+    for (String label : labels) {
+      PickerLabelDTO pickerLabelDTO = new PickerLabelDTO();
+      pickerLabelDTO.setName(label);
+      result.add(pickerLabelDTO);
     }
     return result;
   }
@@ -507,6 +526,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     createUserPickersValue();
     createVersionPickersValue();
     createComponentPickersValue();
+    createLabelPickerValues();
 
     return createReportResult;
   }
@@ -598,6 +618,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
           .format(new Date(filterCondition.getIssueCreateDate()));
     }
 
+  }
+
+  public LabelPickerContainerDTO getLabelPicker() {
+    return labelPicker;
   }
 
   public String getMessage() {
@@ -715,6 +739,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     createUserPickersValue();
     createVersionPickersValue();
     createComponentPickersValue();
+    createLabelPickerValues();
 
   }
 

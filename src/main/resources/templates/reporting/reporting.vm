@@ -466,6 +466,16 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                                  <div class='form-body checkboxmultiselect-container'>
                                                    <div class='field-group aui-field-issuetype'>
                                                      <select  id="labelPicker" name="labelPicker" multiple="multiple" >
+                                                       <optgroup>
+                                                         #foreach( $label in $labelPicker.labels )
+                                                         <option value="$label.name" selected="selected" title="$label.name">$label.name</option>
+                                                         #end
+                                                       </optgroup>
+                                                       <optgroup>
+                                                         #foreach( $label in $labelPicker.suggestedLabels )
+                                                         <option value="$label.name" title="$label.name">$label.name</option>
+                                                         #end
+                                                       <optgroup>
                                                      </select>
                                                    </div>
                                                  </div>

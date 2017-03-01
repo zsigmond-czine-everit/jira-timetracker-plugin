@@ -756,37 +756,41 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
    };
   
   function initLabelSelect(){
-    var selectedArray =  jQuery.makeArray( reporting.values.selectedLabels ); 
-    jQuery.ajax({
-      async: true,
-      type: 'GET',
-      url : contextPath + "/rest/jttp-rest/1/picker/listLabels",
-      data : [],
-      success : function(result){
-        for( var i in result) {
-          var obj = result[i];
-          var selected = checkSelected(obj.name, selectedArray);
-          jQuery("#labelPicker").append('<option value="'+obj.name+ '" '+ selected + '>' +obj.name +'</option>');
+    var versionPicker = new AJS.CheckboxMultiSelect({
+      element:  jQuery("#labelPicker"),
+      submitInputVal: true,
+      maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
+      content: "mixed",
+      ajaxOptions: {
+        url: AJS.contextPath() + "/rest/jttp-rest/1/picker/listLabels",
+        query: true,
+        formatResponse: function (items) {
+          return _.map(items, function (item) {
+            return new AJS.ItemDescriptor({
+              highlighted: true,
+              html: item.name,
+              label: item.name,
+              value: item.name
+            });
+          })
         }
-        var options= initializeOptionsForSelect(result.length,"#labelPicker");
-        var pp = new AJS.CheckboxMultiSelect(options);
-        updatePickerButtonText("#labelPicker" , "#labelPickerButton",AJS.I18n.getText("jtrp.picker.all.label"));
-        jQuery("#labelPicker").on("change unselect", function() {
-          updatePickerButtonText("#labelPicker" , "#labelPickerButton", AJS.I18n.getText("jtrp.picker.all.label"));
-        });
-      },
-      error : function(XMLHttpRequest, status, error){
       }
     });
+    updatePickerButtonText("#labelPicker" , "#labelPickerButton",AJS.I18n.getText("jtrp.picker.all.label"));
+    jQuery("#labelPicker").on("change unselect", function() {
+      updatePickerButtonText("#labelPicker" , "#labelPickerButton", AJS.I18n.getText("jtrp.picker.all.label"));
+    });
   };
-   function initializeOptionsForSelect(numOfelements,elementIdSelector){
-	   var options={
-      		 element:  jQuery(elementIdSelector),
-             submitInputVal: true,
-      };
-      addMaxInlineRsultIfNecessary(numOfelements,options);
-      return options;
-   }
+
+  function initializeOptionsForSelect(numOfelements,elementIdSelector){
+    var options={
+      element:  jQuery(elementIdSelector),
+      submitInputVal: true,
+    };
+    addMaxInlineRsultIfNecessary(numOfelements,options);
+    return options;
+  }
+
   function initIssueSelect(){
     var selectedArray =  jQuery.makeArray( reporting.values.selectedIssues ); 
     var ip = new AJS.IssuePicker({
