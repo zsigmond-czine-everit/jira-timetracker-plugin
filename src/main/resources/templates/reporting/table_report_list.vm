@@ -18,6 +18,7 @@ $webResourceManager.requireResource("jira.webresources:ajax-preview", null)
 
 <div class="aui-page-panel">
   <div class="aui-page-panel-inner aui-page-panel-content">
+   <a id="table-report-export" class="aui-list-item-link" target="hiddenFrameForDownload" href="#" data-jttp-href="$contextPath/rest/jttp-rest/1/download-report/downloadTableReport" onclick="return everit.jttp.report_common_scripts.updateTableReportDownloadHref(this)">$i18n.getText("jtrp.report.btn.export.csv.current")</a>
     #set($rowCount = 0)
     <table class="aui reporting-table">
       <thead>

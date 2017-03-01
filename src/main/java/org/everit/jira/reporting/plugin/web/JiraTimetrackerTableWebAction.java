@@ -21,7 +21,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -381,8 +380,8 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
     Collections.sort(worklogs, new OrderByDate());
 
     for (EveritWorklog worklog : worklogs) {
-      Calendar calendar = Calendar.getInstance();
-      calendar.setTime(worklog.getDate());
+      // Calendar calendar = Calendar.getInstance();
+      // calendar.setTime(worklog.getDate());
 
       boolean isRealWorklog = isRealWorklog(worklog);
 

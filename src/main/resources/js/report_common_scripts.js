@@ -143,7 +143,12 @@ everit.jttp.report_common_scripts = everit.jttp.report_common_scripts || {};
    
  }
 
-
+jttp.updateTableReportDownloadHref=function (){
+	jttp.beforeSubmitReport();
+	var $downloadButton=jQuery('#table-report-export');
+	var href = $downloadButton.attr('data-jttp-href');
+	$downloadButton.attr('href', href + '?dateFromMil='+jQuery('#dateFromMil').val()+'&dateToMil='+jQuery('#dateToMil').val()+'&selectedUser='+ jQuery('#selectedUser').val()); 
+}
  
  function showErrorMessage(message_key){
    jQuery('#error_message label').hide();
