@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.everit.jira.analytics.AnalyticsSender;
 import org.everit.jira.analytics.event.ExportSummaryReportEvent;
+import org.everit.jira.analytics.event.ExportTableReportEvent;
 import org.everit.jira.analytics.event.ExportWorklogDetailsReportEvent;
 import org.everit.jira.analytics.event.ExportWorklogDetailsReportEvent.WorkLogDetailsExportFormat;
 import org.everit.jira.core.EVWorklogManager;
@@ -205,6 +206,18 @@ public class DownloadReportResource {
     return buildCsvResponse(workbook, "summaries-report", CSV_FILE_EXTENSION);
   }
 
+  /**
+   * Download table report in excel file.
+   *
+   * @param dateFromMil
+   *          the start date
+   * @param dateToMil
+   *          the end date
+   * @param selectedUser
+   *          the selected user
+   * @return the report in excel format
+   *
+   */
   @GET
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   @Path("/downloadTableReport")
@@ -215,9 +228,10 @@ public class DownloadReportResource {
     ExportTableReport exportTableReport =
         new ExportTableReport(worklogManager, selectedUser,
             DateTimeServer.getInstanceBasedOnUserTimeZone(dateFromMil),
-            DateTimeServer.getInstanceBasedOnUserTimeZone(dateToMil));
+            DateTimeServer.getInstanceBasedOnUserTimeZone(dateToMil),
+            settingsHelper.loadGlobalSettings().getNonWorkingIssuePatterns());
     HSSFWorkbook exportToXLS = exportTableReport.exportToXLS();
-    // TODO analyticsSender.send(exportSummaryReportEvent);
+    analyticsSender.send(new ExportTableReportEvent(pluginId));
     return buildExcelResponse(exportToXLS, "table_report", XLS_FILE_EXTENSION);
   }
 

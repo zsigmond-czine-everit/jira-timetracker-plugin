@@ -25,4 +25,9 @@ public class JTRPException extends RuntimeException {
   public JTRPException(final String errorMsgKey) {
     super(errorMsgKey);
   }
+
+  public JTRPException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
+
 }
