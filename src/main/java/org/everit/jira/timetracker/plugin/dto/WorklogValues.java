@@ -15,6 +15,9 @@
  */
 package org.everit.jira.timetracker.plugin.dto;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -36,16 +39,22 @@ public class WorklogValues {
   private String durationTime = "";
 
   @XmlElement
+  private Long endDate;
+
+  @XmlElement
   private String endTime;
 
   @XmlElement
   private Boolean isDuration = Boolean.FALSE;
 
   @XmlElement
-  private String issueKey = "";
+  private List<String> issueKey = Collections.emptyList();
 
   @XmlElement
   private String newEstimate = "";
+
+  @XmlElement
+  private Boolean period = Boolean.FALSE;
 
   @XmlElement
   private String remainingEstimateType;
@@ -70,11 +79,15 @@ public class WorklogValues {
     return durationTime;
   }
 
+  public Long getEndDate() {
+    return endDate;
+  }
+
   public String getEndTime() {
     return endTime;
   }
 
-  public String getIssueKey() {
+  public List<String> getIssueKey() {
     return issueKey;
   }
 
@@ -94,6 +107,10 @@ public class WorklogValues {
     return isDuration;
   }
 
+  public Boolean isPeriod() {
+    return period;
+  }
+
   public void setAdjustmentAmount(final String adjustmentAmount) {
     this.adjustmentAmount = adjustmentAmount;
   }
@@ -110,6 +127,10 @@ public class WorklogValues {
     this.durationTime = durationTime;
   }
 
+  public void setEndDate(final Long endDate) {
+    this.endDate = endDate;
+  }
+
   public void setEndTime(final String endTime) {
     this.endTime = endTime;
   }
@@ -118,12 +139,16 @@ public class WorklogValues {
     this.isDuration = isDuration;
   }
 
-  public void setIssueKey(final String issueKey) {
+  public void setIssueKey(final List<String> issueKey) {
     this.issueKey = issueKey;
   }
 
   public void setNewEstimate(final String newEstimate) {
     this.newEstimate = newEstimate;
+  }
+
+  public void setPeriod(final Boolean period) {
+    this.period = period;
   }
 
   public void setRemainingEstimateType(final String remainingEstimateType) {

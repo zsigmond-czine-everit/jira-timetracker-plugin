@@ -17,6 +17,7 @@ package org.everit.jira.core.impl;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -87,13 +88,38 @@ public class WorklogComponent implements EVWorklogManager {
     }
   }
 
-  private void checkPermissionOnIssueCreateWorklog(final ApplicationUser user,
-      final MutableIssue issue) {
-    PermissionManager permissionManager = ComponentAccessor.getPermissionManager();
-    if (!permissionManager.hasPermission(Permissions.WORK_ISSUE, issue,
-        user)
-        || !permissionManager.hasPermission(ProjectPermissions.BROWSE_PROJECTS, issue, user)) {
-      throw new WorklogException(PropertiesKey.NOPERMISSION_ISSUE, issue.getKey());
+  private void checkPermissionOnIssue(final ApplicationUser user,
+      final List<MutableIssue> issues) {
+    StringBuilder wrongIssueKeys = new StringBuilder();
+    for (MutableIssue issue : issues) {
+      PermissionManager permissionManager = ComponentAccessor.getPermissionManager();
+      if (!permissionManager.hasPermission(Permissions.WORK_ISSUE, issue, user)
+          || !permissionManager.hasPermission(ProjectPermissions.BROWSE_PROJECTS, issue, user)) {
+        if (!(wrongIssueKeys.length() == 0)) {
+          wrongIssueKeys.append(", ");
+        }
+        wrongIssueKeys.append(issue.getKey());
+      }
+    }
+    if (!(wrongIssueKeys.length() == 0)) {
+      throw new WorklogException(PropertiesKey.NOPERMISSION_ISSUE, wrongIssueKeys.toString());
+    }
+  }
+
+  private void checkPermissionWorklogCreate(final List<MutableIssue> issues,
+      final JiraServiceContext serviceContext, final WorklogService worklogService) {
+    StringBuilder wrongIssueKeys = new StringBuilder();
+    for (MutableIssue issue : issues) {
+      if (!worklogService.hasPermissionToCreate(serviceContext, issue, true)) {
+        if (!(wrongIssueKeys.length() == 0)) {
+          wrongIssueKeys.append(", ");
+        }
+        wrongIssueKeys.append(issue.getKey());
+      }
+    }
+    if (!(wrongIssueKeys.length() == 0)) {
+      throw new WorklogException(PropertiesKey.NOPERMISSION_CREATE_WORKLOG,
+          wrongIssueKeys.toString());
     }
   }
 
@@ -132,36 +158,32 @@ public class WorklogComponent implements EVWorklogManager {
     ApplicationUser user = authenticationContext.getLoggedInUser();
     JiraServiceContext serviceContext = new JiraServiceContextImpl(user);
     IssueManager issueManager = ComponentAccessor.getIssueManager();
-    MutableIssue issue = issueManager.getIssueObject(worklogParameter.getIssueKey());
-    if (issue == null) {
-      throw new WorklogException(PropertiesKey.INVALID_ISSUE, worklogParameter.getIssueKey());
-    }
-    checkPermissionOnIssueCreateWorklog(user, issue);
-
+    List<MutableIssue> issues = validateIssueKeys(worklogParameter, issueManager);
+    checkPermissionOnIssue(user, issues);
     // securityLevel.
     WorklogService worklogService = ComponentAccessor.getComponent(WorklogService.class);
-    if (!worklogService.hasPermissionToCreate(serviceContext, issue, true)) {
-      throw new WorklogException(PropertiesKey.NOPERMISSION_CREATE_WORKLOG,
-          worklogParameter.getIssueKey());
-    }
-    Builder builder = getBuilder(issue,
-        worklogParameter.getDate().getSystemTimeZoneDate(),
-        worklogParameter.getTimeSpent(),
-        worklogParameter.getComment(),
-        null);
-    RemainingEstimateType remainingEstimateType = worklogParameter.getRemainingEstimateType();
-    WorklogInputParameters params = remainingEstimateType.build(builder,
-        worklogParameter.getOptinalValue());
+    checkPermissionWorklogCreate(issues, serviceContext, worklogService);
 
-    WorklogResult worklogResult = remainingEstimateType.validateCreate(worklogService,
-        serviceContext, params);
-    if (worklogResult == null) {
-      throw new WorklogException(PropertiesKey.WORKLOG_CREATE_FAIL);
-    }
-    Worklog createdWorklog = remainingEstimateType.create(worklogService, serviceContext,
-        worklogResult);
-    if (createdWorklog == null) {
-      throw new WorklogException(PropertiesKey.WORKLOG_CREATE_FAIL);
+    for (MutableIssue issue : issues) {
+      Builder builder = getBuilder(issue,
+          worklogParameter.getDate().getSystemTimeZoneDate(),
+          worklogParameter.getTimeSpent(),
+          worklogParameter.getComment(),
+          null);
+      RemainingEstimateType remainingEstimateType = worklogParameter.getRemainingEstimateType();
+      WorklogInputParameters params = remainingEstimateType.build(builder,
+          worklogParameter.getOptinalValue());
+
+      WorklogResult worklogResult = remainingEstimateType.validateCreate(worklogService,
+          serviceContext, params);
+      if (worklogResult == null) {
+        throw new WorklogException(PropertiesKey.WORKLOG_CREATE_FAIL);
+      }
+      Worklog createdWorklog = remainingEstimateType.create(worklogService, serviceContext,
+          worklogResult);
+      if (createdWorklog == null) {
+        throw new WorklogException(PropertiesKey.WORKLOG_CREATE_FAIL);
+      }
     }
   }
 
@@ -196,38 +218,44 @@ public class WorklogComponent implements EVWorklogManager {
 
     Worklog worklog = getWorklogById(worklogId);
     IssueManager issueManager = ComponentAccessor.getIssueManager();
-    MutableIssue issue = issueManager.getIssueObject(worklogParameter.getIssueKey());
-    if (issue == null) {
-      throw new WorklogException(PropertiesKey.INVALID_ISSUE, worklogParameter.getIssueKey());
+    List<MutableIssue> issues = validateIssueKeys(worklogParameter, issueManager);
+
+    for (MutableIssue issue : issues) {
+      if (!worklog.getIssue().getKey().equals(issue.getKey())) {
+        WorklogParameter createWorklogParameter =
+            new WorklogParameter(Arrays.asList(issue.getKey()),
+                worklogParameter.getComment(),
+                worklogParameter.getDate(),
+                worklogParameter.getTimeSpent(),
+                worklogParameter.getOptinalValue(),
+                worklogParameter.getRemainingEstimateType());
+        createWorklog(createWorklogParameter);
+      } else {
+        WorklogService worklogService = ComponentAccessor.getComponent(WorklogService.class);
+        if (!worklogService.hasPermissionToUpdate(serviceContext, worklog)) {
+          throw new WorklogException(PropertiesKey.NOPERMISSION_UPDATE_WORKLOG, issue.getKey());
+        }
+
+        Builder builder =
+            getBuilder(issue, worklogParameter.getDate().getSystemTimeZoneDate(),
+                worklogParameter.getTimeSpent(), worklogParameter.getComment(), worklogId);
+        RemainingEstimateType remainingEstimateType = worklogParameter.getRemainingEstimateType();
+        WorklogInputParameters params = remainingEstimateType.build(builder,
+            worklogParameter.getOptinalValue());
+
+        WorklogResult worklogResult = remainingEstimateType.validateUpdate(worklogService,
+            serviceContext, params);
+        if (worklogResult == null) {
+          throw new WorklogException(PropertiesKey.WORKLOG_UPDATE_FAIL);
+        }
+
+        remainingEstimateType.update(worklogService, serviceContext, worklogResult);
+
+      }
     }
-    if (!worklog.getIssue().getKey().equals(worklogParameter.getIssueKey())) {
-      checkPermissionOnIssueCreateWorklog(user, issue);
-
-      createWorklog(worklogParameter);
-
+    if (!issues.stream().filter(x -> worklog.getIssue().getKey().equals(x.getKey())).findAny()
+        .isPresent()) {
       deleteWorklog(worklogId, null, RemainingEstimateType.AUTO);
-    } else {
-      WorklogService worklogService = ComponentAccessor.getComponent(WorklogService.class);
-      if (!worklogService.hasPermissionToUpdate(serviceContext, worklog)) {
-        throw new WorklogException(PropertiesKey.NOPERMISSION_UPDATE_WORKLOG,
-            worklogParameter.getIssueKey());
-      }
-
-      Builder builder =
-          getBuilder(issue, worklogParameter.getDate().getSystemTimeZoneDate(),
-              worklogParameter.getTimeSpent(), worklogParameter.getComment(), worklogId);
-      RemainingEstimateType remainingEstimateType = worklogParameter.getRemainingEstimateType();
-      WorklogInputParameters params = remainingEstimateType.build(builder,
-          worklogParameter.getOptinalValue());
-
-      WorklogResult worklogResult = remainingEstimateType.validateUpdate(worklogService,
-          serviceContext, params);
-      if (worklogResult == null) {
-        throw new WorklogException(PropertiesKey.WORKLOG_UPDATE_FAIL);
-      }
-
-      remainingEstimateType.update(worklogService, serviceContext, worklogResult);
-
     }
   }
 
@@ -315,6 +343,27 @@ public class WorklogComponent implements EVWorklogManager {
 
     Collections.sort(worklogs, EveritWorklogComparator.INSTANCE);
     return worklogs;
+  }
+
+  private List<MutableIssue> validateIssueKeys(final WorklogParameter worklogParameter,
+      final IssueManager issueManager) {
+    List<MutableIssue> issues = new ArrayList<>();
+    StringBuilder wrongIssueKeys = new StringBuilder();
+    for (String issueKey : worklogParameter.getIssueKeys()) {
+      MutableIssue issue = issueManager.getIssueObject(issueKey);
+      if (issue == null) {
+        if (!(wrongIssueKeys.length() == 0)) {
+          wrongIssueKeys.append(", ");
+        }
+        wrongIssueKeys.append(issueKey);
+      } else {
+        issues.add(issue);
+      }
+    }
+    if (!(wrongIssueKeys.length() == 0)) {
+      throw new WorklogException(PropertiesKey.INVALID_ISSUE, wrongIssueKeys.toString());
+    }
+    return issues;
   }
 
 }

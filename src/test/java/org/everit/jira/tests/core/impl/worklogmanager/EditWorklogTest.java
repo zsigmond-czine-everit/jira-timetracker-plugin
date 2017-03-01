@@ -16,6 +16,7 @@
 package org.everit.jira.tests.core.impl.worklogmanager;
 
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Locale;
 
 import org.everit.jira.core.EVWorklogManager;
@@ -339,7 +340,7 @@ public class EditWorklogTest {
     String defaultTimeSpent = "10";
     try {
       worklogManager.editWorklog(invalidIssueWorklog.getId(),
-          new WorklogParameter(invalidIssueWorklog.getIssue().getKey(),
+          new WorklogParameter(Arrays.asList(invalidIssueWorklog.getIssue().getKey()),
               defaultComment,
               defaultDate,
               defaultTimeSpent,
@@ -353,7 +354,7 @@ public class EditWorklogTest {
 
     try {
       worklogManager.editWorklog(notSameIssueNoPermissionWorklog.getId(),
-          new WorklogParameter(notSameIssueToNoPermission.getKey(),
+          new WorklogParameter(Arrays.asList(notSameIssueToNoPermission.getKey()),
               defaultComment,
               defaultDate,
               defaultTimeSpent,
@@ -367,7 +368,7 @@ public class EditWorklogTest {
 
     try {
       worklogManager.editWorklog(notSameIssueNoPermissionWorklog.getId(),
-          new WorklogParameter(notSameIssueToNoPermission.getKey(),
+          new WorklogParameter(Arrays.asList(notSameIssueToNoPermission.getKey()),
               defaultComment,
               defaultDate,
               defaultTimeSpent,
@@ -381,7 +382,7 @@ public class EditWorklogTest {
 
     try {
       worklogManager.editWorklog(notSameIssueDeleteFailIssueWorklog.getId(),
-          new WorklogParameter(notSameIssueToDeleteFail.getKey(),
+          new WorklogParameter(Arrays.asList(notSameIssueToDeleteFail.getKey()),
               defaultComment,
               defaultDate,
               defaultTimeSpent,
@@ -395,7 +396,7 @@ public class EditWorklogTest {
 
     try {
       worklogManager.editWorklog(notSameIssueCreateFailIssueWorklog.getId(),
-          new WorklogParameter(notSameIssueToCreateFail.getKey(),
+          new WorklogParameter(Arrays.asList(notSameIssueToCreateFail.getKey()),
               defaultComment,
               defaultDate,
               defaultTimeSpent,
@@ -426,7 +427,8 @@ public class EditWorklogTest {
 
     try {
       worklogManager.editWorklog(sameIssueNoPermissionToUpdateWorklog.getId(),
-          new WorklogParameter(sameIssueNoPermissionToUpdateWorklog.getIssue().getKey(),
+          new WorklogParameter(
+              Arrays.asList(sameIssueNoPermissionToUpdateWorklog.getIssue().getKey()),
               defaultComment,
               defaultDate,
               defaultTimeSpent,
@@ -440,7 +442,7 @@ public class EditWorklogTest {
 
     try {
       worklogManager.editWorklog(sameIssueValidateFailWorklog.getId(),
-          new WorklogParameter(sameIssueValidateFailWorklog.getIssue().getKey(),
+          new WorklogParameter(Arrays.asList(sameIssueValidateFailWorklog.getIssue().getKey()),
               defaultComment,
               defaultDate,
               defaultTimeSpent,
@@ -453,7 +455,7 @@ public class EditWorklogTest {
     }
 
     worklogManager.editWorklog(sameIssueSuccessWorklog.getId(),
-        new WorklogParameter(sameIssueSuccessWorklog.getIssue().getKey(),
+        new WorklogParameter(Arrays.asList(sameIssueSuccessWorklog.getIssue().getKey()),
             defaultComment,
             defaultDate,
             defaultTimeSpent,
