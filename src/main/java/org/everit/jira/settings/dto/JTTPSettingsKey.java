@@ -130,6 +130,12 @@ public final class JTTPSettingsKey {
   public static final String JTTP_PLUGIN_SETTINGS_SHOW_TUTORIAL_VERSION = "showTutorialVersion";
 
   /**
+   * The plugin setting is show user wizrad version key.
+   */
+  public static final String JTTP_PLUGIN_SETTINGS_SHOW_USER_WIZARD_VERSION =
+      "showUserWizardVersion";
+
+  /**
    * The plugin setting is calendar popup key.
    */
   public static final String JTTP_PLUGIN_SETTINGS_START_TIME_CHANGE = "startTimeChange";
@@ -145,6 +151,7 @@ public final class JTTPSettingsKey {
    * The plugin setting Timetracker Permission key.
    */
   public static final String JTTP_PLUGIN_SETTINGS_TIMETRACKER_PERMISSION = "timetrackerPermission";
+
   /**
    * The plugin setting is show tutorila key.
    */

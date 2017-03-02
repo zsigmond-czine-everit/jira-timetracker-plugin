@@ -68,8 +68,6 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    */
   private static final long serialVersionUID = 1L;
 
-  public static final String USER_SETTINGS_VALUES_JSON = "userSettingsValuesJson";
-
   private AnalyticsDTO analyticsDTO;
 
   private String issueCollectorSrc;
@@ -193,19 +191,7 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    */
   private void loadUserSettings() {
     TimeTrackerUserSettings loaduserSettings = settingsHelper.loadUserSettings();
-    userSettingsValues = new UserSettingsValues();
-    userSettingsValues.setEndTime(loaduserSettings.getEndTimeChange());
-    userSettingsValues.setActualDate(loaduserSettings.isActualDate());
-    userSettingsValues.setColoring(loaduserSettings.isColoring());
-    userSettingsValues.setRounded(loaduserSettings.isRounded());
-    userSettingsValues.setProgressIndDaily(loaduserSettings.isProgressIndicatordaily());
-    userSettingsValues.setShowFutureLogWarning(loaduserSettings.isShowFutureLogWarning());
-    userSettingsValues.setShowIssueSummary(loaduserSettings.isShowIssueSummary());
-    userSettingsValues.setStartTime(loaduserSettings.getStartTimeChange());
-    userSettingsValues.setActiveFieldDuration(loaduserSettings.isActiveFieldDuration());
-    userSettingsValues.setDefaultStartTime(loaduserSettings.getDefaultStartTime());
-    userSettingsValues.setShowRemaningEstimate(loaduserSettings.isShowRemaningEstimate());
-    userSettingsValues.setShowPeriodWorklogs(loaduserSettings.isShowPeriodWorklogs());
+    userSettingsValues = TimetrackerUserSettingsUtil.loadUserSettingValues(loaduserSettings);
   }
 
   /**
@@ -215,7 +201,8 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    *          The HttpServletRequest.
    */
   public String parseSaveSettings(final HttpServletRequest request) {
-    String userSettingsValuesJson = getHttpRequest().getParameter(USER_SETTINGS_VALUES_JSON);
+    String userSettingsValuesJson =
+        getHttpRequest().getParameter(TimetrackerUserSettingsUtil.USER_SETTINGS_VALUES_JSON);
     if ((userSettingsValuesJson != null) && !"".equals(userSettingsValuesJson)) {
       userSettingsValues =
           TimetrackerUserSettingsUtil.convertJsonToUserSettingsValues(userSettingsValuesJson);
@@ -256,20 +243,8 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    * Save the plugin settings.
    */
   private void saveUserSettings() {
-    TimeTrackerUserSettings timeTrackerUserSettings = new TimeTrackerUserSettings()
-        .coloring(userSettingsValues.isColoring())
-        .isProgressIndicatordaily(userSettingsValues.isProgressIndDaily())
-        .actualDate(userSettingsValues.isActualDate())
-        .startTimeChange(userSettingsValues.getStartTime())
-        .endTimeChange(userSettingsValues.getEndTime())
-        .isRounded(userSettingsValues.isRounded())
-        .isShowIssueSummary(userSettingsValues.isShowIssueSummary())
-        .isShowFutureLogWarning(userSettingsValues.isShowFutureLogWarning())
-        .activeFieldDuration(userSettingsValues.isActiveFieldDuration())
-        .defaultStartTime(userSettingsValues.getDefaultStartTime())
-        .showRemaningEstimate(userSettingsValues.isShowRemaningEstimate())
-        .showPeriodWorklogs(userSettingsValues.isShowPeriodWorklogs());
-    settingsHelper.saveUserSettings(timeTrackerUserSettings);
+    settingsHelper
+        .saveUserSettings(TimetrackerUserSettingsUtil.saveUserSettingValues(userSettingsValues));
   }
 
   private void writeObject(final java.io.ObjectOutputStream stream) throws IOException {

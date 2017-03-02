@@ -22,12 +22,10 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.everit.jira.core.util.TimetrackerUserSettingsUtil;
-import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
 import org.everit.jira.reporting.plugin.dto.ReportingQueryParams;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.VersionComperatorUtil;
-import org.joda.time.DateTime;
 
 import com.atlassian.jira.component.ComponentAccessor;
 import com.google.gson.Gson;
@@ -101,12 +99,7 @@ public class TimeTrackerUserSettings {
   public String getDefaultStartTime() {
     String savedDefaultStartTime = pluginSettingsKeyValues.get(UserSettingKey.DEFAULT_START_TIME);
     if (savedDefaultStartTime == null) {
-      DateTime dateTime = new DateTime(TimetrackerUtil.getLoggedUserTimeZone());
-      dateTime = dateTime.withHourOfDay(DateTimeConverterUtil.HOUR_EIGHT);
-      dateTime = dateTime.withMinuteOfHour(0);
-      dateTime = dateTime.withSecondOfMinute(0);
-      return DateTimeConverterUtil
-          .dateTimeToString(DateTimeConverterUtil.convertDateTimeToDate(dateTime));
+      return TimetrackerUserSettingsUtil.getOriginalDefaultStartTime();
     }
     Date date;
     try {
@@ -408,6 +401,20 @@ public class TimeTrackerUserSettings {
   }
 
   /**
+   * Get the user saved show tutorial value.
+   *
+   * @return The saved value from settings.
+   */
+  public boolean isShowUserWizardVersion() {
+    String showTurorilaVersion =
+        pluginSettingsKeyValues.get(UserSettingKey.SHOW_USER_WIZARD_VERSION);
+    if (showTurorilaVersion != null) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Put the page size setting value.
    */
   public TimeTrackerUserSettings pageSize(final int pageSize) {
@@ -464,6 +471,17 @@ public class TimeTrackerUserSettings {
 
   public void setReprotingSelectedMoreJson(final String moreConditionJson) {
     pluginSettingsKeyValues.put(UserSettingKey.REPRTING_MORE_FILTER_JSON, moreConditionJson);
+  }
+
+  /**
+   * Put the is show tutorial setting value and store the tutorial version.
+   */
+  public TimeTrackerUserSettings setShowUserWizardVersion() {
+    String pluginVersion =
+        ComponentAccessor.getPluginAccessor().getPlugin("org.everit.jira.timetracker.plugin")
+            .getPluginInformation().getVersion();
+    pluginSettingsKeyValues.put(UserSettingKey.SHOW_USER_WIZARD_VERSION, pluginVersion);
+    return this;
   }
 
   /**

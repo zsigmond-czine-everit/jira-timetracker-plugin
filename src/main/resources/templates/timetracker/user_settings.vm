@@ -56,7 +56,7 @@
         
         <h3>$i18n.getText("plugin.setting.calendar.appearance")</h3>
         <div class="field-group">
-          <label>$i18n.getText("plugin.setting.isactualdate"): $userSettingsValues.actualDate</label>
+          <label>$i18n.getText("plugin.setting.isactualdate"):</label>
           <div>
             <input id="radioCurrent" type="radio" name="currentOrLast" value="current" class="settings-input"  #if($userSettingsValues.actualDate) checked="true" #end>  
             <label for="radioCurrent">$i18n.getText("plugin.setting.current")</label>
@@ -65,21 +65,20 @@
           </div>
           <div class="description">$i18n.getText("plugin.setting.isactualdate.help")</div>
         </div>
-        
         <div class="field-group">
-          <label>$i18n.getText("plugin.setting.coloring"): $userSettingsValues.coloring</label>
+          <label>$i18n.getText("plugin.setting.coloring"):</label>
           <input id="isColoring" type="checkbox" value="use color" class="settings-input" name="isColoring" #if($userSettingsValues.coloring) checked #end/>
           <div class="description">$i18n.getText("plugin.setting.coloring.help")</div>
         </div>
        
-       <h3>$i18n.getText("jttp.future.log.notification")</h3>
+        <h3>$i18n.getText("jttp.future.log.notification")</h3>
         <div class="field-group">
           <label>$i18n.getText("jttp.future.log.notification.title"):</label>
           <input id="isShowFutureLogWarning" type="checkbox" value="showWarning" class="settings-input" name="isShowFutureLogWarning" #if($userSettingsValues.showFutureLogWarning) checked #end/>
           <div class="description">$i18n.getText("jttp.future.log.notification.help")</div>
         </div>
         
-          <h3>$i18n.getText("plugin.setting.progress.ind.appearance")</h3>
+        <h3>$i18n.getText("plugin.setting.progress.ind.appearance")</h3>
         <div class="field-group">
           <label>$i18n.getText("plugin.setting.progress.ind"):</label>
           <div>
@@ -135,7 +134,7 @@
           <div class="description">$i18n.getText("plugin.setting.rounded.remaining.help")</div>
         </div>
         <div class="field-group">  
-          <label>$i18n.getText("plugin.setting.issue.display.type") $userSettingsValues.showIssueSummary</label>
+          <label>$i18n.getText("plugin.setting.issue.display.type")</label>
           <div>
             <input id="radioShowIssueKey" type="radio" name="isShowIssueSummary" value="showIssueKey" class="settings-input" #if(!$userSettingsValues.showIssueSummary) checked="true" #end>
             <label for="radioShowIssueKey">$i18n.getText("plugin.setting.issue.display.type.issue.key")</label>
