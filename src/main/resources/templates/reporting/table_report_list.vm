@@ -18,7 +18,14 @@ $webResourceManager.requireResource("jira.webresources:ajax-preview", null)
 
 <div class="aui-page-panel">
   <div class="aui-page-panel-inner aui-page-panel-content">
-   <a id="table-report-export" class="aui-list-item-link" target="hiddenFrameForDownload" href="#" data-jttp-href="$contextPath/rest/jttp-rest/1/download-report/downloadTableReport" onclick="return everit.jttp.report_common_scripts.updateTableReportDownloadHref(this)">$i18n.getText("jtrp.report.btn.export.csv.current")</a>
+   <a #if(!$worklogs || $worklogs.size() == 0) aria-disabled="true" 
+   onclick="return false;"
+   #else
+   onclick="return everit.jttp.report_common_scripts.updateTableReportDownloadHref(this)"
+   #end 
+   id="table-report-export" class="aui-button aui-button-light export_button" target="hiddenFrameForDownload" href="#" data-jttp-href="$contextPath/rest/jttp-rest/1/download-report/downloadTableReport" >
+   <span class="aui-icon aui-icon-small aui-iconfont-export"></span> $i18n.getText("jtrp.report.btn.export.excel.only")
+   </a>
     #set($rowCount = 0)
     <table class="aui reporting-table">
       <thead>
