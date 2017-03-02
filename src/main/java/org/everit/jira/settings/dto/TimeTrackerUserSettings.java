@@ -21,12 +21,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.everit.jira.core.util.TimetrackerUtil;
+import org.everit.jira.core.util.TimetrackerUserSettingsUtil;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
 import org.everit.jira.reporting.plugin.dto.ReportingQueryParams;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.VersionComperatorUtil;
-import org.joda.time.DateTime;
 
 import com.atlassian.jira.component.ComponentAccessor;
 import com.google.gson.Gson;
@@ -100,12 +99,7 @@ public class TimeTrackerUserSettings {
   public String getDefaultStartTime() {
     String savedDefaultStartTime = pluginSettingsKeyValues.get(UserSettingKey.DEFAULT_START_TIME);
     if (savedDefaultStartTime == null) {
-      DateTime dateTime = new DateTime(TimetrackerUtil.getLoggedUserTimeZone());
-      dateTime = dateTime.withHourOfDay(DateTimeConverterUtil.HOUR_EIGHT);
-      dateTime = dateTime.withMinuteOfHour(0);
-      dateTime = dateTime.withSecondOfMinute(0);
-      return DateTimeConverterUtil
-          .dateTimeToString(DateTimeConverterUtil.convertDateTimeToDate(dateTime));
+      return TimetrackerUserSettingsUtil.getOriginalDefaultStartTime();
     }
     Date date;
     try {
@@ -123,15 +117,15 @@ public class TimeTrackerUserSettings {
    * Get the end time change settings value. The default is 5.
    */
   public int getEndTimeChange() {
-    int endTimeChange = TimetrackerUtil.FIVE_MINUTES;
+    int endTimeChange = TimetrackerUserSettingsUtil.FIVE_MINUTES;
 
     Object endTimeChangeObj =
         pluginSettingsKeyValues.get(UserSettingKey.END_TIME_CHANGE);
     if (endTimeChangeObj != null) {
       try {
         endTimeChange = Integer.parseInt(endTimeChangeObj.toString());
-        if (!TimetrackerUtil.validateTimeChange(Integer.toString(endTimeChange))) {
-          endTimeChange = TimetrackerUtil.FIVE_MINUTES;
+        if (!TimetrackerUserSettingsUtil.validateTimeChange(endTimeChange)) {
+          endTimeChange = TimetrackerUserSettingsUtil.FIVE_MINUTES;
         }
       } catch (NumberFormatException e) {
         LOGGER.error("Wrong formated endTime change value. Set the default value (1).", e);
@@ -231,15 +225,15 @@ public class TimeTrackerUserSettings {
    * Get the start time change settings value. The default is 5.
    */
   public int getStartTimeChange() {
-    int startTimeChange = TimetrackerUtil.FIVE_MINUTES;
+    int startTimeChange = TimetrackerUserSettingsUtil.FIVE_MINUTES;
 
     Object startTimeChangeObj =
         pluginSettingsKeyValues.get(UserSettingKey.START_TIME_CHANGE);
     if (startTimeChangeObj != null) {
       try {
         startTimeChange = Integer.parseInt(startTimeChangeObj.toString());
-        if (!TimetrackerUtil.validateTimeChange(Integer.toString(startTimeChange))) {
-          startTimeChange = TimetrackerUtil.FIVE_MINUTES;
+        if (!TimetrackerUserSettingsUtil.validateTimeChange(startTimeChange)) {
+          startTimeChange = TimetrackerUserSettingsUtil.FIVE_MINUTES;
         }
       } catch (NumberFormatException e) {
         LOGGER.error("Wrong formated startTime change value. Set the default value (1).", e);
@@ -407,6 +401,20 @@ public class TimeTrackerUserSettings {
   }
 
   /**
+   * Get the user saved show tutorial value.
+   *
+   * @return The saved value from settings.
+   */
+  public boolean isShowUserWizardVersion() {
+    String showTurorilaVersion =
+        pluginSettingsKeyValues.get(UserSettingKey.SHOW_USER_WIZARD_VERSION);
+    if (showTurorilaVersion != null) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Put the page size setting value.
    */
   public TimeTrackerUserSettings pageSize(final int pageSize) {
@@ -463,6 +471,17 @@ public class TimeTrackerUserSettings {
 
   public void setReprotingSelectedMoreJson(final String moreConditionJson) {
     pluginSettingsKeyValues.put(UserSettingKey.REPRTING_MORE_FILTER_JSON, moreConditionJson);
+  }
+
+  /**
+   * Put the is show tutorial setting value and store the tutorial version.
+   */
+  public TimeTrackerUserSettings setShowUserWizardVersion() {
+    String pluginVersion =
+        ComponentAccessor.getPluginAccessor().getPlugin("org.everit.jira.timetracker.plugin")
+            .getPluginInformation().getVersion();
+    pluginSettingsKeyValues.put(UserSettingKey.SHOW_USER_WIZARD_VERSION, pluginVersion);
+    return this;
   }
 
   /**

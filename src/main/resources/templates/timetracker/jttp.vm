@@ -23,6 +23,7 @@ $webResourceManager.requireResource("jira.webresources:global-static")
 $webResourceManager.requireResource("jira.webresources:calendar")
 $webResourceManager.requireResource("jira.webresources:calendar-en")
 $webResourceManager.requireResource("com.atlassian.auiplugin:aui-progress-indicator")
+$webResourceManager.requireResource("com.atlassian.auiplugin:aui-experimental-progress-tracker")
 $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.plugin.jttp-resources")
 #if($defaultCommand)
 $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popup.jttp-survey-dialog-resources")
@@ -64,7 +65,8 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
 				currentServerTime: ${currentTimeInUserTimeZone.getMillis()},
 				jiraFormatedDate: "${currentDateTimeInJSDatePickerFormat}",
 				dateEndFormated: "${endDateInJSDatePickerFormat}",
-				period: ${worklogValues.period}
+				period: ${worklogValues.period},
+				showUserWizard: ${showUserWizardVersion}
 			}
 		);
 	})(everit.jttp.main, AJS.$);
@@ -338,6 +340,9 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
            </section>
          </div>
         </div>
+        #if(${showUserWizardVersion})
+          #parse("templates/timetracker/user_wizard_popup.vm")
+        #end
       <!-- Issue Collector script -->
       <script type="text/javascript" src="$issueCollectorSrc"></script>
       #if($analyticsDTO.analyticsCheck)
