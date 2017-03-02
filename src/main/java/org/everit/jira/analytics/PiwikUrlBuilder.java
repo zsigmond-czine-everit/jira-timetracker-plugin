@@ -63,8 +63,6 @@ public class PiwikUrlBuilder {
 
   private final String uid;
 
-  private String userSelectionParam;
-
   /**
    * Simple constructor.
    *
@@ -104,8 +102,6 @@ public class PiwikUrlBuilder {
         .getProperty(PiwikPropertiesUtil.PIWIK_SELECTED_ACTIVE_TAB_CUSTOM_DIMENSION_INDEX);
     selectedWorklogDetailColumnsParam = DIMENSION + jttpBuildProperties.getProperty(
         PiwikPropertiesUtil.PIWIK_SELECTED_WORKLOG_DETAIL_COLUMNS_CUSTOM_DIMENSION_INDEX);
-    userSelectionParam = DIMENSION + jttpBuildProperties
-        .getProperty(PiwikPropertiesUtil.PIWIK_USER_SELECTION_CUSTOM_DIMENSION_INDEX);
   }
 
   private void addActionNameParam() {
@@ -155,14 +151,6 @@ public class PiwikUrlBuilder {
     if (!columns.isEmpty()) {
       parameters.add(selectedWorklogDetailColumnsParam + "=" + encodeParamValue(columns));
     }
-    return this;
-  }
-
-  /**
-   * Add user selection custom dimension parameter to URL.
-   */
-  public PiwikUrlBuilder addCustomDimesionUserSelecton(final UserSelection userSelection) {
-    parameters.add(userSelectionParam + "=" + encodeParamValue(userSelection.name()));
     return this;
   }
 
