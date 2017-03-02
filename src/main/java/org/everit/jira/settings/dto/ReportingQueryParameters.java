@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.jira.timetracker.plugin.dto;
+package org.everit.jira.settings.dto;
 
 import java.io.Serializable;
 
 /**
- * Session data for the reports.
+ * Reporting queries parameters object.
  */
-public class TimetrackerReportsSessionData implements Serializable {
+public class ReportingQueryParameters implements Serializable {
 
   private static final long serialVersionUID = 7694409127990223607L;
 
@@ -30,17 +30,17 @@ public class TimetrackerReportsSessionData implements Serializable {
 
   public Long dateTo;
 
-  public TimetrackerReportsSessionData currentUser(final String currentUser) {
+  public ReportingQueryParameters currentUser(final String currentUser) {
     this.currentUser = currentUser;
     return this;
   }
 
-  public TimetrackerReportsSessionData dateFrom(final Long dateFrom) {
+  public ReportingQueryParameters dateFrom(final Long dateFrom) {
     this.dateFrom = dateFrom;
     return this;
   }
 
-  public TimetrackerReportsSessionData dateTo(final Long dateTo) {
+  public ReportingQueryParameters dateTo(final Long dateTo) {
     this.dateTo = dateTo;
     return this;
   }
