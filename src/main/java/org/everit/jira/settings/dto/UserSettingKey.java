@@ -207,6 +207,6 @@ public enum UserSettingKey implements SettingsMapper {
       return JTTPSettingsKey.JTTP_USER_CANCELED_UPDATE;
     }
 
-  };
+  }
 
 }

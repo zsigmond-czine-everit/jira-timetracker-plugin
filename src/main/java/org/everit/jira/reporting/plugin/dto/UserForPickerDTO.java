@@ -26,8 +26,6 @@ public class UserForPickerDTO {
 
   public static final String NONE_DISPLAY_NAME = "jtrp.picker.value.none";
 
-  public static final String NONE_USER_KEY = "none";
-
   public static final String UNASSIGNED_DISPLAY_NAME = "jtrp.picker.unassigned.value";
 
   public static final String UNASSIGNED_USER_KEY = "empty";

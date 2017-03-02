@@ -34,6 +34,8 @@ import org.everit.jira.settings.dto.GlobalSettingsKey;
 import org.everit.jira.settings.dto.JTTPSettingsKey;
 import org.everit.jira.settings.dto.ReportingGlobalSettings;
 import org.everit.jira.settings.dto.ReportingSettingKey;
+import org.everit.jira.settings.dto.ReportingUserSettings;
+import org.everit.jira.settings.dto.ReportingUserSettingsKey;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
 import org.everit.jira.settings.dto.TimeTrackerUserSettings;
 import org.everit.jira.settings.dto.UserSettingKey;
@@ -267,6 +269,17 @@ public class TimeTrackerSettingsHelperImpl
   }
 
   @Override
+  public ReportingUserSettings loadReportingUserSettings() {
+    PluginSettings pluginSettings = getUserPluginSettings();
+    ReportingUserSettings reportingUserSettings = new ReportingUserSettings();
+    for (ReportingUserSettingsKey settingKey : ReportingUserSettingsKey.values()) {
+      reportingUserSettings.putUserSettingValue(settingKey,
+          (String) pluginSettings.get(settingKey.getSettingsKey()));
+    }
+    return reportingUserSettings;
+  }
+
+  @Override
   public TimeTrackerUserSettings loadUserSettings() {
     PluginSettings pluginSettings = getUserPluginSettings();
     TimeTrackerUserSettings timeTrackerUserSettings = new TimeTrackerUserSettings();
@@ -311,6 +324,16 @@ public class TimeTrackerSettingsHelperImpl
           settingEntry.getValue());
     }
 
+  }
+
+  @Override
+  public void saveReportingUserSettings(final ReportingUserSettings settings) {
+    PluginSettings pluginSettings = getUserPluginSettings();
+    for (Entry<ReportingUserSettingsKey, String> settingEntry : settings.getSettingsKeyValues()
+        .entrySet()) {
+      pluginSettings.put(settingEntry.getKey().getSettingsKey(),
+          settingEntry.getValue());
+    }
   }
 
   @Override

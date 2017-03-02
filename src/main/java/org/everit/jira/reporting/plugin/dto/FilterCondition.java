@@ -15,8 +15,6 @@
  */
 package org.everit.jira.reporting.plugin.dto;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +22,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.everit.jira.reporting.plugin.SearcherValue;
-import org.everit.jira.reporting.plugin.util.ConverterUtil;
 
 /**
  * Contains filter values to ReportSearchParam.
@@ -34,10 +31,6 @@ public class FilterCondition {
 
   @XmlElement
   private List<Long> filter = Collections.emptyList();
-
-  @XmlElement
-  private List<String> groups =
-      new ArrayList<>(Arrays.asList(ConverterUtil.VALUE_NEGATIVE_ONE));
 
   @XmlElement
   private List<String> issueAffectedVersions = Collections.emptyList();
@@ -94,7 +87,7 @@ public class FilterCondition {
   private String searcherValue = SearcherValue.BASIC.lowerCaseValue;
 
   @XmlElement
-  private List<String> users = Collections.emptyList();
+  private List<String> groupUsers = Collections.emptyList();
 
   @XmlElement
   private Long worklogEndDate;
@@ -104,10 +97,6 @@ public class FilterCondition {
 
   public List<Long> getFilter() {
     return filter;
-  }
-
-  public List<String> getGroups() {
-    return groups;
   }
 
   public List<String> getIssueAffectedVersions() {
@@ -182,8 +171,8 @@ public class FilterCondition {
     return searcherValue;
   }
 
-  public List<String> getUsers() {
-    return users;
+  public List<String> getGroupUsers() {
+    return groupUsers;
   }
 
   public Long getWorklogEndDate() {
@@ -196,10 +185,6 @@ public class FilterCondition {
 
   public void setFilter(final List<Long> filter) {
     this.filter = filter;
-  }
-
-  public void setGroups(final List<String> groups) {
-    this.groups = groups;
   }
 
   public void setIssueAffectedVersions(final List<String> issueAffectedVersions) {
@@ -274,8 +259,8 @@ public class FilterCondition {
     this.searcherValue = searcherValue;
   }
 
-  public void setUsers(final List<String> users) {
-    this.users = users;
+  public void setGroupUsers(final List<String> users) {
+    this.groupUsers = users;
   }
 
   public void setWorklogEndDate(final Long worklogEndDate) {
