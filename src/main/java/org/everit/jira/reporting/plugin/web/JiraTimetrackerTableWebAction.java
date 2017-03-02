@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpSession;
-
 import org.apache.log4j.Logger;
 import org.everit.jira.analytics.AnalyticsDTO;
 import org.everit.jira.core.EVWorklogManager;
@@ -36,10 +34,11 @@ import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.ReportingCondition;
 import org.everit.jira.reporting.plugin.util.PermissionUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
+import org.everit.jira.settings.dto.ReportingQueryParameters;
+import org.everit.jira.settings.dto.ReportingUserSettings;
 import org.everit.jira.timetracker.plugin.JiraTimetrackerAnalytics;
 import org.everit.jira.timetracker.plugin.PluginCondition;
 import org.everit.jira.timetracker.plugin.dto.EveritWorklog;
-import org.everit.jira.timetracker.plugin.dto.TimetrackerReportsSessionData;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.ExceptionUtil;
 import org.everit.jira.timetracker.plugin.util.PiwikPropertiesUtil;
@@ -116,8 +115,6 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
    */
   private static final long serialVersionUID = 1L;
 
-  private static final String SESSION_KEY = "jttpTableStore";
-
   private AnalyticsDTO analyticsDTO;
 
   private JiraRendererPlugin atlassianWikiRenderer;
@@ -157,6 +154,8 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
 
   private ReportingCondition reportingCondition;
 
+  private ReportingUserSettings reportingUserSettings;
+
   private TimeTrackerSettingsHelper settingsHelper;
 
   private String stacktrace = "";
@@ -193,7 +192,7 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
         PermissionUtil.hasBrowseUserPermission(getLoggedInApplicationUser(),
             settingsHelper);
     issuesRegex = settingsHelper.loadGlobalSettings().getNonWorkingIssuePatterns();
-
+    reportingUserSettings = settingsHelper.loadReportingUserSettings();
     analyticsDTO = JiraTimetrackerAnalytics.getAnalyticsDTO(PiwikPropertiesUtil.PIWIK_TABLE_SITEID,
         settingsHelper);
 
@@ -225,7 +224,7 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
 
     beforeAction();
 
-    boolean loadedFromSession = loadDataFromSession();
+    boolean loadedFromSession = loadDataFromUserSettings();
     initDatesIfNecessary();
     initCurrentUserIfNecessary();
 
@@ -259,7 +258,7 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
     worklogs = new ArrayList<>();
     try {
       worklogs.addAll(worklogManager.getWorklogs(currentUser, startDate, lastDate));
-      saveDataToSession();
+      saveDataToUserSettings();
     } catch (DataAccessException | ParseException e) {
       LOGGER.error(GET_WORKLOGS_ERROR_MESSAGE, e);
       stacktrace = ExceptionUtil.getStacktrace(e);
@@ -409,18 +408,14 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
     }
   }
 
-  private boolean loadDataFromSession() {
-    HttpSession session = getHttpSession();
-    Object data = session.getAttribute(SESSION_KEY);
-
-    if (!(data instanceof TimetrackerReportsSessionData)) {
+  private boolean loadDataFromUserSettings() {
+    ReportingQueryParameters tableReportData = reportingUserSettings.getTableReportData();
+    if (tableReportData.currentUser == null) {
       return false;
     }
-    TimetrackerReportsSessionData timetrackerReportsSessionData =
-        (TimetrackerReportsSessionData) data;
-    currentUser = timetrackerReportsSessionData.currentUser;
-    dateFromFormated = timetrackerReportsSessionData.dateFrom;
-    dateToFormated = timetrackerReportsSessionData.dateTo;
+    currentUser = tableReportData.currentUser;
+    dateFromFormated = tableReportData.dateFrom;
+    dateToFormated = tableReportData.dateTo;
     return true;
   }
 
@@ -497,11 +492,12 @@ public class JiraTimetrackerTableWebAction extends JiraWebActionSupport {
         .isShowUpdater();
   }
 
-  private void saveDataToSession() {
-    HttpSession session = getHttpSession();
-    session.setAttribute(SESSION_KEY,
-        new TimetrackerReportsSessionData().currentUser(currentUser).dateFrom(dateFromFormated)
+  private void saveDataToUserSettings() {
+    ReportingUserSettings reportingUserSettings = new ReportingUserSettings();
+    reportingUserSettings.putTableReportData(
+        new ReportingQueryParameters().currentUser(currentUser).dateFrom(dateFromFormated)
             .dateTo(dateToFormated));
+    settingsHelper.saveReportingUserSettings(reportingUserSettings);
   }
 
   private void setCurrentUserFromParam() throws IllegalArgumentException {

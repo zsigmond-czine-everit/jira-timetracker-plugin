@@ -31,6 +31,8 @@ import org.everit.jira.reporting.plugin.ReportingCondition;
 import org.everit.jira.reporting.plugin.dto.MissingsPageingDTO;
 import org.everit.jira.reporting.plugin.dto.MissingsWorklogsDTO;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
+import org.everit.jira.settings.dto.MissingWorklogQueryParameters;
+import org.everit.jira.settings.dto.ReportingUserSettings;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
 import org.everit.jira.timetracker.plugin.JiraTimetrackerAnalytics;
 import org.everit.jira.timetracker.plugin.PluginCondition;
@@ -231,20 +233,26 @@ public class JiraTimetrackerWorklogsWebAction extends JiraWebActionSupport {
   }
 
   /**
-   * Set dateFrom and dateFromFormated default value.
+   * Get dateFrom from saved query data or create default value;.
    */
-  private void dateFromDefaultInit() {
+  private long dateFromDefaultInit(final MissingWorklogQueryParameters missingWorklogData) {
+    if (missingWorklogData.dateFrom != null) {
+      return missingWorklogData.dateFrom;
+    }
     DateTime date = new DateTime(TimetrackerUtil.getLoggedUserTimeZone());
     date = date.minusMonths(1);
-    dateFromFormated = DateTimeConverterUtil.convertDateTimeToDate(date).getTime();
+    return DateTimeConverterUtil.convertDateTimeToDate(date).getTime();
   }
 
   /**
-   * Set dateTo and dateToFormated default values.
+   * Get date default value from saved query data or create default value..
    */
-  private void dateToDefaultInit() {
+  private long dateToDefaultInit(final MissingWorklogQueryParameters missingWorklogData) {
+    if (missingWorklogData.dateTo != null) {
+      return missingWorklogData.dateTo;
+    }
     DateTime date = new DateTime(TimetrackerUtil.getLoggedUserTimeZone());
-    dateToFormated = DateTimeConverterUtil.convertDateTimeToDate(date).getTime();
+    return DateTimeConverterUtil.convertDateTimeToDate(date).getTime();
   }
 
   @Override
@@ -300,7 +308,13 @@ public class JiraTimetrackerWorklogsWebAction extends JiraWebActionSupport {
       stacktrace = ExceptionUtil.getStacktrace(e);
       return ERROR;
     }
-
+    MissingWorklogQueryParameters queryParams = new MissingWorklogQueryParameters()
+        .checkHours(checkHours)
+        .checkNonWorkingIssues(checkNonWorkingIssues)
+        .dateFrom(dateFromFormated).dateTo(dateToFormated);
+    ReportingUserSettings reportingUserSettings = new ReportingUserSettings();
+    reportingUserSettings.putMissingWorklogsReportData(queryParams);
+    settingsHelper.saveReportingUserSettings(reportingUserSettings);
     afterAction();
 
     return SUCCESS;
@@ -431,19 +445,25 @@ public class JiraTimetrackerWorklogsWebAction extends JiraWebActionSupport {
     String nonworkingValue = getHttpRequest().getParameter(Parameter.NONWORKING);
     if (hourValue != null) {
       checkHours = true;
+    } else {
+      checkHours = false;
     }
     if (nonworkingValue != null) {
       checkNonWorkingIssues = true;
+    } else {
+      checkNonWorkingIssues = false;
     }
   }
 
   private void parseDateParams() {
+    MissingWorklogQueryParameters missingWorklogData =
+        settingsHelper.loadReportingUserSettings().getMissingWorklogData();
     String requestDateFrom = getHttpRequest().getParameter(Parameter.DATEFROM);
     if (requestDateFrom != null) {
       dateFromFormated = Long.valueOf(requestDateFrom);
     } else if (dateFromFormated == null) {
       // TODO check this if else
-      dateFromDefaultInit();
+      dateFromFormated = dateFromDefaultInit(missingWorklogData);
     }
     dateFrom = DateTimeServer.getInstanceBasedOnUserTimeZone(dateFromFormated);
 
@@ -452,9 +472,13 @@ public class JiraTimetrackerWorklogsWebAction extends JiraWebActionSupport {
       dateToFormated = Long.valueOf(requestDateTo);
     } else if (dateToFormated == null) {
       // TODO check this if else
-      dateToDefaultInit();
+      dateToFormated = dateToDefaultInit(missingWorklogData);
     }
     dateTo = DateTimeServer.getInstanceBasedOnUserTimeZone(dateToFormated);
+    if (missingWorklogData.checkHours != null) {
+      checkHours = missingWorklogData.checkHours;
+      checkNonWorkingIssues = missingWorklogData.checkNonWorkingIssues;
+    }
   }
 
   private void parsePagingParams() {

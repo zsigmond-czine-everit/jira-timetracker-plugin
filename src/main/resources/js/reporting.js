@@ -63,8 +63,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     initStatusSelect();
     initMoreSelect();
 
-    initUserSelect();
-    initGroupSelect();
+    initGroupUserSelect();
 
     initWorklogDetailsColumns();
 
@@ -451,29 +450,47 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     });
   }
   
-  function initUserSelect(){
+  function initGroupUserSelect(){
    var jttpUserPicker = new AJS.CheckboxMultiSelect({
       element:  jQuery("#userPicker"),
       submitInputVal: true,
       maxInlineResultsDisplayed: MAX_ELEMENTS_DISPLAYED,
       content: "mixed",
       ajaxOptions: {
-        url: AJS.contextPath() + "/rest/api/2/user/picker",
+        url: AJS.contextPath() + "/rest/api/2/groupuserpicker",
         data: {
           showAvatar: true
         },
         query: true,
         formatResponse: function (items) {
-          return _.map(items.users, function (item) {
+        	var users=[];
+        	var groups=[];
+        if(items.users.total){
+           users= _.map(items.users.users, function (item) {
                return new AJS.ItemDescriptor({
                  highlighted: true,
                  html: item.html,
                  icon: item.avatarUrl,
                  label: item.displayName,
-                 value: item.key
+                 value: "users:"  + item.key
                });
-          })
+          });
+          }
+        if(items.groups.total){
+           groups=_.map(items.groups.groups, function (item) {
+              return new AJS.ItemDescriptor({
+                  highlighted: true,
+                  html: item.html,
+                  icon: AJS.contextPath() + "/images/icons/icon_groups_16.png",
+                  label: item.name,
+                  value: "group:" + item.name
+              });
+          });
         }
+          var resultItems = [].concat(users).concat(groups);
+          return [new AJS.GroupDescriptor({items: resultItems})];
+        }
+        
       }
     });
     jttpUserPicker._setDescriptorSelection = function(descriptor, $input) {
@@ -481,20 +498,14 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
       if (!descriptor.selected()) {
           this.selectItem(descriptor);
           $input.attr("checked", "checked");
-          if(descriptValue == "none"){
-            var triggerData = {type:"click",name:"UserSelectClick",fakeClick:true};
-            jQuery('#userPicker-suggestions input[checked="checked"][value!="none"]').click();
-            jQuery('#groupPicker-suggestions [value="-1"]').trigger(triggerData);
-            jQuery("#groupPickerButton").attr("aria-disabled", false);
-          }
       } else {
           this.unselectItem(descriptor);
           $input.removeAttr("checked");
       }
     };
-    updatePickerButtonTextWithNone("#userPicker" , "#userPickerButton",  AJS.I18n.getText("jtrp.picker.all.user"),  AJS.I18n.getText("jtrp.picker.none.user"), "none");
+    updatePickerButtonText("#userPicker" , "#userPickerButton",  AJS.I18n.getText("jtrp.picker.all.user") );
     jQuery("#userPicker").on("change unselect", function() {
-      updatePickerButtonTextWithNone("#userPicker" , "#userPickerButton", AJS.I18n.getText("jtrp.picker.all.user"),  AJS.I18n.getText("jtrp.picker.none.user"), "none");
+      updatePickerButtonText("#userPicker" , "#userPickerButton", AJS.I18n.getText("jtrp.picker.all.user"));
     });
   }
     
@@ -525,58 +536,15 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     
   function browsePermissionCheck(){
     if(!reporting.values.hasBrowseUsersPermission){
+    	if(!jQuery('#userPicker').val()){
+      jQuery("#userPicker").val('users:currentUser');
+      updatePickerButtonTextWithNone("#userPicker" , "#userPickerButton",  AJS.I18n.getText("jtrp.picker.all.user"),  AJS.I18n.getText("jtrp.picker.none.user"), "none");
+    	}
       jQuery("#userPickerButton").attr("aria-disabled", true);
-      jQuery("#groupPickerButton").attr("aria-disabled", true);
-      jQuery("#groupPickerButton").attr("original-title", AJS.I18n.getText("jtrp.plugin.no.browse.permission"));
       jQuery("#userPickerButton").attr("original-title", AJS.I18n.getText("jtrp.plugin.no.browse.permission"));
     }
   }
   
-  function initGroupSelect(){
-    var selectedArray =  jQuery.makeArray( reporting.values.selectedGroups ); 
-    jQuery.ajax({
-      async: true,
-      type: 'GET',
-      url : contextPath + "/rest/api/2/groups/picker",
-      data : {maxResults : 1000},
-      success : function(result){
-        //Add None before result parse
-        var selected = checkSelected("-1", selectedArray);
-        jQuery("#groupPicker").append('<option value="-1" '+ selected + '>' + AJS.I18n.getText('jtrp.picker.value.none') +'</option>');
-        for( var i in result.groups) {
-          var obj = result.groups[i];
-          var selected = checkSelected(obj.name, selectedArray);
-          jQuery("#groupPicker").append('<option value="'+obj.name + '" '+ selected + '>' +obj.name +'</option>');
-        }
-        var options= initializeOptionsForSelect(result.groups.length,"#groupPicker");
-        var pp = new AJS.CheckboxMultiSelect(options);
-        pp._setDescriptorSelection = function(descriptor, $input) {
-          var descriptValue = descriptor.value();
-          if (!descriptor.selected()) {
-              this.selectItem(descriptor);
-              $input.attr("checked", "checked");
-              if(descriptValue == "-1"){
-                var triggerData = {type:"click",name:"GroupSelectClick",fakeClick:true};
-                jQuery('#groupPicker-suggestions input[checked="checked"][value!="-1"]').click();
-                jQuery('#userPicker-suggestions [value="none"]').trigger(triggerData);
-                jQuery("#userPickerButton").attr("aria-disabled", false);
-              }
-          } else {
-              this.unselectItem(descriptor);
-              $input.removeAttr("checked");
-          }
-        };
-        
-        updatePickerButtonTextWithNone("#groupPicker" , "#groupPickerButton",  AJS.I18n.getText("jtrp.picker.all.group"),  AJS.I18n.getText("jtrp.picker.none.group"), "-1");
-        jQuery("#groupPicker").on("change unselect", function() {
-          updatePickerButtonTextWithNone("#groupPicker" , "#groupPickerButton", AJS.I18n.getText("jtrp.picker.all.group"),  AJS.I18n.getText("jtrp.picker.none.group"), "-1");
-        });
-      
-      },
-      error : function(XMLHttpRequest, status, error){
-      }
-    });
-  };
   function addMaxInlineRsultIfNecessary(numOfelements,options){
 	  if(numOfelements>MAX_ELEMENTS_DISPLAYED){
 		  options.maxInlineResultsDisplayed =MAX_ELEMENTS_DISPLAYED;
@@ -978,9 +946,8 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
       });
     }
     
-    var groups = jQuery('#groupPicker').val() || [];
     
-    var users =jQuery('#userPicker').val() || [];
+    var groupUsers =jQuery('#userPicker').val() || [];
     
     var issueKeys = jQuery('#issuePicker').val() || [];
     
@@ -989,7 +956,6 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     var searcherValue = jQuery('#formType').val();
     
     var filterCondition = {
-      "groups": groups,
       "issueAffectedVersions": issueAffectedVersions,
       "issueAssignees": issueAssignees,
       "issueComponents": issueComponents,
@@ -1004,7 +970,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
       "issueTypeIds": issueTypeIds,
       "labels": labels,
       "projectIds": projectIds,
-      "users": users,
+      "groupUsers": groupUsers,
       "filter": filter,
       "searcherValue": searcherValue,
     }
@@ -1286,12 +1252,6 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     if(!$userPickerTooltip.hasClass('jtrp-tooltipped')) {
       $userPickerTooltip.tooltip({gravity: 'w'});
       $userPickerTooltip.addClass('jtrp-tooltipped');
-    }
-    
-    var $groupPickerTooltip = jQuery('#groupPickerButton');
-    if(!$groupPickerTooltip.hasClass('jtrp-tooltipped')) {
-      $groupPickerTooltip.tooltip({gravity: 'w'});
-      $groupPickerTooltip.addClass('jtrp-tooltipped');
     }
     
     var $projectExpectedTooltip = jQuery('#project-expected-tooltip');
