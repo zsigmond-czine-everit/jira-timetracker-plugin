@@ -15,7 +15,6 @@
  */
 package org.everit.jira.core.impl;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -46,6 +45,8 @@ import com.atlassian.scheduler.config.Schedule;
 public class InitializerComponent implements InitializingBean, DisposableBean {
 
   private static final int DEFAULT_CHECK_TIME_IN_MINUTES = 1200;
+
+  private static JobRunnerKey jobRunerKey = JobRunnerKey.of("issueEstimatedTimeChecker");
 
   private static final int MINUTES_IN_HOUR = 60;
 
@@ -78,7 +79,6 @@ public class InitializerComponent implements InitializingBean, DisposableBean {
     // final Runnable issueEstimatedTimeChecker = new IssueEstimatedTimeChecker(
     // settingsHelper);
     // TODO add global settings the time
-    JobRunnerKey jobRunerKey = JobRunnerKey.of("issueEstimatedTimeChecker");
     JobId jobId = JobId.of("issueEstimatedTimeCheckerJobId");
     schedulerService.registerJobRunner(jobRunerKey,
         new IssueEstimatedTimeChecker2(settingsHelper));
@@ -86,6 +86,7 @@ public class InitializerComponent implements InitializingBean, DisposableBean {
         JobConfig.forJobRunnerKey(jobRunerKey)
             .withRunMode(RunMode.RUN_ONCE_PER_CLUSTER)
             .withSchedule(Schedule.forInterval(ONE_DAY_IN_MILISEC,
+                // TODO calculate based on global settings
                 new Date(System.currentTimeMillis() + ONE_DAY_IN_MILISEC))));
     // issueEstimatedTimeCheckerFuture = scheduledExecutorService
     // .scheduleAtFixedRate(issueEstimatedTimeChecker,
@@ -95,25 +96,10 @@ public class InitializerComponent implements InitializingBean, DisposableBean {
     sendNonEstAndNonWorkAnaliticsEvent();
   }
 
-  private long calculateInitialDelay() {
-    // DEFAULT 20:00 use system time
-    Calendar now = Calendar.getInstance();
-    long hours = now.get(Calendar.HOUR_OF_DAY);
-    long minutes = now.get(Calendar.MINUTE);
-    long initialDelay =
-        DEFAULT_CHECK_TIME_IN_MINUTES - ((hours * MINUTES_IN_HOUR) + minutes);
-    if (initialDelay < 0) {
-      initialDelay = initialDelay + ONE_DAY_IN_MINUTES;
-    }
-    return initialDelay;
-  }
-
   @Override
   public void destroy() throws Exception {
-    scheduledExecutorService.shutdown();
     issueEstimatedTimeCheckerFuture.cancel(true);
-    // TODO
-    schedulerService.unregisterJobRunner(null);
+    schedulerService.unregisterJobRunner(jobRunerKey);
   }
 
   private void sendNonEstAndNonWorkAnaliticsEvent() {

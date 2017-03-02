@@ -99,6 +99,9 @@ public final class JTTPSettingsKey {
    */
   public static final String JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_ISSUES = "NonEstimated";
 
+  protected static final String JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_NOTIFICATION_TIME =
+      "NON_ESTIMATED_NOTIFICATION_TIME";
+
   /**
    * The plugin setting Plugin Permission key.
    */
@@ -140,7 +143,6 @@ public final class JTTPSettingsKey {
   public static final String JTTP_PLUGIN_SETTINGS_SUMMARY_FILTERS = "SummaryFilters";
 
   public static final String JTTP_PLUGIN_SETTINGS_TIME_ZONE = "timeZoneSetting";
-
   /**
    * The plugin setting Timetracker Permission key.
    */
@@ -149,6 +151,7 @@ public final class JTTPSettingsKey {
    * The plugin setting is show tutorila key.
    */
   public static final String JTTP_PLUGIN_USER_WD_SELECTED_COLUMNS = "worklogDetialsSelectedColumns";
+
   /**
    * The plugin UUDI global setting key.
    */
@@ -159,9 +162,9 @@ public final class JTTPSettingsKey {
 
   public static final String JTTP_REPORTING_COLLAPSED_SUMMARY_MODULE_VAL =
       "REPORTING_COLLAPSED_SUMMARY_MODULE_VAL";
-
   public static final String JTTP_REPORTING_FILTER_CONDITION_JSON =
       "REPORTING_FILTER_CONDITION_JSON";
+
   /**
    * The reporting search more json values.
    */

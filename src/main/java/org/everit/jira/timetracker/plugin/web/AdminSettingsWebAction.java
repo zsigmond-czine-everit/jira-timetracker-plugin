@@ -280,6 +280,7 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     for (Pattern issuePattern : collectorIssuePatterns) {
       collectorIssueKey += issuePattern.toString() + " ";
     }
+
     excludeDates = loadGlobalSettings.getExcludeDatesAsLong();
     includeDates = loadGlobalSettings.getIncludeDatesAsLong();
     analyticsCheck = loadGlobalSettings.getAnalyticsCheck();
@@ -391,6 +392,7 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
         .includeDates(includeDates)
         .filteredSummaryIssues(issuesPatterns)
         .collectorIssues(collectorIssuePatterns)
+        .nonEstimatedRemindTime(1) // TODO
         .analyticsCheck(analyticsCheck)
         .timeZone(timeZoneType);
     settingsHelper.saveGlobalSettings(globalSettings);
