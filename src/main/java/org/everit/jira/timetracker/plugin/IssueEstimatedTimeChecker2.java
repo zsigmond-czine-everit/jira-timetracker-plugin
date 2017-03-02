@@ -37,20 +37,15 @@ import com.atlassian.jira.issue.IssueManager;
 import com.atlassian.jira.issue.MutableIssue;
 import com.atlassian.mail.Email;
 import com.atlassian.mail.queue.SingleMailQueueItem;
+import com.atlassian.scheduler.JobRunner;
+import com.atlassian.scheduler.JobRunnerRequest;
+import com.atlassian.scheduler.JobRunnerResponse;
 
 /**
  * Issue Estimated time checker.
  */
-public class IssueEstimatedTimeChecker implements Runnable {
+public class IssueEstimatedTimeChecker2 implements JobRunner {
 
-  // /**
-  // * Logger.
-  // */
-  // private static final Logger LOGGER = Logger.getLogger(IssueEstimatedTimeChecker.class);
-  // /**
-  // * The email address of the sender.
-  // */
-  // private String emailSender;
   /**
    * The check dates calendar.
    */
@@ -64,7 +59,7 @@ public class IssueEstimatedTimeChecker implements Runnable {
    * @param emailSender
    *          TThe email address of the sender, come from the plugin properties file.
    */
-  public IssueEstimatedTimeChecker(final TimeTrackerSettingsHelper settingsHelper) {
+  public IssueEstimatedTimeChecker2(final TimeTrackerSettingsHelper settingsHelper) {
     this.settingsHelper = settingsHelper;
   }
 
@@ -97,7 +92,7 @@ public class IssueEstimatedTimeChecker implements Runnable {
    * time less then the spent time send a notification email.
    */
   @Override
-  public void run() {
+  public JobRunnerResponse runJob(final JobRunnerRequest arg0) {
     // check the last 24 hour
     checkerCalendar = Calendar.getInstance();
     Date end = checkerCalendar.getTime();
@@ -135,6 +130,7 @@ public class IssueEstimatedTimeChecker implements Runnable {
       }
     }
 
+    return JobRunnerResponse.success();
   }
 
   /**

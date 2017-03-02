@@ -151,6 +151,23 @@ public final class DateTimeConverterUtil {
   }
 
   /**
+   * Calculate milliseconds between a time and a time in the day (i.e: 15:15 ) The system timezone
+   * is used
+   */
+  public static long calculateTimeBetweenTimeAndDayTime(final long time, final int minutesInDay) {
+    Calendar now = Calendar.getInstance();
+    now.setTime(new Date(time));
+    long hoursdiff = now.get(Calendar.HOUR_OF_DAY);
+    long minutesdiff = now.get(Calendar.MINUTE);
+    long initialDelay =
+        minutesInDay - ((hoursdiff * 60) + minutesdiff);
+    if (initialDelay < 0) {
+      initialDelay = initialDelay + 1440;
+    }
+    return initialDelay * 60000;
+  }
+
+  /**
    * Convert joda DateTime to java Date. Convert the date and time without Time Zone correction.
    * (the joda DateTime toDate metod add the time zone).
    *
@@ -621,5 +638,4 @@ public final class DateTimeConverterUtil {
    */
   private DateTimeConverterUtil() {
   }
-
 }

@@ -16,11 +16,11 @@
 package org.everit.jira.core.impl;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.everit.jira.analytics.AnalyticsSender;
@@ -28,9 +28,16 @@ import org.everit.jira.analytics.event.NoEstimateUsageChangedEvent;
 import org.everit.jira.analytics.event.NonWorkingUsageEvent;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
-import org.everit.jira.timetracker.plugin.IssueEstimatedTimeChecker;
+import org.everit.jira.timetracker.plugin.IssueEstimatedTimeChecker2;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+
+import com.atlassian.scheduler.SchedulerService;
+import com.atlassian.scheduler.config.JobConfig;
+import com.atlassian.scheduler.config.JobId;
+import com.atlassian.scheduler.config.JobRunnerKey;
+import com.atlassian.scheduler.config.RunMode;
+import com.atlassian.scheduler.config.Schedule;
 
 /**
  * Responsible to initialize plugin when activated bean. Furthermore responsible to destroy when
@@ -41,6 +48,8 @@ public class InitializerComponent implements InitializingBean, DisposableBean {
   private static final int DEFAULT_CHECK_TIME_IN_MINUTES = 1200;
 
   private static final int MINUTES_IN_HOUR = 60;
+
+  private static final long ONE_DAY_IN_MILISEC = 86400000L;
 
   private static final int ONE_DAY_IN_MINUTES = 1440;
 
@@ -53,23 +62,35 @@ public class InitializerComponent implements InitializingBean, DisposableBean {
   private final ScheduledExecutorService scheduledExecutorService = Executors
       .newScheduledThreadPool(1);
 
+  private SchedulerService schedulerService;
+
   private TimeTrackerSettingsHelper settingsHelper;
 
   public InitializerComponent(final AnalyticsSender analyticsSender,
-      final TimeTrackerSettingsHelper settingsHelper) {
+      final TimeTrackerSettingsHelper settingsHelper, final SchedulerService schedulerService) {
     this.analyticsSender = analyticsSender;
     this.settingsHelper = settingsHelper;
+    this.schedulerService = schedulerService;
   }
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    final Runnable issueEstimatedTimeChecker = new IssueEstimatedTimeChecker(
-        settingsHelper);
-
-    issueEstimatedTimeCheckerFuture = scheduledExecutorService
-        .scheduleAtFixedRate(issueEstimatedTimeChecker,
-            calculateInitialDelay(),
-            ONE_DAY_IN_MINUTES, TimeUnit.MINUTES);
+    // final Runnable issueEstimatedTimeChecker = new IssueEstimatedTimeChecker(
+    // settingsHelper);
+    // TODO add global settings the time
+    JobRunnerKey jobRunerKey = JobRunnerKey.of("issueEstimatedTimeChecker");
+    JobId jobId = JobId.of("issueEstimatedTimeCheckerJobId");
+    schedulerService.registerJobRunner(jobRunerKey,
+        new IssueEstimatedTimeChecker2(settingsHelper));
+    schedulerService.scheduleJob(jobId,
+        JobConfig.forJobRunnerKey(jobRunerKey)
+            .withRunMode(RunMode.RUN_ONCE_PER_CLUSTER)
+            .withSchedule(Schedule.forInterval(ONE_DAY_IN_MILISEC,
+                new Date(System.currentTimeMillis() + ONE_DAY_IN_MILISEC))));
+    // issueEstimatedTimeCheckerFuture = scheduledExecutorService
+    // .scheduleAtFixedRate(issueEstimatedTimeChecker,
+    // calculateInitialDelay(),
+    // ONE_DAY_IN_MINUTES, TimeUnit.MINUTES);
 
     sendNonEstAndNonWorkAnaliticsEvent();
   }
@@ -91,6 +112,8 @@ public class InitializerComponent implements InitializingBean, DisposableBean {
   public void destroy() throws Exception {
     scheduledExecutorService.shutdown();
     issueEstimatedTimeCheckerFuture.cancel(true);
+    // TODO
+    schedulerService.unregisterJobRunner(null);
   }
 
   private void sendNonEstAndNonWorkAnaliticsEvent() {
