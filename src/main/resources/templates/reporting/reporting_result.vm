@@ -13,14 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *#
+        #set($isSummariesActiveTab = $activeMainTab == 'summaries')
         <div class="aui-page-panel">
           <div class="aui-page-panel-inner">
             <section id="reporting-result" class="aui-page-panel-content">
+              <nav class="aui-navgroup aui-navgroup-horizontal">
+                <div class="aui-navgroup-inner">
+                    <div class="aui-navgroup-primary">
+                        <ul class="aui-nav">
+                            <li #if(!$isSummariesActiveTab)class="aui-nav-selected"#end><a href="#">TODO Details</a></li>
+                            <li #if($isSummariesActiveTab)class="aui-nav-selected"#end><a href="#">TODO Summary</a></li>
+                        </ul>
+                    </div><!-- .aui-navgroup-primary -->
+                </div><!-- .aui-navgroup-inner -->
+              </nav><!-- .aui-navgroup -->
+              <div id="nav-inner-content">
                 <div id="aui-message-bar"></div>
-
-                #parse("templates/reporting/reporting_result_worklog_details.vm")
-
-                #parse("templates/reporting/reporting_result_summaries.vm")
+                #if($isSummariesActiveTab == 'summaries') 
+                  #parse("templates/reporting/reporting_result_summaries.vm")
+                #else 
+                  #parse("templates/reporting/reporting_result_worklog_details.vm")
+                #end
+              </div>
             </section>
           </div>
         </div>

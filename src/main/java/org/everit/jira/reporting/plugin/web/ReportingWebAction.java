@@ -70,7 +70,6 @@ import com.atlassian.jira.issue.RendererManager;
 import com.atlassian.jira.issue.fields.renderer.IssueRenderContext;
 import com.atlassian.jira.issue.fields.renderer.JiraRendererPlugin;
 import com.atlassian.jira.issue.search.SearchRequest;
-import com.atlassian.jira.security.JiraAuthenticationContext;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.user.UserHistoryItem;
 import com.atlassian.jira.user.UserHistoryManager;
@@ -83,6 +82,8 @@ import com.google.gson.Gson;
  * Repoting page web action.
  */
 public class ReportingWebAction extends JiraWebActionSupport {
+
+  private static final String HTTP_PARAM_ACTIVE_MAIN_TAB = "activeMainTab";
 
   private static final String HTTP_PARAM_COLLAPSED_DETAILS_MODULE = "collapsedDetailsModule";
 
@@ -209,9 +210,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private void addUserHistory() {
     UserHistoryManager userHistoryManager =
         ComponentAccessor.getComponent(UserHistoryManager.class);
-    JiraAuthenticationContext jiraAuthenticationContext =
-        ComponentAccessor.getJiraAuthenticationContext();
-    ApplicationUser user = jiraAuthenticationContext.getUser();
+    ApplicationUser user = getLoggedInUser();
     for (String userKey : filterCondition.getUsers()) {
       userHistoryManager.addItemToHistory(UserHistoryItem.USED_USER, user, userKey);
     }
@@ -223,11 +222,11 @@ public class ReportingWebAction extends JiraWebActionSupport {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
-    if (!reportingCondition.shouldDisplay(getLoggedInApplicationUser(), null)) {
+    if (!reportingCondition.shouldDisplay(getLoggedInUser(), null)) {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
-    if (!pluginCondition.shouldDisplay(getLoggedInApplicationUser(), null)) {
+    if (!pluginCondition.shouldDisplay(getLoggedInUser(), null)) {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
@@ -236,7 +235,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private String createReport(final String selectedMoreJson, final String selectedActiveTab,
       final String filterConditionJsonValue, final String selectedWorklogDetailsColumnsJson,
-      final String collapsedDetailsModuleVal, final String collapsedSummaryModuleVal) {
+      final String collapsedDetailsModuleVal, final String collapsedSummaryModuleVal,
+      final String activeMainTab) {
 
     morePickerParse(selectedMoreJson);
     setParametersActiveTab(selectedActiveTab, collapsedDetailsModuleVal, collapsedSummaryModuleVal);
@@ -255,21 +255,23 @@ public class ReportingWebAction extends JiraWebActionSupport {
     }
 
     try {
-      worklogDetailsReport =
-          reportingPlugin.getWorklogDetailsReport(convertedSearchParam.reportSearchParam,
-              OrderBy.DEFAULT);
-      if (worklogDetailsReport.getWorklogDetailsCount() == 0) {
-        worklogDetailsEmpty = true;
+      if ((activeMainTab == null) || "".equals(activeMainTab) || "details".equals(activeMainTab)) {
+        worklogDetailsReport =
+            reportingPlugin.getWorklogDetailsReport(convertedSearchParam.reportSearchParam,
+                OrderBy.DEFAULT);
+        if (worklogDetailsReport.getWorklogDetailsCount() == 0) {
+          worklogDetailsEmpty = true;
+        }
+      } else {
+        projectSummaryReport =
+            reportingPlugin.getProjectSummaryReport(convertedSearchParam.reportSearchParam);
+
+        issueSummaryReport =
+            reportingPlugin.getIssueSummaryReport(convertedSearchParam.reportSearchParam);
+
+        userSummaryReport =
+            reportingPlugin.getUserSummaryReport(convertedSearchParam.reportSearchParam);
       }
-      projectSummaryReport =
-          reportingPlugin.getProjectSummaryReport(convertedSearchParam.reportSearchParam);
-
-      issueSummaryReport =
-          reportingPlugin.getIssueSummaryReport(convertedSearchParam.reportSearchParam);
-
-      userSummaryReport =
-          reportingPlugin.getUserSummaryReport(convertedSearchParam.reportSearchParam);
-
       notBrowsableProjectKeys = convertedSearchParam.notBrowsableProjectKeys;
     } catch (JTRPException e) {
       message = e.getMessage();
@@ -312,7 +314,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   }
 
   private void createUserPickersValue() {
-    ApplicationUser loggedUser = ComponentAccessor.getJiraAuthenticationContext().getUser();
+    ApplicationUser loggedUser = getLoggedInUser();
     userPicker.setSuggestedUsers(createSuggestedUsers(loggedUser));
     userPicker.setUsers(createUsers(loggedUser, filterCondition.getUsers()));
     userPicker.setIssueReporters(createUsers(loggedUser, filterCondition.getIssueReporters()));
@@ -395,7 +397,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     loadIssueCollectorSrc();
     normalizeContextPath();
     hasBrowseUsersPermission =
-        PermissionUtil.hasBrowseUserPermission(getLoggedInApplicationUser(), settingsHelper);
+        PermissionUtil.hasBrowseUserPermission(getLoggedInUser(), settingsHelper);
 
     analyticsDTO = JiraTimetrackerAnalytics
         .getAnalyticsDTO(PiwikPropertiesUtil.PIWIK_REPORTING_SITEID, settingsHelper);
@@ -415,7 +417,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
     loadFavoriteFilters();
     hasBrowseUsersPermission =
-        PermissionUtil.hasBrowseUserPermission(getLoggedInApplicationUser(), settingsHelper);
+        PermissionUtil.hasBrowseUserPermission(getLoggedInUser(), settingsHelper);
 
     loadIssueCollectorSrc();
 
@@ -434,6 +436,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
       return SUCCESS;
     }
 
+    String activeMainTab = httpRequest.getParameter(HTTP_PARAM_ACTIVE_MAIN_TAB);
+
     String selectedMoreJson = httpRequest.getParameter(HTTP_PARAM_SELECTED_MORE_JSON);
     String selectedActiveTab = httpRequest.getParameter(HTTP_PARAM_SELECTED_ACTIVE_TAB);
     String filterConditionJsonValue = httpRequest.getParameter(HTTP_PARAM_FILTER_CONDITION_JSON);
@@ -446,7 +450,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     String createReportResult =
         createReport(selectedMoreJson, selectedActiveTab, filterConditionJsonValue,
             selectedWorklogDetailsColumnsJson, collapsedDetailsModuleVal,
-            collapsedSummaryModuleVal);
+            collapsedSummaryModuleVal, activeMainTab);
     if (SUCCESS.equals(createReportResult)) {
       ReportingQueryParams reportingSaveData =
           new ReportingQueryParams().selectedMoreJson(selectedMoreJson)
@@ -647,7 +651,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
           filterConditionJsonFixedPageSize,
           reportingSavedData.selectedWorklogDetailsColumnsJson,
           reportingSavedData.collapsedDetailsModuleVal,
-          reportingSavedData.collapsedSummaryModuleVal);
+          reportingSavedData.collapsedSummaryModuleVal,
+          null); // TODO zs.cz save activeMainTab and read to gui show!);
       // FIXME This check is necessary because of the date parse errors not handeled well. In the
       // feature
       // try to avoid the formated dates store, better if we user timestamp
@@ -684,7 +689,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     DefaultSearchRequestService defaultSearchRequestService =
         ComponentAccessor.getComponentOfType(DefaultSearchRequestService.class);
     favouriteFilters = new ArrayList<>(
-        defaultSearchRequestService.getFavouriteFilters(getLoggedInApplicationUser()));
+        defaultSearchRequestService.getFavouriteFilters(getLoggedInUser()));
   }
 
   private void loadIssueCollectorSrc() {
