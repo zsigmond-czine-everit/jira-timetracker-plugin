@@ -439,7 +439,7 @@
                                         </th>
                                         
                                         <th data-jtrp-col-name="jtrp_col_subTasks"
-                                          class="jtrp_col_worklogDescription jttp-tablesorter-header jttp-aui-table-column-unsortable" style="#if( $isNotShowSubTasks )display:none;#end">
+                                          class="jtrp_col_subTasks jttp-tablesorter-header jttp-aui-table-column-unsortable" style="#if( $isNotShowSubTasks )display:none;#end">
                                             <span>
                                               $i18n.getText("jtrp.report.wd.col.jtrp_col_subTasks")
                                             <span>

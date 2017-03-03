@@ -22,12 +22,14 @@ import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 
 import org.everit.jira.analytics.AnalyticsDTO;
+import org.everit.jira.core.util.TimetrackerUserSettingsUtil;
 import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
 import org.everit.jira.settings.dto.TimeTrackerUserSettings;
 import org.everit.jira.timetracker.plugin.JiraTimetrackerAnalytics;
 import org.everit.jira.timetracker.plugin.PluginCondition;
 import org.everit.jira.timetracker.plugin.TimetrackerCondition;
+import org.everit.jira.timetracker.plugin.dto.UserSettingsValues;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.PiwikPropertiesUtil;
 import org.everit.jira.timetracker.plugin.util.PropertiesUtil;
@@ -66,32 +68,7 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    */
   private static final long serialVersionUID = 1L;
 
-  private boolean activeFieldDuration;
-
   private AnalyticsDTO analyticsDTO;
-
-  private String defaultStartTime;
-
-  /**
-   * The endTime.
-   */
-  private int endTime;
-
-  /**
-   * The calenar show the actualDate or the last unfilled date.
-   */
-  private boolean isActualDate;
-
-  /**
-   * The calendar highlights coloring.
-   */
-  private boolean isColoring;
-
-  private boolean isRounded;
-
-  private boolean isShowFutureLogWarning;
-
-  private boolean isShowIssueSummary;
 
   private String issueCollectorSrc;
 
@@ -107,22 +84,13 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
 
   private PluginCondition pluginCondition;
 
-  private boolean progressIndDaily;
-
   private TimeTrackerSettingsHelper settingsHelper;
-
-  private boolean showPeriodWorklogs = false;
-
-  private boolean showRemaningEstimate = false;
 
   private String stacktrace = "";
 
-  /**
-   * The startTime.
-   */
-  private int startTime;
-
   private TimetrackerCondition timetrackingCondition;
+
+  private UserSettingsValues userSettingsValues;
 
   /**
    * Simpe consturctor.
@@ -193,34 +161,6 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
     return analyticsDTO;
   }
 
-  public String getDefaultStartTime() {
-    return defaultStartTime;
-  }
-
-  public int getEndTime() {
-    return endTime;
-  }
-
-  public boolean getIsActualDate() {
-    return isActualDate;
-  }
-
-  public boolean getIsColoring() {
-    return isColoring;
-  }
-
-  public boolean getIsRounded() {
-    return isRounded;
-  }
-
-  public boolean getIsShowFutureLogWarning() {
-    return isShowFutureLogWarning;
-  }
-
-  public boolean getIsShowIssueSummary() {
-    return isShowIssueSummary;
-  }
-
   public String getIssueCollectorSrc() {
     return issueCollectorSrc;
   }
@@ -233,28 +173,12 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
     return messageParameter;
   }
 
-  public boolean getProgressIndDaily() {
-    return progressIndDaily;
-  }
-
   public String getStacktrace() {
     return stacktrace;
   }
 
-  public int getStartTime() {
-    return startTime;
-  }
-
-  public boolean isActiveFieldDuration() {
-    return activeFieldDuration;
-  }
-
-  public boolean isShowPeriodWorklogs() {
-    return showPeriodWorklogs;
-  }
-
-  public boolean isShowRemaningEstimate() {
-    return showRemaningEstimate;
+  public UserSettingsValues getUserSettingsValues() {
+    return userSettingsValues;
   }
 
   private void loadIssueCollectorSrc() {
@@ -267,72 +191,7 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    */
   private void loadUserSettings() {
     TimeTrackerUserSettings loaduserSettings = settingsHelper.loadUserSettings();
-    endTime = loaduserSettings.getEndTimeChange();
-    isActualDate = loaduserSettings.isActualDate();
-    isColoring = loaduserSettings.isColoring();
-    isRounded = loaduserSettings.isRounded();
-    progressIndDaily = loaduserSettings.isProgressIndicatordaily();
-    isShowFutureLogWarning =
-        loaduserSettings.isShowFutureLogWarning();
-    isShowIssueSummary =
-        loaduserSettings.isShowIssueSummary();
-    startTime = loaduserSettings.getStartTimeChange();
-    activeFieldDuration = loaduserSettings.isActiveFieldDuration();
-    defaultStartTime = loaduserSettings.getDefaultStartTime();
-    showRemaningEstimate = loaduserSettings.isShowRemaningEstimate();
-    showPeriodWorklogs = loaduserSettings.isShowPeriodWorklogs();
-  }
-
-  private void pareseCalendarAppearanceSettings(final HttpServletRequest request) {
-    isActualDate = "current".equals(request.getParameter("currentOrLast"));
-
-    isColoring = request.getParameter("isColoring") != null;
-  }
-
-  private void parseInputFieldsSettings(final HttpServletRequest request,
-      final String activeFieldParam) {
-    showRemaningEstimate = request.getParameter("showRemaningEstimate") != null;
-    showPeriodWorklogs = request.getParameter("showPeriodWorklogs") != null;
-
-    if ("duration".equals(activeFieldParam)) {
-      activeFieldDuration = true;
-    } else {
-      activeFieldDuration = false;
-    }
-
-    defaultStartTime = request.getParameter("defaultStartTime");
-    try {
-      DateTimeConverterUtil.stringTimeToDateTime(defaultStartTime);
-    } catch (IllegalArgumentException e) {
-      message = PropertiesKey.PLUGIN_SETTING_DEFAULT_STARTTIME_CHANGE_WRONG;
-      ApplicationProperties applicationProperties =
-          ComponentAccessor.getComponent(ApplicationProperties.class);
-      messageParameter = applicationProperties.getDefaultBackedString(APKeys.JIRA_LF_DATE_TIME);
-    }
-
-    String startTimeValue = request.getParameter("startTime");
-    try {
-      if (TimetrackerUtil.validateTimeChange(startTimeValue)) {
-        startTime = Integer.parseInt(startTimeValue);
-      } else {
-        message = PropertiesKey.PLUGIN_SETTING_START_TIME_CHANGE_WRONG;
-      }
-    } catch (NumberFormatException e) {
-      message = PropertiesKey.PLUGIN_SETTINGS_TIME_FORMAT;
-      messageParameter = startTimeValue;
-    }
-
-    String endTimeValue = request.getParameter("endTime");
-    try {
-      if (TimetrackerUtil.validateTimeChange(endTimeValue)) {
-        endTime = Integer.parseInt(endTimeValue);
-      } else {
-        message = PropertiesKey.PLUGIN_SETTING_END_TIME_CHANGE_WRONG;
-      }
-    } catch (NumberFormatException e) {
-      message = PropertiesKey.PLUGIN_SETTINGS_TIME_FORMAT;
-      messageParameter = endTimeValue;
-    }
+    userSettingsValues = TimetrackerUserSettingsUtil.loadUserSettingValues(loaduserSettings);
   }
 
   /**
@@ -342,44 +201,36 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    *          The HttpServletRequest.
    */
   public String parseSaveSettings(final HttpServletRequest request) {
-    String activeFieldParam = request.getParameter("activeField");
-
-    // calendar appearance
-    pareseCalendarAppearanceSettings(request);
-
-    // notifications
-    isShowFutureLogWarning = request.getParameter("isShowFutureLogWarning") != null;
-
-    // progress indicator appearance
-    String popupOrInlineValue = request.getParameter("progressInd");
-    if ("daily".equals(popupOrInlineValue)) {
-      progressIndDaily = true;
-    } else {
-      progressIndDaily = false;
+    String userSettingsValuesJson =
+        getHttpRequest().getParameter(TimetrackerUserSettingsUtil.USER_SETTINGS_VALUES_JSON);
+    if ((userSettingsValuesJson != null) && !"".equals(userSettingsValuesJson)) {
+      userSettingsValues =
+          TimetrackerUserSettingsUtil.convertJsonToUserSettingsValues(userSettingsValuesJson);
     }
 
-    // input fields settings
-    parseInputFieldsSettings(request, activeFieldParam);
+    try {
+      DateTimeConverterUtil.stringTimeToDateTime(userSettingsValues.getDefaultStartTime());
+    } catch (IllegalArgumentException e) {
+      message = PropertiesKey.PLUGIN_SETTING_DEFAULT_STARTTIME_CHANGE_WRONG;
+      ApplicationProperties applicationProperties =
+          ComponentAccessor.getComponent(ApplicationProperties.class);
+      messageParameter = applicationProperties.getDefaultBackedString(APKeys.JIRA_LF_DATE_TIME);
+    }
 
-    // worklog data appearance
-    parseWorklogDataApperanceSettings(request);
+    if (!TimetrackerUserSettingsUtil.validateTimeChange(userSettingsValues.getStartTime())) {
+      message = PropertiesKey.PLUGIN_SETTING_START_TIME_CHANGE_WRONG;
+      messageParameter = Integer.toString(userSettingsValues.getStartTime());
+    }
+
+    if (!TimetrackerUserSettingsUtil.validateTimeChange(userSettingsValues.getEndTime())) {
+      message = PropertiesKey.PLUGIN_SETTING_END_TIME_CHANGE_WRONG;
+      messageParameter = Integer.toString(userSettingsValues.getEndTime());
+    }
 
     if (!"".equals(message)) {
       return SUCCESS;
     }
     return null;
-  }
-
-  private void parseWorklogDataApperanceSettings(final HttpServletRequest request) {
-    String isRoundedValue = request.getParameter("isRounded");
-    isRounded = (isRoundedValue != null);
-
-    String isShowIssueSummaryValue = request.getParameter("isShowIssueSummary");
-    if ("showIssueSummary".equals(isShowIssueSummaryValue)) {
-      isShowIssueSummary = true;
-    } else {
-      isShowIssueSummary = false;
-    }
   }
 
   private void readObject(final java.io.ObjectInputStream stream) throws IOException,
@@ -392,20 +243,8 @@ public class JiraTimetrackerUserSettingsWebAction extends JiraWebActionSupport {
    * Save the plugin settings.
    */
   private void saveUserSettings() {
-    TimeTrackerUserSettings timeTrackerUserSettings = new TimeTrackerUserSettings()
-        .coloring(isColoring)
-        .isProgressIndicatordaily(progressIndDaily)
-        .actualDate(isActualDate)
-        .startTimeChange(startTime)
-        .endTimeChange(endTime)
-        .isRounded(isRounded)
-        .isShowIssueSummary(isShowIssueSummary)
-        .isShowFutureLogWarning(isShowFutureLogWarning)
-        .activeFieldDuration(activeFieldDuration)
-        .defaultStartTime(defaultStartTime)
-        .showRemaningEstimate(showRemaningEstimate)
-        .showPeriodWorklogs(showPeriodWorklogs);
-    settingsHelper.saveUserSettings(timeTrackerUserSettings);
+    settingsHelper
+        .saveUserSettings(TimetrackerUserSettingsUtil.saveUserSettingValues(userSettingsValues));
   }
 
   private void writeObject(final java.io.ObjectOutputStream stream) throws IOException {

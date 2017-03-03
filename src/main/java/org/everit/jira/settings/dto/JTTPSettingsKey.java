@@ -20,6 +20,12 @@ package org.everit.jira.settings.dto;
  */
 public final class JTTPSettingsKey {
 
+  public static final String CHART_REPROT_CURRENTUSER = "CHART_REPROT_CURRENTUSER";
+
+  public static final String CHART_REPROT_DATE_FROM_FORMATED = "CHART_REPROT_DATE_FROM_FORMATED";
+
+  public static final String CHART_REPROT_DATE_TO_FORMATED = "CHART_REPROT_DATE_TO_FORMATED";
+
   /**
    * The plugin reporting settings groups that have browse user permission.
    */
@@ -130,10 +136,15 @@ public final class JTTPSettingsKey {
   public static final String JTTP_PLUGIN_SETTINGS_SHOW_TUTORIAL_VERSION = "showTutorialVersion";
 
   /**
+   * The plugin setting is show user wizrad version key.
+   */
+  public static final String JTTP_PLUGIN_SETTINGS_SHOW_USER_WIZARD_VERSION =
+      "showUserWizardVersion";
+
+  /**
    * The plugin setting is calendar popup key.
    */
   public static final String JTTP_PLUGIN_SETTINGS_START_TIME_CHANGE = "startTimeChange";
-
   /**
    * The plugin setting Summary Filters key.
    */
@@ -145,10 +156,12 @@ public final class JTTPSettingsKey {
    * The plugin setting Timetracker Permission key.
    */
   public static final String JTTP_PLUGIN_SETTINGS_TIMETRACKER_PERMISSION = "timetrackerPermission";
+
   /**
    * The plugin setting is show tutorila key.
    */
   public static final String JTTP_PLUGIN_USER_WD_SELECTED_COLUMNS = "worklogDetialsSelectedColumns";
+
   /**
    * The plugin UUDI global setting key.
    */
@@ -162,6 +175,7 @@ public final class JTTPSettingsKey {
 
   public static final String JTTP_REPORTING_FILTER_CONDITION_JSON =
       "REPORTING_FILTER_CONDITION_JSON";
+
   /**
    * The reporting search more json values.
    */
@@ -187,6 +201,24 @@ public final class JTTPSettingsKey {
    * User specific key for the version which the user canceled.
    */
   public static final String JTTP_USER_CANCELED_UPDATE = "USER_CANCELED_UPDATE";
+
+  public static final String MISSING_WORKLOG_REPROT_CHECK_HOURS =
+      "MISSING_WORKLOG_REPROT_CHECK_HOURS";
+
+  public static final String MISSING_WORKLOG_REPROT_CHECK_NON_WORKING_ISSUES =
+      "MISSING_WORKLOG_REPROT_CHECK_NON_WORKING_ISSUES";
+
+  public static final String MISSING_WORKLOG_REPROT_DATE_FROM_FORMATED =
+      "MISSING_WORKLOG_REPROT_DATE_FROM_FORMATED";
+
+  public static final String MISSING_WORKLOG_REPROT_DATE_TO_FORMATED =
+      "MISSING_WORKLOG_REPROT_DATE_TO_FORMATED";
+
+  public static final String TABLE_REPROT_CURRENTUSER = "TABLE_REPORT_CURRENT_USER";
+
+  public static final String TABLE_REPROT_DATEFROMFORMATED = "TABLE_REPROT_DATE_FROM_FORMATED";
+
+  public static final String TABLE_REPROT_DATETOFORMATED = "TABLE_REPROT_DATE_TO_FORMATED";
 
   private JTTPSettingsKey() {
   }

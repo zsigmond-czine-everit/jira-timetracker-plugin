@@ -26,11 +26,13 @@ public class UserPickerContainerDTO {
 
   private UserForPickerDTO currentUser;
 
+  private List<GroupForPickerDTO> groups = new ArrayList<>();
+
   private List<UserForPickerDTO> issueAssignees = new ArrayList<>();
 
   private List<UserForPickerDTO> issueReporters = new ArrayList<>();
 
-  private UserForPickerDTO noneUser;
+  private List<GroupForPickerDTO> suggestedGroups = new ArrayList<>();
 
   private List<UserForPickerDTO> suggestedUsers = new ArrayList<>();
 
@@ -42,6 +44,10 @@ public class UserPickerContainerDTO {
     return currentUser;
   }
 
+  public List<GroupForPickerDTO> getGroups() {
+    return groups;
+  }
+
   public List<UserForPickerDTO> getIssueAssignees() {
     return issueAssignees;
   }
@@ -50,8 +56,8 @@ public class UserPickerContainerDTO {
     return issueReporters;
   }
 
-  public UserForPickerDTO getNoneUser() {
-    return noneUser;
+  public List<GroupForPickerDTO> getSuggestedGroups() {
+    return suggestedGroups;
   }
 
   public List<UserForPickerDTO> getSuggestedUsers() {
@@ -70,6 +76,10 @@ public class UserPickerContainerDTO {
     this.currentUser = currentUser;
   }
 
+  public void setGroups(final List<GroupForPickerDTO> groups) {
+    this.groups = groups;
+  }
+
   public void setIssueAssignees(final List<UserForPickerDTO> issueAssignees) {
     this.issueAssignees = issueAssignees;
   }
@@ -78,8 +88,9 @@ public class UserPickerContainerDTO {
     this.issueReporters = issueReporters;
   }
 
-  public void setNoneUser(final UserForPickerDTO noneUser) {
-    this.noneUser = noneUser;
+
+  public void setSuggestedGroups(final List<GroupForPickerDTO> suggestedGroups) {
+    this.suggestedGroups = suggestedGroups;
   }
 
   public void setSuggestedUsers(final List<UserForPickerDTO> suggestedUsers) {

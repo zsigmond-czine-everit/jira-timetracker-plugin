@@ -1,0 +1,195 @@
+#*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *#
+<section role="dialog" id="user-wizard-dialog" class="aui-layer aui-dialog2 aui-dialog2-xlarge" aria-hidden="true" data-aui-modal="true">
+    <!-- Dialog header -->
+      <header class="aui-dialog2-header">
+        <!-- The dialog's title -->
+        <h1 class="aui-dialog2-header-main" style="color: #707070;">$i18n.getText('jttp.wizard.header')</h1>
+        <ol class="aui-progress-tracker aui-progress-tracker-inverted" style="padding-top:15px; padding-left:200px;">
+          <li id="porgtrack-1" class="aui-progress-tracker-step aui-progress-tracker-step-current" style="width:16.667%"><span></span></li>
+          <li id="porgtrack-2" class="aui-progress-tracker-step" style="width:16.667%"><span></span></li>
+          <li id="porgtrack-3" class="aui-progress-tracker-step" style="width:16.667%"><span></span></li>
+          <li id="porgtrack-4" class="aui-progress-tracker-step" style="width:16.667%"><span></span></li>
+          <li id="porgtrack-5" class="aui-progress-tracker-step" style="width:16.667%"><span></span></li>
+          <li id="porgtrack-6" class="aui-progress-tracker-step" style="width:16.667%"><span></span></li>
+        </ol>   
+      </header>
+      <!-- Main dialog content -->
+      <div class="aui-dialog2-content form-body" style="height: 500px;">
+       	<div class="aui-tabs horizontal-tabs">
+            <div class="tabs-pane active-pane" id="page-1">
+              <h2>$i18n.getText('jttp.wizard.page1.text')<h2>
+              <h2>$i18n.getText("plugin.setting.calendar.appearance")</h2>
+              <div class="aui-group">
+                <div class="aui-item">
+                  <div class="field-group wizard_field_group">
+		            <label>$i18n.getText("plugin.setting.isactualdate"):</label>
+                    <div>
+                      <input id="uw_radioCurrent" type="radio" name="uw_currentOrLast" value="current" class="settings-input"  #if($userSettingsValues.actualDate) checked="true" #end>  
+                      <label for="uw_radioCurrent">$i18n.getText("plugin.setting.current")</label>
+                      <input id="uw_radioLast" type="radio" name="uw_currentOrLast" value="last" class="settings-input" #if(!$userSettingsValues.actualDate) checked="true" #end> 
+                      <label for="uw_radioLast">$i18n.getText("plugin.setting.last")</label>
+                    </div>
+                    <div class="description">$i18n.getText("plugin.setting.isactualdate.help")</div>
+                  </div>
+                  <div class="field-group wizard_field_group">
+                    <label>$i18n.getText("plugin.setting.coloring"):</label>
+                    <input id="uw_isColoring" type="checkbox" value="use color" class="settings-input" name="uw_isColoring" #if($userSettingsValues.coloring) checked #end/>
+                    <div class="description">$i18n.getText("plugin.setting.coloring.help")</div>
+                  </div>
+                </div>
+                <div class="aui-item tabImage tab1-img">
+                </div>
+              </div>
+            </div>
+            <div class="tabs-pane" id="page-2">
+              <h2>$i18n.getText("jttp.future.log.notification")</h2>
+              <div class="aui-group">
+                <div class="aui-item">
+                  <div class="field-group wizard_field_group">
+                    <label>$i18n.getText("jttp.future.log.notification.title"):</label>
+                    <input id="uw_isShowFutureLogWarning" type="checkbox" value="showWarning" class="settings-input" name="uw_isShowFutureLogWarning" #if($userSettingsValues.showFutureLogWarning) checked #end/>
+                    <div class="description">$i18n.getText("jttp.future.log.notification.help")</div>
+                  </div>
+                </div>
+                <div class="aui-item tabImage tab2-img">
+                </div>
+              </div>
+            </div>
+            <div class="tabs-pane" id="page-3">
+              <h2>$i18n.getText("plugin.setting.progress.ind.appearance")</h2>
+              <div class="aui-group">
+                <div class="aui-item">
+                   <div class="field-group wizard_field_group">
+                     <label>$i18n.getText("plugin.setting.progress.ind"):</label>
+                     <div>
+                       <input id="uw_radioDaily" type="radio" name="uw_progressInd" value="daily" class="settings-input" #if($userSettingsValues.progressIndDaily) checked="true" #end>
+                       <label for="uw_radioDaily">$i18n.getText("plugin.setting.progress.ind.daily")</label>
+                       <input id="uw_radioSummary" type="radio" name="uw_progressInd" value="summary" class="settings-input" #if(!$userSettingsValues.progressIndDaily) checked="true" #end>
+                       <label for="uw_radioSummary">$i18n.getText("plugin.setting.progress.ind.summary")</label>
+                     </div>
+                     <div class="description">$i18n.getText("plugin.setting.progress.ind.help")</div>
+                   </div>
+                </div>
+                <div class="aui-item tabImage tab3-img">
+                </div>
+              </div>
+            </div>
+            <div class="tabs-pane" id="page-4">
+              <h2>$i18n.getText("plugin.setting.input.fields.settings")</h2>
+              <div class="aui-group">
+                <div class="aui-item">
+                  <div class="field-group wizard_field_group">
+                    <input id="uw_radioEndTime" type="radio" name="uw_activeField" value="endtime" class="settings-input" #if(!$userSettingsValues.activeFieldDuration) checked="true" #end>
+                    <label>$i18n.getText("plugin.setting.active.field.endtime")</label>
+                    <input id="uw_radioDuration" type="radio" name="uw_activeField" value="duration" class="settings-input" #if($userSettingsValues.activeFieldDuration) checked="true" #end>
+                    <label for="uw_radioDuration">$i18n.getText("plugin.setting.active.field.duration")</label>
+                    <div class="description">$i18n.getText("plugin.setting.active.field.help")</div>
+                  </div>
+                  <div class="field-group wizard_field_group">
+                    <form name="wizardDummayForm" class="aui">
+                      $i18n.getText("plugin.setting.default.starttime"):
+                      <input id="uw_defaultStartTime"  type="text" name="uw_defaultStartTime" value="$userSettingsValues.defaultStartTime" class="time-input settings-input text short-field"/>
+                    </form>
+                    <div class="description">$i18n.getText("plugin.setting.default.starttime.help")</div>
+                  </div>
+                  <div class="field-group wizard_field_group">
+                    <form name="wizardDummayForm" class="aui">
+                      $i18n.getText("plugin.setting.starttime.value"):
+                      <input id="uw_startTime"  type="text" name="uw_startTime" value="$userSettingsValues.startTime"  class="time-input settings-input text short-field"/> $i18n.getText("plugin.setting.min")
+                    </form>
+                    <div class="description">$i18n.getText("plugin.setting.starttime.help")</div>
+                  </div>
+                  <div class="field-group wizard_field_group">
+                    <form name="wizardDummayForm" class="aui">
+                      $i18n.getText("plugin.setting.endtime.value"):
+                      <input id="uw_endTime"  type="text" name="uw_endTime" value="$userSettingsValues.endTime" class="time-input settings-input text short-field"/> $i18n.getText("plugin.setting.min")
+                    </form>
+                    <div class="description">$i18n.getText("plugin.setting.starttime.help")</div>
+                  </div>
+                </div>
+                <div class="aui-item tabImage tab4-img"></div>
+              </div>
+            </div>
+            <div class="tabs-pane" id="page-5">
+              <h2>$i18n.getText("plugin.setting.input.fields.settings")</h2>
+              <div class="aui-group">
+                <div class="aui-item">
+                  <div class="field-group wizard_field_group">
+                    <label>$i18n.getText("plugin.setting.remainingestimate.options"):</label>
+                    <input id="uw_showRemaningEstimate" type="checkbox" value="uw_showRemaningEstimate" class="settings-input" name="showRemaningEstimate" #if($userSettingsValues.showRemaningEstimate) checked #end/>
+                    <div class="description">$i18n.getText("plugin.setting.remainingestimate.options.help")</div>
+                  </div>
+                  <div class="field-group wizard_field_group">
+                    <label>$i18n.getText("plugin.setting.periodworklogs.options"):</label>
+                    <input id="uw_showPeriodWorklogs" type="checkbox" value="showPeriodWorklogs" class="settings-input" name="uw_showPeriodWorklogs" #if($userSettingsValues.showPeriodWorklogs) checked #end/>
+                    <div class="description">$i18n.getText("plugin.setting.periodworklogs.options.help")</div>
+                  </div>
+                </div>
+                <div class="aui-item tabImage tab5-img">
+                </div>
+              </div>
+            </div>
+            <div class="tabs-pane" id="page-6">
+              <h2>$i18n.getText("plugin.setting.worklog.data.appearance")</h2>
+              <div class="aui-group">
+                <div class="aui-item">
+                  <div class="field-group wizard_field_group">
+                   <label>$i18n.getText("plugin.setting.rounded.remaining"):</label>
+                   <input id="uw_isRounded" type="checkbox" value="use round" class="settings-input" name="uw_isRounded" #if($userSettingsValues.rounded) checked #end/>
+                   <div class="description">$i18n.getText("plugin.setting.rounded.remaining.help")</div>
+                 </div>
+                 <div class="field-group wizard_field_group">  
+                   <label>$i18n.getText("plugin.setting.issue.display.type")</label>
+                   <div>
+                     <input id="uw_radioShowIssueKey" type="radio" name="uw_isShowIssueSummary" value="showIssueKey" class="settings-input" #if(!$userSettingsValues.showIssueSummary) checked="true" #end>
+                     <label for="uw_radioShowIssueKey">$i18n.getText("plugin.setting.issue.display.type.issue.key")</label>
+                     <input id="uw_radioShowIssueSummary" type="radio" name="uw_isShowIssueSummary" value="showIssueSummary" class="settings-input" #if($userSettingsValues.showIssueSummary) checked="true" #end>
+                     <label for="uw_radioShowIssueSummary">$i18n.getText("plugin.setting.issue.display.type.issue.summary")</label>
+                   </div>
+                   <div class="description">$i18n.getText("plugin.setting.issue.display.type.help")</div>
+                 </div>
+                </div>
+                <div class="aui-item tabImage6 tab6-img">
+                </div>
+              </div>
+               <h2>$i18n.getText("jttp.wizard.page6.text.header")</h2>
+              <div class="aui-group">
+                <div class="aui-item">
+                  <div class="field-group wizard_field_group">
+                    <label>$i18n.getText("jttp.wizard.page6.text")</label>
+                  </div>
+                </div>
+                <div class="aui-item tabImage6-2 tab6-2-img">
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+      <!-- Dialog footer -->
+      <footer class="aui-dialog2-footer">
+        <form name="wizardForm" id="wizardForm" method="get" onsubmit="return everit.jttp.main.userWizardDialogHide();" action="JiraTimetrackerWebAction.jspa" class="aui"/>
+          <!-- Actions to render on the right of the footer -->
+          <div class="aui-dialog2-footer-actions" style="margin-right: 15px;">
+            <button class="aui-button" type="button" id='wizard-dialog-prev' onclick="everit.jttp.main.prevWizardPage();">$i18n.getText('jttp.wizard.button.prev')</button >
+            <button class="aui-button" type="button" id='wizard-dialog-next' onclick="everit.jttp.main.nextWizardPage()">$i18n.getText('jttp.wizard.button.next')</button >
+            <button id="user-wizard-close" type="submit" name="user-wizard-close" class="aui-button-primary aui-button">$i18n.getText('jttp.wizard.button.close')</button>
+            <button id="user-wizard-save" type="submit" name="user-wizard-save" class="aui-button-primary aui-button">$i18n.getText('jttp.wizard.button.save')</button>
+            <input type="hidden" id="userSettingsValuesJson" name="userSettingsValuesJson" >
+          </div>
+        </form>
+      </footer>
+</section>

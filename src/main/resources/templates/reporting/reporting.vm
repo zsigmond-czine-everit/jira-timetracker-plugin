@@ -573,16 +573,23 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                                      <select id="userPicker" name="userPicker" multiple="multiple">
                                                        <optgroup>
                                                          #foreach( $user in $userPicker.users )
-                                                         <option data-icon="$user.avatarURL" value="$user.userKey" selected="selected" title="$user.displayName">$user.displayName</option>
+                                                         <option data-icon="$user.avatarURL" value="users:$user.userKey" selected="selected" title="$user.displayName">$user.displayName</option>
+                                                         #end
+                                                         #foreach( $group in $userPicker.groups )
+                                                         <option  value="group:$group.name" selected="selected" title="$group.name">$group.name</option>
                                                          #end
                                                        </optgroup>
                                                        <optgroup>
-                                                        <option data-icon="$userPicker.noneUser.avatarURL" value="$userPicker.noneUser.userKey" title="$userPicker.noneUser.displayName">$userPicker.noneUser.displayName</option>
-                                                        <option data-icon="$userPicker.currentUser.avatarURL" value="$userPicker.currentUser.userKey" title="$userPicker.currentUser.displayName">$userPicker.currentUser.displayName</option>
+                                                        <option data-icon="$userPicker.currentUser.avatarURL" value="users:$userPicker.currentUser.userKey" title="$userPicker.currentUser.displayName">$userPicker.currentUser.displayName</option>
                                                        </optgroup>
                                                        <optgroup #if(!$userPicker.suggestedUsers.isEmpty())label="$i18n.getText("jtrp.picker.suggested.user")"#end>
                                                          #foreach( $user in $userPicker.suggestedUsers )
-                                                         <option data-icon="$user.avatarURL" value="$user.userKey" title="$user.displayName">$user.displayName</option>
+                                                         <option data-icon="$user.avatarURL" value="users:$user.userKey" title="$user.displayName">$user.displayName</option>
+                                                         #end
+                                                       <optgroup>
+                                                       <optgroup #if(!$userPicker.suggestedGroups.isEmpty())label="$i18n.getText("jtrp.picker.suggested.group")"#end>
+                                                         #foreach( $group in $userPicker.suggestedGroups )
+                                                         <option  value="group:$group.name" title="$group.name">$group.name</option>
                                                          #end
                                                        <optgroup>
                                                      </select>
@@ -593,24 +600,6 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                            </div>
                                          </div>
                                          <!-- User Dropdown End-->
-                                         <!-- Group Dropdown  BUTTON-->
-                                         <a id="groupPickerButton" href="#groupPickerDropDown" aria-disabled="false" aria-owns="groupPickerDropDown" aria-haspopup="true" class="criteria-selector aui-button aui-button-subtle drop-arrow aui-dropdown2-trigger" title='$i18n.getText("jtrp.picker.group.tooltip")'></a>
-                                         <!-- Group Dropdown -->
-                                         <div id="groupPickerDropDown" class="aui-style-default aui-dropdown2">
-                                           <div class="jttr-filter-field">
-                                             <div class='ajs-layer box-shadow'>
-                                               <div>
-                                                 <div class='form-body'>
-                                                   <div class='field-group aui-field-issuetype'>
-                                                     <select  id="groupPicker" name="groupPicker"  multiple="multiple" >
-                                                     </select>
-                                                   </div>
-                                                 </div>
-                                               </div>
-                                             </div>
-                                           </div>
-                                         </div>
-                                         <!-- Group Dropdown End-->
                                     </div>
                                 </div>
                             </div>

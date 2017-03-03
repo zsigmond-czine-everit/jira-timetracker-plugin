@@ -185,6 +185,14 @@ public enum UserSettingKey implements SettingsMapper {
     }
 
   },
+  SHOW_USER_WIZARD_VERSION {
+
+    @Override
+    public String getSettingsKey() {
+      return JTTPSettingsKey.JTTP_PLUGIN_SETTINGS_SHOW_USER_WIZARD_VERSION;
+    }
+
+  },
   START_TIME_CHANGE {
 
     @Override
@@ -199,6 +207,6 @@ public enum UserSettingKey implements SettingsMapper {
       return JTTPSettingsKey.JTTP_USER_CANCELED_UPDATE;
     }
 
-  };
+  }
 
 }

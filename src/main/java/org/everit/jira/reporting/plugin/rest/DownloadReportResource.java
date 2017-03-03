@@ -32,8 +32,11 @@ import javax.ws.rs.core.Response;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.everit.jira.analytics.AnalyticsSender;
 import org.everit.jira.analytics.event.ExportSummaryReportEvent;
+import org.everit.jira.analytics.event.ExportTableReportEvent;
 import org.everit.jira.analytics.event.ExportWorklogDetailsReportEvent;
 import org.everit.jira.analytics.event.ExportWorklogDetailsReportEvent.WorkLogDetailsExportFormat;
+import org.everit.jira.core.EVWorklogManager;
+import org.everit.jira.core.impl.DateTimeServer;
 import org.everit.jira.querydsl.support.QuerydslSupport;
 import org.everit.jira.querydsl.support.ri.QuerydslSupportImpl;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
@@ -43,6 +46,7 @@ import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.export.ExcelToCsvConverter;
 import org.everit.jira.reporting.plugin.export.ExportSummariesListReport;
+import org.everit.jira.reporting.plugin.export.ExportTableReport;
 import org.everit.jira.reporting.plugin.export.ExportWorklogDetailsListReport;
 import org.everit.jira.reporting.plugin.util.ConverterUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
@@ -57,6 +61,12 @@ public class DownloadReportResource {
 
   private static final String CSV_FILE_EXTENSION = "csv";
 
+  public static final String DATEFROM = "dateFromMil";
+
+  public static final String DATETO = "dateToMil";
+
+  public static final String USERPICKER = "selectedUser";
+
   private static final String XLS_FILE_EXTENSION = "xls";
 
   private final AnalyticsSender analyticsSender;
@@ -67,14 +77,17 @@ public class DownloadReportResource {
 
   private TimeTrackerSettingsHelper settingsHelper;
 
+  private EVWorklogManager worklogManager;
+
   /**
    * Simple constructor.
    */
   public DownloadReportResource(final AnalyticsSender analyticsSender,
-      final TimeTrackerSettingsHelper settingsHelper) {
+      final TimeTrackerSettingsHelper settingsHelper, final EVWorklogManager worklogManager) {
     pluginId = settingsHelper.loadGlobalSettings().getPluginUUID();
     this.analyticsSender = analyticsSender;
     this.settingsHelper = settingsHelper;
+    this.worklogManager = worklogManager;
     try {
       querydslSupport = new QuerydslSupportImpl();
     } catch (Exception e) {
@@ -191,6 +204,35 @@ public class DownloadReportResource {
         new ExportSummaryReportEvent(pluginId, ExportSummaryReportEvent.EVENT_ACTION_CSV);
     analyticsSender.send(exportSummaryReportEvent);
     return buildCsvResponse(workbook, "summaries-report", CSV_FILE_EXTENSION);
+  }
+
+  /**
+   * Download table report in excel file.
+   *
+   * @param dateFromMil
+   *          the start date
+   * @param dateToMil
+   *          the end date
+   * @param selectedUser
+   *          the selected user
+   * @return the report in excel format
+   *
+   */
+  @GET
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  @Path("/downloadTableReport")
+  public Response downloadTableReport(
+      @QueryParam("dateFromMil") final Long dateFromMil,
+      @QueryParam("dateToMil") final Long dateToMil,
+      @QueryParam("selectedUser") final String selectedUser) {
+    ExportTableReport exportTableReport =
+        new ExportTableReport(worklogManager, selectedUser,
+            DateTimeServer.getInstanceBasedOnUserTimeZone(dateFromMil),
+            DateTimeServer.getInstanceBasedOnUserTimeZone(dateToMil),
+            settingsHelper.loadGlobalSettings().getNonWorkingIssuePatterns());
+    HSSFWorkbook exportToXLS = exportTableReport.exportToXLS();
+    analyticsSender.send(new ExportTableReportEvent(pluginId));
+    return buildExcelResponse(exportToXLS, "table_report", XLS_FILE_EXTENSION);
   }
 
   /**
