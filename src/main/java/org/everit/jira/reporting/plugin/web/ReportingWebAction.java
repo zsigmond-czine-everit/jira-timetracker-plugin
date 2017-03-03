@@ -35,16 +35,22 @@ import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.ReportingCondition;
 import org.everit.jira.reporting.plugin.ReportingPlugin;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
+import org.everit.jira.reporting.plugin.dto.ComponentPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.GroupForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
+import org.everit.jira.reporting.plugin.dto.LabelPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
+import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
+import org.everit.jira.reporting.plugin.dto.PickerLabelDTO;
+import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportingQueryParams;
 import org.everit.jira.reporting.plugin.dto.UserForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.UserPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.UserSummaryReportDTO;
+import org.everit.jira.reporting.plugin.dto.VersionPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsReportDTO;
 import org.everit.jira.reporting.plugin.exception.JTRPException;
 import org.everit.jira.reporting.plugin.util.ConverterUtil;
@@ -74,7 +80,6 @@ import com.atlassian.jira.issue.RendererManager;
 import com.atlassian.jira.issue.fields.renderer.IssueRenderContext;
 import com.atlassian.jira.issue.fields.renderer.JiraRendererPlugin;
 import com.atlassian.jira.issue.search.SearchRequest;
-import com.atlassian.jira.security.JiraAuthenticationContext;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.user.UserHistoryItem;
 import com.atlassian.jira.user.UserHistoryManager;
@@ -126,6 +131,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private boolean collapsedSummaryModule = false;
 
+  private ComponentPickerContainerDTO componentPicker = new ComponentPickerContainerDTO();
+
   private String contextPath;
 
   private Class<DateTimeConverterUtil> dateConverterUtil = DateTimeConverterUtil.class;
@@ -151,6 +158,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private IssueRenderContext issueRenderContext;
 
   private IssueSummaryReportDTO issueSummaryReport = new IssueSummaryReportDTO();
+
+  private LabelPickerContainerDTO labelPicker = new LabelPickerContainerDTO();
 
   /**
    * The message.
@@ -189,6 +198,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private UserSummaryReportDTO userSummaryReport = new UserSummaryReportDTO();
 
+  private VersionPickerContainerDTO versionPicker = new VersionPickerContainerDTO();
+
   private List<String> worklogDetailsAllColumns = WorklogDetailsColumns.ALL_COLUMNS;
 
   private boolean worklogDetailsEmpty = false;
@@ -215,9 +226,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private void addUserHistory(final ConvertedSearchParam convertedSearchParam) {
     UserHistoryManager userHistoryManager =
         ComponentAccessor.getComponent(UserHistoryManager.class);
-    JiraAuthenticationContext jiraAuthenticationContext =
-        ComponentAccessor.getJiraAuthenticationContext();
-    ApplicationUser user = jiraAuthenticationContext.getLoggedInUser();
+    ApplicationUser user = getLoggedInUser();
     for (String userKey : convertedSearchParam.reportSearchParam.users) {
       userHistoryManager.addItemToHistory(UserHistoryItem.USED_USER, user, userKey);
     }
@@ -229,15 +238,31 @@ public class ReportingWebAction extends JiraWebActionSupport {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
-    if (!reportingCondition.shouldDisplay(getLoggedInApplicationUser(), null)) {
+    if (!reportingCondition.shouldDisplay(getLoggedInUser(), null)) {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
-    if (!pluginCondition.shouldDisplay(getLoggedInApplicationUser(), null)) {
+    if (!pluginCondition.shouldDisplay(getLoggedInUser(), null)) {
       setReturnUrl(JIRA_HOME_URL);
       return getRedirect(NONE);
     }
     return null;
+  }
+
+  private void createComponentPickersValue() {
+    componentPicker.setIssueComponents(createComponents(filterCondition.getIssueComponents()));
+    componentPicker
+        .setSuggestedComponents(reportingPlugin.listSuggestedComponents(MAXIMUM_HISTORY));
+  }
+
+  private List<PickerComponentDTO> createComponents(final List<String> components) {
+    List<PickerComponentDTO> result = new ArrayList<>();
+    for (String component : components) {
+      PickerComponentDTO pickerComponentDTO = new PickerComponentDTO();
+      pickerComponentDTO.setName(component);
+      result.add(pickerComponentDTO);
+    }
+    return result;
   }
 
   private void createGroupUserPickersValue() {
@@ -264,7 +289,21 @@ public class ReportingWebAction extends JiraWebActionSupport {
     userPicker.setUnassigedUser(new UserForPickerDTO(defaultAvaratar,
         TimetrackerUtil.getI18nText(UserForPickerDTO.UNASSIGNED_DISPLAY_NAME),
         UserForPickerDTO.UNASSIGNED_USER_KEY));
+  }
 
+  private void createLabelPickerValues() {
+    labelPicker.setLabels(createLabels(filterCondition.getLabels()));
+    labelPicker.setSuggestedLabels(reportingPlugin.listSuggestedLabels(MAXIMUM_HISTORY));
+  }
+
+  private List<PickerLabelDTO> createLabels(final List<String> labels) {
+    List<PickerLabelDTO> result = new ArrayList<>();
+    for (String label : labels) {
+      PickerLabelDTO pickerLabelDTO = new PickerLabelDTO();
+      pickerLabelDTO.setName(label);
+      result.add(pickerLabelDTO);
+    }
+    return result;
   }
 
   private String createReport(final String selectedMoreJson, final String selectedActiveTab,
@@ -390,6 +429,24 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return users;
   }
 
+  private void createVersionPickersValue() {
+    versionPicker.setIssueAffectedVersions(
+        createVersions(filterCondition.getIssueAffectedVersions()));
+    versionPicker.setIssueFixedVersions(
+        createVersions(filterCondition.getIssueFixedVersions()));
+    versionPicker.setSuggestedVersions(reportingPlugin.listSuggestedVersions(MAXIMUM_HISTORY));
+  }
+
+  private List<PickerVersionDTO> createVersions(final List<String> versions) {
+    List<PickerVersionDTO> result = new ArrayList<>();
+    for (String version : versions) {
+      PickerVersionDTO pickerVersionDTO = new PickerVersionDTO();
+      pickerVersionDTO.setName(version);
+      result.add(pickerVersionDTO);
+    }
+    return result;
+  }
+
   private void defaultInitalizeData(final ReportingQueryParams reportingSavedData) {
     selectedMore = new ArrayList<>();
     initSelectedFilterCondition(reportingSavedData.selectedWorklogDetailsColumnsJson);
@@ -414,7 +471,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     loadIssueCollectorSrc();
     normalizeContextPath();
     hasBrowseUsersPermission =
-        PermissionUtil.hasBrowseUserPermission(getLoggedInApplicationUser(), settingsHelper);
+        PermissionUtil.hasBrowseUserPermission(getLoggedInUser(), settingsHelper);
 
     analyticsDTO = JiraTimetrackerAnalytics
         .getAnalyticsDTO(PiwikPropertiesUtil.PIWIK_REPORTING_SITEID, settingsHelper);
@@ -434,7 +491,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
     loadFavoriteFilters();
     hasBrowseUsersPermission =
-        PermissionUtil.hasBrowseUserPermission(getLoggedInApplicationUser(), settingsHelper);
+        PermissionUtil.hasBrowseUserPermission(getLoggedInUser(), settingsHelper);
 
     loadIssueCollectorSrc();
 
@@ -480,6 +537,9 @@ public class ReportingWebAction extends JiraWebActionSupport {
       analyticsSender.send(analyticsEvent);
     }
 
+    createVersionPickersValue();
+    createComponentPickersValue();
+    createLabelPickerValues();
     createGroupUserPickersValue();
 
     return createReportResult;
@@ -491,6 +551,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   public JiraRendererPlugin getAtlassianWikiRenderer() {
     return atlassianWikiRenderer;
+  }
+
+  public ComponentPickerContainerDTO getComponentPicker() {
+    return componentPicker;
   }
 
   public String getContextPath() {
@@ -570,6 +634,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   }
 
+  public LabelPickerContainerDTO getLabelPicker() {
+    return labelPicker;
+  }
+
   public String getMessage() {
     return message;
   }
@@ -627,6 +695,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return userSummaryReport;
   }
 
+  public VersionPickerContainerDTO getVersionPicker() {
+    return versionPicker;
+  }
+
   public List<String> getWorklogDetailsAllColumns() {
     return worklogDetailsAllColumns;
   }
@@ -678,6 +750,9 @@ public class ReportingWebAction extends JiraWebActionSupport {
       defaultInitalizeData(reportingSavedData);
     }
 
+    createVersionPickersValue();
+    createComponentPickersValue();
+    createLabelPickerValues();
     createGroupUserPickersValue();
   }
 
@@ -703,7 +778,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     DefaultSearchRequestService defaultSearchRequestService =
         ComponentAccessor.getComponentOfType(DefaultSearchRequestService.class);
     favouriteFilters = new ArrayList<>(
-        defaultSearchRequestService.getFavouriteFilters(getLoggedInApplicationUser()));
+        defaultSearchRequestService.getFavouriteFilters(getLoggedInUser()));
   }
 
   private void loadIssueCollectorSrc() {

@@ -26,6 +26,9 @@ import org.everit.jira.reporting.plugin.dto.IssueSummaryDTO;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.PagingDTO;
+import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
+import org.everit.jira.reporting.plugin.dto.PickerLabelDTO;
+import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryDTO;
 import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportSearchParam;
@@ -34,6 +37,9 @@ import org.everit.jira.reporting.plugin.dto.UserSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsReportDTO;
 import org.everit.jira.reporting.plugin.query.IssueSummaryReportQueryBuilder;
+import org.everit.jira.reporting.plugin.query.PickerComponentQuery;
+import org.everit.jira.reporting.plugin.query.PickerLabelQuery;
+import org.everit.jira.reporting.plugin.query.PickerVersionQuery;
 import org.everit.jira.reporting.plugin.query.ProjectSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.UserSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.WorklogDetailsReportQueryBuilder;
@@ -219,6 +225,21 @@ public class ReportingPluginImpl implements ReportingPlugin, InitializingBean,
         .worklogDetailsCount(worklogDetailsCount)
         .grandTotal(grandTotal)
         .paging(paging);
+  }
+
+  @Override
+  public List<PickerComponentDTO> listSuggestedComponents(final long maxSuggestedVersion) {
+    return querydslSupport.execute(new PickerComponentQuery(null, maxSuggestedVersion));
+  }
+
+  @Override
+  public List<PickerLabelDTO> listSuggestedLabels(final long maxSuggestedVersion) {
+    return querydslSupport.execute(new PickerLabelQuery(null, maxSuggestedVersion));
+  }
+
+  @Override
+  public List<PickerVersionDTO> listSuggestedVersions(final long maxSuggestedVersion) {
+    return querydslSupport.execute(new PickerVersionQuery(null, maxSuggestedVersion));
   }
 
   private void readObject(final java.io.ObjectInputStream stream) throws IOException,
