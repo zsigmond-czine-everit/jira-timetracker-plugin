@@ -18,6 +18,7 @@ package org.everit.jira.reporting.plugin.query;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 
 import org.everit.jira.querydsl.schema.QComponent;
 import org.everit.jira.querydsl.support.QuerydslCallable;
@@ -32,10 +33,19 @@ import com.querydsl.sql.SQLQuery;
  */
 public class PickerComponentQuery implements QuerydslCallable<List<PickerComponentDTO>> {
 
+  private long limit;
+
   private QComponent qComponent;
 
-  public PickerComponentQuery() {
+  private String query;
+
+  /**
+   * Simple constructor.
+   */
+  public PickerComponentQuery(final String query, final long limit) {
     qComponent = new QComponent("component");
+    this.query = query;
+    this.limit = limit;
   }
 
   @Override
@@ -43,15 +53,22 @@ public class PickerComponentQuery implements QuerydslCallable<List<PickerCompone
       final Configuration configuration)
           throws SQLException {
 
-    List<PickerComponentDTO> result = new SQLQuery<PickerComponentDTO>(connection, configuration)
-        .select(Projections.bean(PickerComponentDTO.class,
-            qComponent.cname.as(PickerComponentDTO.AliasNames.COMPONENT_NAME)))
-        .from(qComponent)
-        .groupBy(qComponent.cname)
-        .orderBy(qComponent.cname.asc())
-        .fetch();
+    SQLQuery<PickerComponentDTO> sqlQuery =
+        new SQLQuery<PickerComponentDTO>(connection, configuration)
+            .select(Projections.bean(PickerComponentDTO.class,
+                qComponent.cname.as(PickerComponentDTO.AliasNames.COMPONENT_NAME)))
+            .from(qComponent)
+            .groupBy(qComponent.cname)
+            .orderBy(qComponent.cname.asc())
+            .limit(limit);
+    if (query != null) {
+      sqlQuery = sqlQuery.where(qComponent.cname.toLowerCase()
+          .like("%" + query.toLowerCase(Locale.getDefault()) + "%"));
+    }
 
-    result.add(0, PickerComponentDTO.createNoComponent());
+    List<PickerComponentDTO> result = sqlQuery.fetch();
+
+    // result.add(0, PickerComponentDTO.createNoComponent());
 
     return result;
   }

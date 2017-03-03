@@ -18,6 +18,7 @@ package org.everit.jira.reporting.plugin.query;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 
 import org.everit.jira.querydsl.schema.QLabel;
 import org.everit.jira.querydsl.support.QuerydslCallable;
@@ -32,22 +33,38 @@ import com.querydsl.sql.SQLQuery;
  */
 public class PickerLabelQuery implements QuerydslCallable<List<PickerLabelDTO>> {
 
+  private final long limit;
+
   private QLabel qLabel;
 
-  public PickerLabelQuery() {
+  private final String query;
+
+  /**
+   * Simple constructor.
+   */
+  public PickerLabelQuery(final String query, final long limit) {
     qLabel = new QLabel("label");
+    this.query = query;
+    this.limit = limit;
   }
 
   @Override
   public List<PickerLabelDTO> call(final Connection connection, final Configuration configuration)
       throws SQLException {
 
-    List<PickerLabelDTO> result = new SQLQuery<PickerLabelDTO>(connection, configuration)
+    SQLQuery<PickerLabelDTO> sqlQuery = new SQLQuery<PickerLabelDTO>(connection, configuration)
         .select(Projections.bean(PickerLabelDTO.class,
             qLabel.label.as(PickerLabelDTO.AliasNames.LABEL_NAME)))
         .from(qLabel)
         .groupBy(qLabel.label)
         .orderBy(qLabel.label.asc())
+        .limit(limit);
+    if (query != null) {
+      sqlQuery = sqlQuery.where(qLabel.label.toLowerCase()
+          .like("%" + query.toLowerCase(Locale.getDefault()) + "%"));
+    }
+
+    List<PickerLabelDTO> result = sqlQuery
         .fetch();
 
     return result;

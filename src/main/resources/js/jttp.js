@@ -45,7 +45,6 @@ everit.jttp.main = everit.jttp.main || {};
     jQuery("#dateHidden").val(jttp.options.jiraFormatedDate);
 
     //set end date 
-    //TODO if hidden?
     jQuery("#enddate").val(jttp.options.dateEndFormated);
     
     var calTo = Calendar.setup({
@@ -91,6 +90,8 @@ everit.jttp.main = everit.jttp.main || {};
     if(location.href.indexOf('showWarning')>=0){
     	jQuery("#futorelog-warning").slideToggle("slow");
     }
+    
+    userWizardDialogInit();
   });
   
   function isContainsAchorExlucdingParts(search){
@@ -216,19 +217,163 @@ everit.jttp.main = everit.jttp.main || {};
     return correctMil;
   }
   
+  var actualWizardPage;
+  
+  function userWizardDialogInit() {
+    if(jttp.options.showUserWizard){
+      AJS.dialog2("#user-wizard-dialog").show();
+      actualWizardPage = 1
+      changeNavigationButtonVisibility();
+    }
+  };
+  
+  jttp.prevWizardPage = function(){
+    if(actualWizardPage > 1){
+      actualWizardPage--;
+    }else{
+      actualWizardPage = 1;
+    }
+    changeNavigationButtonVisibility();
+    showActiveTutotialPage();
+   };
+
+   jttp.nextWizardPage = function(){
+     if(actualWizardPage < 6){
+       actualWizardPage++;
+     }else{
+       actualWizardPage = 6;
+      }
+      changeNavigationButtonVisibility();
+      showActiveTutotialPage();
+   };
+   
+   function changeNavigationButtonVisibility(){
+     if(actualWizardPage == 1){
+       jQuery("#wizard-dialog-prev").hide();
+     }else{
+       jQuery("#wizard-dialog-prev").show();
+     }
+     if(actualWizardPage == 6){
+       jQuery("#wizard-dialog-next").hide();
+     }else{
+       jQuery("#wizard-dialog-next").show();
+     }
+     if(actualWizardPage == 6){
+       jQuery("#user-wizard-close").hide();
+       jQuery("#user-wizard-save").show();
+     }else{
+       jQuery("#user-wizard-close").show();
+       jQuery("#user-wizard-save").hide();
+     }
+   }
+   
+   function getUserSettingsValuesJson(){
+     //text fields
+     var startTime = jQuery('#uw_startTime').val() || "";
+     var endTime = jQuery('#uw_endTime').val() || "";
+     var defaultStartTime = jQuery('#uw_defaultStartTime').val() || "";
+     //radio buttons
+     var currentOrLast = jQuery('input[name="uw_currentOrLast"]:checked').val();
+     var isActualDate  = false;
+     if(currentOrLast == "current"){
+       isActualDate = true;
+     }
+     var progressInd = jQuery('input[name="uw_progressInd"]:checked').val();
+     var progressIndDaily  = false;
+     if(progressInd == "daily"){
+       progressIndDaily = true;
+     }
+     var activeField = jQuery('input[name="uw_activeField"]:checked').val();
+     var activeFieldDuration  = false;
+     if(activeField == "duration"){
+       activeFieldDuration = true;
+     }
+     var isShowIssueSummaryChecked = jQuery('input[name="uw_isShowIssueSummary"]:checked').val();
+     var isShowIssueSummary  = false;
+     if(isShowIssueSummaryChecked == "showIssueSummary"){
+       isShowIssueSummary = true;
+     }
+     //check buttons
+     var isColoringChecked =  jQuery('input[name="uw_isColoring"]:checked').val();
+     var isColoring = false
+     if(isColoringChecked != null){
+       isColoring = true;
+     }
+     var isShowFutureLogWarningChecked =  jQuery('input[name="uw_isShowFutureLogWarning"]:checked').val();
+     var isShowFutureLogWarning = false
+     if(isShowFutureLogWarningChecked != null){
+       isShowFutureLogWarning = true;
+     }
+     var showRemaningEstimateChecked =  jQuery('input[name="uw_showRemaningEstimate"]:checked').val();
+     var showRemaningEstimate = false
+     if(showRemaningEstimateChecked != null){
+       showRemaningEstimate = true;
+     }
+     var showPeriodWorklogsChecked =  jQuery('input[name="uw_showPeriodWorklogs"]:checked').val();
+     var showPeriodWorklogs = false
+     if(showPeriodWorklogsChecked != null){
+       showPeriodWorklogs = true;
+     }
+     var showPeriodWorklogsChecked =  jQuery('input[name="uw_showPeriodWorklogs"]:checked').val();
+     var showPeriodWorklogs = false
+     if(showPeriodWorklogsChecked != null){
+       showPeriodWorklogs = true;
+     }
+     var isRoundedChecked =  jQuery('input[name="uw_isRounded"]:checked').val();
+     var isRounded = false
+     if(isRoundedChecked != null){
+       isRounded = true;
+     }
+     
+     var userSettingsValues = {
+       "activeFieldDuration": activeFieldDuration,
+       "defaultStartTime": defaultStartTime,
+       "endTime": endTime,
+       "actualDate": isActualDate,
+       "coloring": isColoring,
+       "rounded": isRounded,
+       "showFutureLogWarning": isShowFutureLogWarning,
+       "showIssueSummary": isShowIssueSummary,
+       "progressIndDaily": progressIndDaily,
+       "showPeriodWorklogs": showPeriodWorklogs,
+       "showRemaningEstimate": showRemaningEstimate,
+       "startTime": startTime,
+     }
+     return userSettingsValues;
+   }
+   
+   function showActiveTutotialPage(){
+     jQuery("#user-wizard-dialog .tabs-pane.active-pane").removeClass("active-pane");
+     jQuery("#user-wizard-dialog .aui-progress-tracker-step.aui-progress-tracker-step-current").removeClass("aui-progress-tracker-step-current");
+     jQuery("#page-"+ actualWizardPage).addClass("active-pane");
+     jQuery("#porgtrack-"+ actualWizardPage).addClass("aui-progress-tracker-step-current");
+   };
+  
+   jttp.userWizardDialogHide = function(){
+     var userSettingsValues = getUserSettingsValuesJson();
+     var json = JSON.stringify(userSettingsValues);
+     var userSettingsValuesJson = jQuery('#userSettingsValuesJson');
+     userSettingsValuesJson.val(json);
+     
+    AJS.dialog2("#user-wizard-dialog").hide();
+    return true;
+   }
+   
   jttp.periodCheck = function(){
-    if(jttp.options.actionFlag != "edit"){
-      if (jQuery("#usePeriod").is(":checked")) {
-        document.getElementById("enddate").disabled = false;
-      } else {
+    if(jttp.options.showPeriodWorklogs){
+      if(jttp.options.actionFlag != "edit"){
+        if (jQuery("#usePeriod").is(":checked")) {
+          document.getElementById("enddate").disabled = false;
+        } else {
+          document.getElementById("enddate").disabled = true;
+        }
+      }else{
+        if (jQuery("#usePeriod").is(":checked")) {
+          document.getElementById("usePeriod").checked = false;
+        }
+        document.getElementById("usePeriod").disabled = true;
         document.getElementById("enddate").disabled = true;
       }
-    }else{
-      if (jQuery("#usePeriod").is(":checked")) {
-        document.getElementById("usePeriod").checked = false;
-      }
-      document.getElementById("usePeriod").disabled = true;
-      document.getElementById("enddate").disabled = true;
     }
   }
   

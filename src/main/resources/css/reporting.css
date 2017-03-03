@@ -329,3 +329,7 @@ table.aui > thead > tr > th, div.grand-total p.grand-total-header {
 .table-report-summary-cell {
   background-color: rgb(245,245,245);
 }
+.export_button{
+	float: right;
+    margin-bottom: 10px;
+}

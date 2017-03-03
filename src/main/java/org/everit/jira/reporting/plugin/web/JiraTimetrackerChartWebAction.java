@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import javax.servlet.http.HttpSession;
-
 import org.apache.log4j.Logger;
 import org.everit.jira.analytics.AnalyticsDTO;
 import org.everit.jira.core.EVWorklogManager;
@@ -37,11 +35,12 @@ import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.ReportingCondition;
 import org.everit.jira.reporting.plugin.util.PermissionUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
+import org.everit.jira.settings.dto.ReportingQueryParameters;
+import org.everit.jira.settings.dto.ReportingUserSettings;
 import org.everit.jira.timetracker.plugin.JiraTimetrackerAnalytics;
 import org.everit.jira.timetracker.plugin.PluginCondition;
 import org.everit.jira.timetracker.plugin.dto.ChartData;
 import org.everit.jira.timetracker.plugin.dto.EveritWorklog;
-import org.everit.jira.timetracker.plugin.dto.TimetrackerReportsSessionData;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.ExceptionUtil;
 import org.everit.jira.timetracker.plugin.util.PiwikPropertiesUtil;
@@ -115,8 +114,6 @@ public class JiraTimetrackerChartWebAction extends JiraWebActionSupport {
    * Serial version UID.
    */
   private static final long serialVersionUID = 1L;
-
-  private static final String SESSION_KEY = "jttpChartStore";
 
   private AnalyticsDTO analyticsDTO;
 
@@ -210,7 +207,7 @@ public class JiraTimetrackerChartWebAction extends JiraWebActionSupport {
     }
     beforeAction();
 
-    boolean loadedFromSession = loadDataFromSession();
+    boolean loadedFromSession = loadDataFromUserSettings();
     initDatesIfNecessary();
     initCurrentUserIfNecessary();
     chartDataList = null;
@@ -245,7 +242,7 @@ public class JiraTimetrackerChartWebAction extends JiraWebActionSupport {
     List<EveritWorklog> worklogs = new ArrayList<>();
     try {
       worklogs.addAll(worklogManager.getWorklogs(currentUser, startDate, lastDate));
-      saveDataToSession();
+      saveDataIntoUserSettings();
     } catch (DataAccessException | ParseException e) {
       LOGGER.error(GET_WORKLOGS_ERROR_MESSAGE, e);
       stacktrace = ExceptionUtil.getStacktrace(e);
@@ -378,18 +375,16 @@ public class JiraTimetrackerChartWebAction extends JiraWebActionSupport {
     }
   }
 
-  private boolean loadDataFromSession() {
-    HttpSession session = getHttpSession();
-    Object data = session.getAttribute(SESSION_KEY);
+  private boolean loadDataFromUserSettings() {
+    ReportingUserSettings loadReportingUserSettings = settingsHelper.loadReportingUserSettings();
+    ReportingQueryParameters chartReportData = loadReportingUserSettings.getChartReportData();
 
-    if (!(data instanceof TimetrackerReportsSessionData)) {
+    if (chartReportData.currentUser == null) {
       return false;
     }
-    TimetrackerReportsSessionData timetrackerReportsSessionData =
-        (TimetrackerReportsSessionData) data;
-    currentUser = timetrackerReportsSessionData.currentUser;
-    dateFromFormated = timetrackerReportsSessionData.dateFrom;
-    dateToFormated = timetrackerReportsSessionData.dateTo;
+    currentUser = chartReportData.currentUser;
+    dateFromFormated = chartReportData.dateFrom;
+    dateToFormated = chartReportData.dateTo;
     return true;
   }
 
@@ -466,11 +461,12 @@ public class JiraTimetrackerChartWebAction extends JiraWebActionSupport {
         .isShowUpdater();
   }
 
-  private void saveDataToSession() {
-    HttpSession session = getHttpSession();
-    session.setAttribute(SESSION_KEY,
-        new TimetrackerReportsSessionData().currentUser(currentUser).dateFrom(dateFromFormated)
+  private void saveDataIntoUserSettings() {
+    ReportingUserSettings reportingUserSettings = new ReportingUserSettings();
+    reportingUserSettings.putChartReportData(
+        new ReportingQueryParameters().currentUser(currentUser).dateFrom(dateFromFormated)
             .dateTo(dateToFormated));
+    settingsHelper.saveReportingUserSettings(reportingUserSettings);
   }
 
   private void setCurrentUserFromParam() throws IllegalArgumentException {
