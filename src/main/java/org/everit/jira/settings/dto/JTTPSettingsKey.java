@@ -105,7 +105,7 @@ public final class JTTPSettingsKey {
    */
   public static final String JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_ISSUES = "NonEstimated";
 
-  protected static final String JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_NOTIFICATION_TIME =
+  public static final String JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_NOTIFICATION_TIME =
       "NON_ESTIMATED_NOTIFICATION_TIME";
 
   /**
@@ -174,6 +174,7 @@ public final class JTTPSettingsKey {
 
   public static final String JTTP_REPORTING_COLLAPSED_SUMMARY_MODULE_VAL =
       "REPORTING_COLLAPSED_SUMMARY_MODULE_VAL";
+
   public static final String JTTP_REPORTING_FILTER_CONDITION_JSON =
       "REPORTING_FILTER_CONDITION_JSON";
 

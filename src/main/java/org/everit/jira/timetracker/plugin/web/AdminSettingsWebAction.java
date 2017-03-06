@@ -18,6 +18,7 @@ package org.everit.jira.timetracker.plugin.web;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -32,15 +33,19 @@ import org.everit.jira.analytics.AnalyticsSender;
 import org.everit.jira.analytics.event.NoEstimateUsageChangedEvent;
 import org.everit.jira.analytics.event.NonWorkingUsageEvent;
 import org.everit.jira.analytics.event.TimeZoneUsageChangedEvent;
+import org.everit.jira.core.NonEstimatedReminderManager;
 import org.everit.jira.core.SupportManager;
 import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
 import org.everit.jira.settings.dto.TimeZoneTypes;
+import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.ExceptionUtil;
 import org.everit.jira.timetracker.plugin.util.PropertiesUtil;
+import org.joda.time.DateTime;
 
 import com.atlassian.jira.web.action.JiraWebActionSupport;
+import com.atlassian.scheduler.SchedulerServiceException;
 
 /**
  * Admin settings page.
@@ -51,6 +56,9 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    * Keys for properties.
    */
   public static final class PropertiesKey {
+
+    public static final String INVALID_NON_ESTIMATE_REMIND_TIME =
+        "plugin.setting.invalid.non.estimate.time";
 
     public static final String PLUGIN_NONESTIMATED_EMPTY_VALUE = "plugin.nonestimated.empty.value";
 
@@ -99,6 +107,8 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   private String contextPath;
 
+  private NonEstimatedReminderManager estimatedReminderManager;
+
   /**
    * The exclude dates in UNIX long format. Sorted by natural order.
    */
@@ -128,6 +138,8 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   private String message = "";
 
+  private String nonEstimatedRemindTime;
+
   private String pluginId;
 
   /**
@@ -148,10 +160,12 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   public AdminSettingsWebAction(
       final SupportManager supportManager, final AnalyticsSender analyticsSender,
-      final TimeTrackerSettingsHelper settingsHelper) {
+      final TimeTrackerSettingsHelper settingsHelper,
+      final NonEstimatedReminderManager estimatedReminderManager) {
     this.supportManager = supportManager;
     this.analyticsSender = analyticsSender;
     this.settingsHelper = settingsHelper;
+    this.estimatedReminderManager = estimatedReminderManager;
   }
 
   @Override
@@ -197,7 +211,10 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
         setReturnUrl("/secure/admin/TimetrackerAdminSettingsWebAction!default.jspa");
         return parseResult;
       }
-      savePluginSettings();
+      String saveResult = savePluginSettingsAndUpdateReminder();
+      if (saveResult.equals(ERROR)) {
+        return ERROR;
+      }
     }
     setReturnUrl("/secure/admin/TimetrackerAdminSettingsWebAction!default.jspa");
     return getRedirect(INPUT);
@@ -233,6 +250,10 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
 
   public String getMessage() {
     return message;
+  }
+
+  public String getNonEstimatedRemindTime() {
+    return nonEstimatedRemindTime;
   }
 
   /**
@@ -285,6 +306,10 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     includeDates = loadGlobalSettings.getIncludeDatesAsLong();
     analyticsCheck = loadGlobalSettings.getAnalyticsCheck();
     timeZoneType = loadGlobalSettings.getTimeZone();
+    int remindTimeInMinutes = loadGlobalSettings.getNonEstimatedRemindTime();
+    Date convertMinsToCurrentTime =
+        DateTimeConverterUtil.convertMinsToCurrentTime(remindTimeInMinutes);
+    nonEstimatedRemindTime = DateTimeConverterUtil.dateTimeToString(convertMinsToCurrentTime);
   }
 
   private void normalizeContextPath() {
@@ -362,7 +387,7 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     }
     collectorIssuePatterns = new ArrayList<>();
     boolean parseNonEstException = parseNonEstValues(request);
-
+    nonEstimatedRemindTime = request.getParameter("nonEstimatedRemindTime");
     excludeDates = parseDates(excludeDatesValue);
     includeDates = parseDates(includeDatesValue);
     HashSet<Long> interSect = new HashSet<>(excludeDates);
@@ -370,6 +395,12 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     if (!interSect.isEmpty()) {
       message = PropertiesKey.PLUGIN_SETTING_DATE_EXITST_INCLUDE_EXCLUDE;
       return SUCCESS;
+    }
+    try {
+      DateTimeConverterUtil.stringTimeToDateTime(nonEstimatedRemindTime);
+    } catch (IllegalArgumentException e) {
+      message = PropertiesKey.INVALID_NON_ESTIMATE_REMIND_TIME;
+      return INPUT;
     }
     if (parseNonEstException) {
       return SUCCESS;
@@ -386,17 +417,33 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
   /**
    * Save the plugin settings.
    */
-  public void savePluginSettings() {
+  public String savePluginSettingsAndUpdateReminder() {
+    DateTime remindTimeInUserFormat =
+        DateTimeConverterUtil.stringToDateAndTime(DateTime.now(), nonEstimatedRemindTime);
+    int minutesAfterMidnight =
+        (remindTimeInUserFormat.getHourOfDay() * DateTimeConverterUtil.MINUTES_IN_HOUR)
+            + remindTimeInUserFormat.getMinuteOfHour();
     TimeTrackerGlobalSettings globalSettings = new TimeTrackerGlobalSettings();
     globalSettings.excludeDates(excludeDates)
         .includeDates(includeDates)
         .filteredSummaryIssues(issuesPatterns)
         .collectorIssues(collectorIssuePatterns)
-        .nonEstimatedRemindTime(1) // TODO
+        .nonEstimatedRemindTime(minutesAfterMidnight)
         .analyticsCheck(analyticsCheck)
         .timeZone(timeZoneType);
     settingsHelper.saveGlobalSettings(globalSettings);
-    sendAnaliticsEvent();
+    if (loadGlobalSettings.getNonEstimatedRemindTime() != minutesAfterMidnight) {
+      estimatedReminderManager.unregisterNonEstimatedReminder();
+      try {
+        estimatedReminderManager.registerNonEstimatedReminder();
+      } catch (SchedulerServiceException e) {
+        LOGGER.error("Error when try set the plugin variables.", e);
+        stacktrace = ExceptionUtil.getStacktrace(e);
+        return ERROR;
+      }
+      sendAnaliticsEvent();
+    }
+    return INPUT;
   }
 
   /**

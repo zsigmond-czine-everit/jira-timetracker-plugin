@@ -193,6 +193,11 @@ public class TimeTrackerGlobalSettings {
     return (String) pluginSettingsKeyValues.get(GlobalSettingsKey.UPDATE_NOTIFIER_LATEST_VERSION);
   }
 
+  /**
+   * Get saved non estimated time in minutes after midnight.
+   *
+   * @return the default time or the saved time.
+   */
   public int getNonEstimatedRemindTime() {
     Object savedTime = pluginSettingsKeyValues.get(GlobalSettingsKey.NON_ESTIMATED_TIME);
     if (savedTime == null) {
@@ -295,9 +300,12 @@ public class TimeTrackerGlobalSettings {
     return this;
   }
 
+  /**
+   * Put the non estimated issues notification time.
+   */
   public TimeTrackerGlobalSettings nonEstimatedRemindTime(final int minutesIn) {
     pluginSettingsKeyValues.put(GlobalSettingsKey.NON_ESTIMATED_TIME,
-        minutesIn);
+        String.valueOf(minutesIn));
     return this;
   }
 

@@ -47,6 +47,7 @@ import com.atlassian.jira.datetime.DateTimeFormatterFactory;
 import com.atlassian.jira.issue.MutableIssue;
 import com.atlassian.jira.issue.status.MockStatus;
 import com.atlassian.jira.issue.status.Status;
+import com.atlassian.jira.issue.status.category.StatusCategory;
 import com.atlassian.jira.mock.component.MockComponentWorker;
 import com.atlassian.jira.mock.issue.MockIssue;
 import com.atlassian.jira.mock.ofbiz.MockGenericValue;
@@ -65,6 +66,8 @@ public class TimetrackerUtilTest {
 
     private final Long estimate;
 
+    private StatusCategory statusCategory;
+
     private final String statusId;
 
     public DummyIssue(final int id, final String key, final String statusId, final Long estimate) {
@@ -73,20 +76,41 @@ public class TimetrackerUtilTest {
       this.estimate = estimate;
     }
 
+    public DummyIssue(final int id, final String key, final String statusId, final Long estimate,
+        final StatusCategory statusCategory) {
+      super(id, key);
+      this.statusId = statusId;
+      this.estimate = estimate;
+      this.statusCategory = statusCategory;
+    }
+
     @Override
     public Long getEstimate() {
       return estimate;
     }
 
     @Override
+    public Status getStatus() {
+      return new MockStatus(statusId, "status_" + statusId, statusCategory);
+    }
+
+    @Override
     public Status getStatusObject() {
+
       return new MockStatus(statusId, "status_" + statusId);
     }
+
   }
 
   private static final String CLOSED_STATUS_ID = "6";
 
   private static final String OPEN_STATUS_ID = "1";
+
+  public StatusCategory initMockCompleteStatusCategory() {
+    StatusCategory mock = Mockito.mock(StatusCategory.class, Mockito.RETURNS_DEEP_STUBS);
+    Mockito.when(mock.getKey()).thenReturn(StatusCategory.COMPLETE);
+    return mock;
+  }
 
   public void initMockComponents(final Date containsWorklogDate,
       final Date notContainsWorklogDate) {
@@ -170,6 +194,12 @@ public class TimetrackerUtilTest {
     mockComponentWorker.init();
   }
 
+  public StatusCategory initMockInProgressteStatusCategory() {
+    StatusCategory mock = Mockito.mock(StatusCategory.class, Mockito.RETURNS_DEEP_STUBS);
+    Mockito.when(mock.getKey()).thenReturn(StatusCategory.IN_PROGRESS);
+    return mock;
+  }
+
   @Test
   public void isContainsWorklog() throws ParseException, GenericEntityException {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -197,16 +227,19 @@ public class TimetrackerUtilTest {
     Assert.assertTrue(TimetrackerUtil.checkIssueEstimatedTime(dummyIssue, null));
 
     collectorIssueIds.clear();
-    dummyIssue = new DummyIssue(1, "KEY-1", CLOSED_STATUS_ID, null);
+    dummyIssue =
+        new DummyIssue(1, "KEY-1", CLOSED_STATUS_ID, null, initMockCompleteStatusCategory());
     Assert.assertTrue(TimetrackerUtil.checkIssueEstimatedTime(dummyIssue, collectorIssueIds));
 
-    dummyIssue = new DummyIssue(1, "KEY-1", CLOSED_STATUS_ID, 0L);
+    dummyIssue = new DummyIssue(1, "KEY-1", CLOSED_STATUS_ID, 0L, initMockCompleteStatusCategory());
     Assert.assertTrue(TimetrackerUtil.checkIssueEstimatedTime(dummyIssue, collectorIssueIds));
 
-    dummyIssue = new DummyIssue(1, "KEY-1", OPEN_STATUS_ID, null);
+    dummyIssue =
+        new DummyIssue(1, "KEY-1", OPEN_STATUS_ID, null, initMockInProgressteStatusCategory());
     Assert.assertFalse(TimetrackerUtil.checkIssueEstimatedTime(dummyIssue, collectorIssueIds));
 
-    dummyIssue = new DummyIssue(1, "KEY-1", OPEN_STATUS_ID, 0L);
+    dummyIssue =
+        new DummyIssue(1, "KEY-1", OPEN_STATUS_ID, 0L, initMockInProgressteStatusCategory());
     Assert.assertFalse(TimetrackerUtil.checkIssueEstimatedTime(dummyIssue, collectorIssueIds));
   }
 

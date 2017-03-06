@@ -121,7 +121,14 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.plug
       </div>
       <div class="description">$i18n.getText("plugin.setting.nonestimated.issues.help")</div>
     </div>
-    
+         <div class="field-group">
+    <label>$i18n.getText("plugin.settings.nonestimated.notification.time")</label>
+     <input id="nonEstimatedRemindTime" class="text short-field"
+                      value="$nonEstimatedRemindTime" 
+                      name="nonEstimatedRemindTime" tabindex="2"
+                      data-jttp-timeformat="$timeFormatPattern"
+                      list="time-options" autocomplete="off">
+     </div>
     <div class="field-group">
       <label for="issueSelect">$i18n.getText("plugin.setting.non.working.issues")</label>
       <select class="hidden"
@@ -223,6 +230,9 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.plug
         </a>
       </div>
     </div>
+    
+     <div class="field-group">
+   
     
     <div class="buttons-container">
       <div class="buttons">
