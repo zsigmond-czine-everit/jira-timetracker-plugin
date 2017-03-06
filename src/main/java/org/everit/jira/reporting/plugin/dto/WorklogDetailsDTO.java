@@ -59,6 +59,8 @@ public class WorklogDetailsDTO {
 
     public static final String ISSUE_UPDATED = "issueUpdated";
 
+    public static final String LABEL = "label";
+
     public static final String PARENT_ISSUE_KEY = "parentIssueKey";
 
     public static final String PRIORITY_ICON_URL = "priorityIconUrl";
@@ -124,6 +126,8 @@ public class WorklogDetailsDTO {
   private String issueTypeName;
 
   private Timestamp issueUpdated;
+
+  private List<String> labels = Collections.emptyList();
 
   private String parentIssueKey;
 
@@ -235,6 +239,10 @@ public class WorklogDetailsDTO {
       return null;
     }
     return (Timestamp) issueUpdated.clone();
+  }
+
+  public List<String> getLabels() {
+    return labels;
   }
 
   public String getParentIssueKey() {
@@ -381,6 +389,10 @@ public class WorklogDetailsDTO {
 
   public void setIssueUpdated(final Timestamp issueUpdated) {
     this.issueUpdated = issueUpdated;
+  }
+
+  public void setLabels(final List<String> labels) {
+    this.labels = labels;
   }
 
   public void setParentIssueKey(final String parentIssueKey) {

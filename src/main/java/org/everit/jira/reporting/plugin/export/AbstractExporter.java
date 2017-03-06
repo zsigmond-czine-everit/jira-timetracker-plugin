@@ -17,6 +17,7 @@ package org.everit.jira.reporting.plugin.export;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -91,17 +92,7 @@ public abstract class AbstractExporter {
     int newColumnIndex = columnIndex;
     HSSFCell cell = bodyRow.createCell(newColumnIndex++);
     cell.setCellStyle(bodyCellStyle);
-    String cValue = "";
-    if (value.size() == 1) {
-      cValue = value.get(0);
-    } else {
-      StringBuffer sb = new StringBuffer();
-      for (String v : value) {
-        sb.append(v);
-        sb.append(", ");
-      }
-      cValue = sb.toString();
-    }
+    String cValue = value.stream().collect(Collectors.joining(", "));
     cell.setCellValue(cValue);
     return newColumnIndex;
   }
