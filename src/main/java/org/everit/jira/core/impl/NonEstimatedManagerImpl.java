@@ -19,7 +19,7 @@ import java.util.Date;
 
 import org.everit.jira.core.NonEstimatedReminderManager;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
-import org.everit.jira.timetracker.plugin.IssueEstimatedTimeChecker2;
+import org.everit.jira.timetracker.plugin.IssueEstimatedTimeChecker;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 
 import com.atlassian.scheduler.SchedulerService;
@@ -36,7 +36,9 @@ import com.atlassian.scheduler.config.Schedule;
  */
 public class NonEstimatedManagerImpl implements NonEstimatedReminderManager {
 
-  private static JobRunnerKey jobRunerKey = JobRunnerKey.of("issueEstimatedTimeChecker");
+  private static final JobId JOB_ID = JobId.of("issueEstimatedTimeCheckerJobId");
+
+  private static final JobRunnerKey JOB_RUNER_KEY = JobRunnerKey.of("issueEstimatedTimeChecker");
 
   private static final long ONE_DAY_IN_MILISEC = 86400000L;
 
@@ -53,14 +55,13 @@ public class NonEstimatedManagerImpl implements NonEstimatedReminderManager {
   @Override
   public void registerNonEstimatedReminder() throws SchedulerServiceException {
     int nonEstimatedRemindTime = settingsHelper.loadGlobalSettings().getNonEstimatedRemindTime();
-    JobId jobId = JobId.of("issueEstimatedTimeCheckerJobId");
 
-    schedulerService.registerJobRunner(jobRunerKey,
-        new IssueEstimatedTimeChecker2(settingsHelper));
+    schedulerService.registerJobRunner(JOB_RUNER_KEY,
+        new IssueEstimatedTimeChecker(settingsHelper));
     long calculatedFirstScheduleTime = DateTimeConverterUtil
         .calculateTimeBetweenTimeAndDayTime(System.currentTimeMillis(), nonEstimatedRemindTime);
-    schedulerService.scheduleJob(jobId,
-        JobConfig.forJobRunnerKey(jobRunerKey)
+    schedulerService.scheduleJob(JOB_ID,
+        JobConfig.forJobRunnerKey(JOB_RUNER_KEY)
             .withRunMode(RunMode.RUN_ONCE_PER_CLUSTER)
             .withSchedule(Schedule.forInterval(ONE_DAY_IN_MILISEC,
                 new Date(System.currentTimeMillis() + calculatedFirstScheduleTime))));
@@ -69,7 +70,7 @@ public class NonEstimatedManagerImpl implements NonEstimatedReminderManager {
 
   @Override
   public void unregisterNonEstimatedReminder() {
-    schedulerService.unregisterJobRunner(jobRunerKey);
+    schedulerService.unregisterJobRunner(JOB_RUNER_KEY);
   }
 
 }
