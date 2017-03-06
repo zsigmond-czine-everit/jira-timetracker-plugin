@@ -128,6 +128,7 @@
     <dependency>com.atlassian.auiplugin:aui-date-picker</dependency>
     <dependency>com.atlassian.auiplugin:dialog2</dependency>
     <dependency>com.atlassian.auiplugin:aui-experimental-expander</dependency>
+    <dependency>com.atlassian.auiplugin:aui-experimental-progress-tracker</dependency>
     <transformation extension="js">
       <transformer key="jsI18n" />
     </transformation>
@@ -138,6 +139,28 @@
     </resource>
     <resource type="download" name="jttp.css" location="/css/jttp.css" />
     <resource type="download" name="bootstrap-progress.css" location="/css/bootstrap-progress.css" />
+    <resource type="download" name="wizard1.png" location="/images/wizard1.png">
+      <param name="content-type" value="image/png" />
+    </resource>
+    <resource type="download" name="wizard2.png" location="/images/wizard2.png">
+      <param name="content-type" value="image/png" />
+    </resource>
+    <resource type="download" name="wizard3.png" location="/images/wizard3.png">
+      <param name="content-type" value="image/png" />
+    </resource>
+    <resource type="download" name="wizard4.png" location="/images/wizard4.png">
+      <param name="content-type" value="image/png" />
+    </resource>
+    <resource type="download" name="wizard5.png" location="/images/wizard5.png">
+      <param name="content-type" value="image/png" />
+    </resource>
+    <resource type="download" name="wizard6.png" location="/images/wizard6.png">
+      <param name="content-type" value="image/png" />
+    </resource>
+    <resource type="download" name="setting-button.png" location="/images/setting-button.png">
+      <param name="content-type" value="image/png" />
+    </resource>
+    <resource type="download" name="wizard_popup.css" location="/css/wizard_popup.css" />
   </web-resource>
 
   <web-resource name="JTTP Resources" key="table_report-resources-${project.version}-${build.time}">
@@ -229,6 +252,7 @@
       <param name="content-type" value="image/png" />
     </resource>
     <resource type="download" name="user_settings.css" location="/css/user_settings.css" />
+    <resource type="download" name="jttp_user_settings.js" location="/js/jttp_user_settings.js" />
   </web-resource>
 
   <web-resource name="JTTP Resources" key="chart_report-resources-${project.version}-${build.time}">

@@ -28,6 +28,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.everit.jira.analytics.AnalyticsDTO;
@@ -37,6 +39,7 @@ import org.everit.jira.core.SupportManager;
 import org.everit.jira.core.TimetrackerManager;
 import org.everit.jira.core.dto.WorklogParameter;
 import org.everit.jira.core.impl.DateTimeServer;
+import org.everit.jira.core.util.TimetrackerUserSettingsUtil;
 import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
@@ -47,6 +50,7 @@ import org.everit.jira.timetracker.plugin.PluginCondition;
 import org.everit.jira.timetracker.plugin.TimetrackerCondition;
 import org.everit.jira.timetracker.plugin.dto.EveritWorklog;
 import org.everit.jira.timetracker.plugin.dto.SummaryDTO;
+import org.everit.jira.timetracker.plugin.dto.UserSettingsValues;
 import org.everit.jira.timetracker.plugin.dto.WorklogValues;
 import org.everit.jira.timetracker.plugin.exception.WorklogException;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
@@ -132,6 +136,8 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
 
     public static final String PLUGIN_WRONG_END_DATE = "plugin.wrong.endDate";
 
+    public static final String USER_WIZARD_ERROR = "plugin.user.wizard.error";
+
     public static final String WORKLOG_OVER_DAY = "plugin.worklogReachNextDay";
   }
 
@@ -144,6 +150,7 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   private static final String FUTURE_WORKLOG_WARNING_URL_PARAMETER = "&showWarning=true";
 
   private static final String JIRA_HOME_URL = "/secure/Dashboard.jspa";
+
   /**
    * The JiraTimetrackerWebAction logger..
    */
@@ -226,6 +233,8 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
 
   private boolean showMoveAllNoPermission = false;
 
+  private boolean showUserWizardVersion = false;
+
   private String stacktrace = "";
 
   private SummaryDTO summaryDTO;
@@ -244,6 +253,8 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   private final TimeTrackingConfiguration timeTrackingConfiguration;
 
   private TimeTrackerUserSettings userSettings;
+
+  private UserSettingsValues userSettingsValues;
 
   private Date workLogEndDateTime;
 
@@ -339,6 +350,8 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
 
     showMoveAllNoPermission =
         Boolean.valueOf(getHttpRequest().getParameter(Parameter.IS_SHOW_MOVE_ALL_NO_PERMISSION));
+
+    initUserWizard();
   }
 
   private String calculateTimeSpentForDuration(final String startTime, final String durationTime) {
@@ -855,6 +868,10 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
     return userSettings;
   }
 
+  public UserSettingsValues getUserSettingsValues() {
+    return userSettingsValues;
+  }
+
   public long getUserTimeZoneOffset() {
     return TimetrackerUtil.getLoggedUserTimeZone().getOffset(System.currentTimeMillis());
   }
@@ -881,6 +898,17 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
       result = moveAllAction();
     } else if (ACTION_DELETE.equals(actionFlag) && (actionWorklogId != null)) {
       result = deleteWorklog();
+    } else if (getHttpRequest().getParameter("user-wizard-close") != null) {
+      userSettings.setShowUserWizardVersion();
+      settingsHelper.saveUserSettings(userSettings);
+      showUserWizardVersion = false;
+      result = SUCCESS;
+    } else if (getHttpRequest().getParameter("user-wizard-save") != null) {
+      result = parseUserWizardValues(getHttpRequest());
+      userSettings = TimetrackerUserSettingsUtil.saveUserSettingValues(userSettingsValues);
+      userSettings.setShowUserWizardVersion();
+      showUserWizardVersion = false;
+      settingsHelper.saveUserSettings(userSettings);
     } else if (getHttpRequest().getParameter(Parameter.LW_SAVE) == null) {
       result = notSaveAction();
     } else if (ACTION_EDIT_ALL.equals(actionFlag)) {
@@ -893,12 +921,21 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
     return result;
   }
 
+  private void initUserWizard() {
+    showUserWizardVersion = userSettings.isShowUserWizardVersion();
+    userSettingsValues = TimetrackerUserSettingsUtil.loadUserSettingValues(userSettings);
+  }
+
   public boolean isDefaultCommand() {
     return defaultCommand;
   }
 
   public boolean isShowMoveAllNoPermission() {
     return showMoveAllNoPermission;
+  }
+
+  public boolean isShowUserWizardVersion() {
+    return showUserWizardVersion;
   }
 
   private void loadWorklogs()
@@ -1029,6 +1066,38 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
         messageParameter = messageParameterParam;
       }
     }
+  }
+
+  private String parseUserWizardValues(final HttpServletRequest request) {
+    String userSettingsValuesJson =
+        request.getParameter(TimetrackerUserSettingsUtil.USER_SETTINGS_VALUES_JSON);
+    if ((userSettingsValuesJson != null) && !"".equals(userSettingsValuesJson)) {
+      userSettingsValues =
+          TimetrackerUserSettingsUtil.convertJsonToUserSettingsValues(userSettingsValuesJson);
+    }
+
+    try {
+      DateTimeConverterUtil.stringTimeToDateTime(userSettingsValues.getDefaultStartTime());
+    } catch (IllegalArgumentException e) {
+      message = PropertiesKey.USER_WIZARD_ERROR;
+      userSettingsValues
+          .setDefaultStartTime(TimetrackerUserSettingsUtil.getOriginalDefaultStartTime());
+    }
+
+    if (!TimetrackerUserSettingsUtil.validateTimeChange(userSettingsValues.getStartTime())) {
+      message = PropertiesKey.USER_WIZARD_ERROR;
+      userSettingsValues.setStartTime(TimetrackerUserSettingsUtil.FIVE_MINUTES);
+    }
+
+    if (!TimetrackerUserSettingsUtil.validateTimeChange(userSettingsValues.getEndTime())) {
+      message = PropertiesKey.USER_WIZARD_ERROR;
+      userSettingsValues.setEndTime(TimetrackerUserSettingsUtil.FIVE_MINUTES);
+    }
+
+    if (!"".equals(message)) {
+      return SUCCESS;
+    }
+    return INPUT;
   }
 
   private void parseWorklogValues() throws ParseException {

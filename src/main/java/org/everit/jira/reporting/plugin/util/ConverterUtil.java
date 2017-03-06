@@ -23,12 +23,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.everit.jira.core.impl.DateTimeServer;
 import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.reporting.plugin.SearcherValue;
 import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
+import org.everit.jira.reporting.plugin.dto.GroupForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
 import org.everit.jira.reporting.plugin.dto.PickerComponentDTO;
 import org.everit.jira.reporting.plugin.dto.PickerVersionDTO;
@@ -61,6 +63,8 @@ import com.google.gson.Gson;
  * Utility class to helps converts Object to Objects.
  */
 public final class ConverterUtil {
+
+  private static final int GROUP_USER_PREFIX_LENGTH = 6;
 
   private static final String KEY_MISSING_JQL = "jtrp.plugin.missing.jql";
 
@@ -203,26 +207,24 @@ public final class ConverterUtil {
 
   private static void collectUsersFromParams(final FilterCondition filterCondition,
       final ReportSearchParam reportSearchParam, final TimeTrackerSettingsHelper settingsHelper) {
-    List<String> users = new ArrayList<>(filterCondition.getUsers());
+    List<String> users = ConverterUtil.getUsersFromFilterCondition(filterCondition.getGroupUsers());
     JiraAuthenticationContext jiraAuthenticationContext =
         ComponentAccessor.getJiraAuthenticationContext();
     ApplicationUser user = jiraAuthenticationContext.getLoggedInUser();
     String loggedUserKey = TimetrackerUtil.getLoggedUserKey();
+    boolean currentUserInUsers = false;
+    if (users.remove(UserForPickerDTO.CURRENT_USER_KEY)) {
+      users.add(loggedUserKey);
+      currentUserInUsers = true;
+    }
     if (!PermissionUtil.hasBrowseUserPermission(user, settingsHelper)) {
-      if ((users.size() == 1) && (users.contains(UserForPickerDTO.CURRENT_USER_KEY)
-          || users.contains(loggedUserKey))) {
-        if (users.remove(UserForPickerDTO.CURRENT_USER_KEY)) {
-          users.add(loggedUserKey);
-        }
-      } else {
+      if (!((users.size() == 1) && currentUserInUsers)) {
         throw new IllegalArgumentException(NO_BROWSE_PERMISSION);
       }
     } else {
-      if (!users.isEmpty() && users.contains(UserForPickerDTO.NONE_USER_KEY)) {
-        users = ConverterUtil.queryUsersInGroup(filterCondition.getGroups(), reportSearchParam);
-      } else if (users.remove(UserForPickerDTO.CURRENT_USER_KEY)) {
-        users.add(loggedUserKey);
-      }
+      users.addAll(ConverterUtil.queryUsersInGroup(
+          ConverterUtil.getGroupsFromFilterCondition(filterCondition.getGroupUsers()),
+          reportSearchParam));
     }
     reportSearchParam.users(users);
   }
@@ -383,6 +385,25 @@ public final class ConverterUtil {
         .asc("ASC".equals(order));
   }
 
+  /**
+   * Get the groups from a list of group and users.
+   */
+  public static List<GroupForPickerDTO> getGroupsForPickerDTOFromFilterCondition(
+      final List<String> userGroups) {
+    List<String> groupsFromFilterCondition = ConverterUtil.getGroupsFromFilterCondition(userGroups);
+    return groupsFromFilterCondition.stream().map(p -> new GroupForPickerDTO(p))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Get the groups as string from a list of group and users.
+   */
+  public static List<String> getGroupsFromFilterCondition(final List<String> userGroups) {
+    return userGroups.stream().filter(p -> p.startsWith("group:"))
+        .map(p -> p.substring(GROUP_USER_PREFIX_LENGTH))
+        .collect(Collectors.toList());
+  }
+
   private static List<Long> getIssueKeysFromFilterSearcerValue(
       final FilterCondition filterCondition) throws SearchException, JqlParseException {
     List<Long> searchParamIssueIds;
@@ -438,6 +459,15 @@ public final class ConverterUtil {
       }
     }
     return userKeys;
+  }
+
+  /**
+   * Get users as String from group and user list.
+   */
+  public static List<String> getUsersFromFilterCondition(final List<String> groupUseres) {
+    return groupUseres.stream().filter(p -> p.startsWith("users:"))
+        .map(p -> p.substring(GROUP_USER_PREFIX_LENGTH))
+        .collect(Collectors.toList());
   }
 
   private static List<String> queryUsersInGroup(final List<String> groups,

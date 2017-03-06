@@ -16,6 +16,7 @@
 package org.everit.jira.settings;
 
 import org.everit.jira.settings.dto.ReportingGlobalSettings;
+import org.everit.jira.settings.dto.ReportingUserSettings;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
 import org.everit.jira.settings.dto.TimeTrackerUserSettings;
 
@@ -39,6 +40,8 @@ public interface TimeTrackerSettingsHelper {
    * @return the timetracker settings.
    */
   ReportingGlobalSettings loadReportingGlobalSettings();
+
+  ReportingUserSettings loadReportingUserSettings();
 
   /**
    * Load all user configuration from the
@@ -65,6 +68,8 @@ public interface TimeTrackerSettingsHelper {
    *          the reporting settings.
    */
   void saveReportingGlobalSettings(ReportingGlobalSettings settings);
+
+  void saveReportingUserSettings(ReportingUserSettings settings);
 
   /**
    * Save all specified settings from the {@link TimeTrackerUserSettings} into

@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.jira.reporting.plugin.exception;
+package org.everit.jira.reporting.plugin.dto;
 
 /**
- * Reporting exception.
+ *
+ * DTO for group picker.
+ *
  */
-public class JTRPException extends RuntimeException {
+public class GroupForPickerDTO {
 
-  private static final long serialVersionUID = 3267914704266213736L;
+  private String name;
 
-  public JTRPException(final String errorMsgKey) {
-    super(errorMsgKey);
+  public GroupForPickerDTO(final String name) {
+    this.name = name;
   }
 
-  public JTRPException(final String message, final Throwable cause) {
-    super(message, cause);
+  public String getName() {
+    return name;
   }
 
 }

@@ -51,16 +51,6 @@ import com.google.gson.Gson;
  */
 public final class TimetrackerUtil {
 
-  public static final int FIFTEEN_MINUTES = 15;
-
-  public static final int FIVE_MINUTES = 5;
-
-  public static final int TEN_MINUTES = 10;
-
-  public static final int THIRTY_MINUTES = 30;
-
-  public static final int TWENTY_MINUTES = 20;
-
   /**
    * Check the issue original estimated time. If null then the original estimated time wasn't
    * specified, else compare the spent time with the original estimated time.
@@ -295,36 +285,6 @@ public final class TimetrackerUtil {
       return URLEncoder.encode(encode, "UTF-8");
     } catch (UnsupportedEncodingException e) {
       return encode;
-    }
-  }
-
-  /**
-   * Validate the time change value. Possible values is 5, 10, 15, 20, 30.
-   *
-   * @param changeValue
-   *          the change value.
-   *
-   * @return true if changeValue is valid change time value.
-   * @throws NumberFormatException
-   *           if parse failed.
-   */
-  public static boolean validateTimeChange(final String changeValue)
-      throws NumberFormatException {
-    int changeValueInt = Integer.parseInt(changeValue);
-
-    switch (changeValueInt) {
-      case FIVE_MINUTES:
-        return true;
-      case TEN_MINUTES:
-        return true;
-      case FIFTEEN_MINUTES:
-        return true;
-      case TWENTY_MINUTES:
-        return true;
-      case THIRTY_MINUTES:
-        return true;
-      default:
-        return false;
     }
   }
 
