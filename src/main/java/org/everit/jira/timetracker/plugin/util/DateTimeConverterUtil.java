@@ -151,12 +151,21 @@ public final class DateTimeConverterUtil {
   }
 
   /**
-   * Calculate milliseconds between a time and a time in the day (i.e: 15:15 ) The system timezone
-   * is used
+   * The system timezone is used
    */
   public static long calculateTimeBetweenTimeAndDayTime(final long time, final int minutesInDay) {
+    return DateTimeConverterUtil.calculateTimeBetweenTimeAndDayTime(time, minutesInDay,
+        TimeZone.getDefault());
+  }
+
+  /**
+   * Calculate milliseconds between a time and a time in the day (i.e: 15:15 )
+   */
+  public static long calculateTimeBetweenTimeAndDayTime(final long time, final int minutesInDay,
+      final TimeZone timeZone) {
     Calendar now = Calendar.getInstance();
     now.setTime(new Date(time));
+    now.setTimeZone(timeZone);
     long hoursdiff = now.get(Calendar.HOUR_OF_DAY);
     long minutesdiff = now.get(Calendar.MINUTE);
     long initialDelay =

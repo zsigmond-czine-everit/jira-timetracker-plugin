@@ -15,6 +15,8 @@
  */
 package org.everit.jira.tests.core.util;
 
+import java.util.TimeZone;
+
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -37,21 +39,17 @@ public class DateTImeConverterUtilTest {
 
   @Test
   public void testTimeToTimeInDayAfter() {
-    String origTImeZone = System.getProperty("user.timezone");
-    System.setProperty("user.timezone", "UTC");
     long calculatedTime =
-        DateTimeConverterUtil.calculateTimeBetweenTimeAndDayTime(1488463200000L, 900);
-    System.setProperty("user.timezone", origTImeZone);
+        DateTimeConverterUtil.calculateTimeBetweenTimeAndDayTime(1488463200000L, 900,
+            TimeZone.getTimeZone("UTC"));
     Assert.assertEquals(3600000, calculatedTime);
   }
 
   @Test
   public void testTimeToTimeInDayBefore() {
-    String origTImeZone = System.getProperty("user.timezone");
-    System.setProperty("user.timezone", "UTC");
     long calculatedTime =
-        DateTimeConverterUtil.calculateTimeBetweenTimeAndDayTime(1488463200000L, 780);
-    System.setProperty("user.timezone", origTImeZone);
+        DateTimeConverterUtil.calculateTimeBetweenTimeAndDayTime(1488463200000L, 780,
+            TimeZone.getTimeZone("UTC"));
     Assert.assertEquals(82800000, calculatedTime);
   }
 }
