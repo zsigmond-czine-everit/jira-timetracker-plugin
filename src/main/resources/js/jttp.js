@@ -704,7 +704,7 @@ everit.jttp.main = everit.jttp.main || {};
     var period = false
     if(periodTmp != null){
       period = true;
-    }
+    
     var endDatePicker = jQuery('#enddate').val();
     if(endDatePicker != ""){
       try{
@@ -719,7 +719,7 @@ everit.jttp.main = everit.jttp.main || {};
         return false;
       }
     }
-    
+    }
     var worklogValues = {
       "startTime": startTime,
       "endTime": endTime,
