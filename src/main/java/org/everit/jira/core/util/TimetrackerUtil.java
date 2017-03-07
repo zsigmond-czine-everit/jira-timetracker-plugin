@@ -39,6 +39,7 @@ import com.atlassian.jira.bc.JiraServiceContextImpl;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.MutableIssue;
 import com.atlassian.jira.issue.status.Status;
+import com.atlassian.jira.issue.status.category.StatusCategory;
 import com.atlassian.jira.security.JiraAuthenticationContext;
 import com.atlassian.jira.timezone.TimeZoneServiceImpl;
 import com.atlassian.jira.user.ApplicationUser;
@@ -71,9 +72,9 @@ public final class TimetrackerUtil {
       }
     }
     Long estimated = issue.getEstimate();
-    Status issueStatus = issue.getStatusObject();
-    String issueStatusId = issueStatus.getId();
-    if (((estimated == null) || (estimated == 0)) && !"6".equals(issueStatusId)) {
+    Status issueStatus = issue.getStatus();
+    if (((estimated == null) || (estimated == 0))
+        && !issueStatus.getStatusCategory().getKey().equals(StatusCategory.COMPLETE)) {
       return false;
     }
     return true;

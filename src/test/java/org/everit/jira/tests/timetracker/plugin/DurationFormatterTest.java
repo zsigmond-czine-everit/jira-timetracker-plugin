@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-import org.easymock.EasyMock;
 import org.everit.jira.timetracker.plugin.DurationFormatter;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.junit.Assert;
@@ -87,12 +86,11 @@ public class DurationFormatterTest {
       final double daysPerWeekParam) {
     BigDecimal daysPerWeek = new BigDecimal(daysPerWeekParam);
     BigDecimal hoursPerDay = new BigDecimal(hoursPerDayParam);
-    TimeTrackingConfiguration ttConfig = EasyMock.createNiceMock(TimeTrackingConfiguration.class);
-    EasyMock.expect(ttConfig.getDaysPerWeek()).andReturn(daysPerWeek)
-        .anyTimes();
-    EasyMock.expect(ttConfig.getHoursPerDay()).andReturn(hoursPerDay)
-        .anyTimes();
-    EasyMock.replay(ttConfig);
+    TimeTrackingConfiguration ttConfig =
+        Mockito.mock(TimeTrackingConfiguration.class, Mockito.RETURNS_DEEP_STUBS);
+    Mockito.when(ttConfig.getDaysPerWeek()).thenReturn(daysPerWeek);
+    Mockito.when(ttConfig.getHoursPerDay()).thenReturn(hoursPerDay);
+    // EasyMock.replay(ttConfig);
 
     ApplicationProperties mockApplicationProperties =
         Mockito.mock(ApplicationProperties.class, Mockito.RETURNS_DEEP_STUBS);

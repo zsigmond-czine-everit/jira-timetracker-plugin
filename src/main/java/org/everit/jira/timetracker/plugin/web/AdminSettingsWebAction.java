@@ -18,6 +18,7 @@ package org.everit.jira.timetracker.plugin.web;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -32,15 +33,19 @@ import org.everit.jira.analytics.AnalyticsSender;
 import org.everit.jira.analytics.event.NoEstimateUsageChangedEvent;
 import org.everit.jira.analytics.event.NonWorkingUsageEvent;
 import org.everit.jira.analytics.event.TimeZoneUsageChangedEvent;
+import org.everit.jira.core.NonEstimatedReminderManager;
 import org.everit.jira.core.SupportManager;
 import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
 import org.everit.jira.settings.dto.TimeZoneTypes;
+import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.everit.jira.timetracker.plugin.util.ExceptionUtil;
 import org.everit.jira.timetracker.plugin.util.PropertiesUtil;
+import org.joda.time.DateTime;
 
 import com.atlassian.jira.web.action.JiraWebActionSupport;
+import com.atlassian.scheduler.SchedulerServiceException;
 
 /**
  * Admin settings page.
@@ -48,9 +53,40 @@ import com.atlassian.jira.web.action.JiraWebActionSupport;
 public class AdminSettingsWebAction extends JiraWebActionSupport {
 
   /**
+   * HTTP parameters.
+   */
+  public static final class Parameter {
+
+    public static final String ANALYTICS_CHECK = "analyticsCheck";
+
+    public static final String EXCLUDE_DATES = "excludedates";
+
+    public static final String INCLUDE_DATES = "includedates";
+
+    public static final String ISSUE_SELECT = "issueSelect";
+
+    public static final String ISSUE_SELECT_COLLECTOR = "issueSelect_collector";
+
+    public static final String NON_EST_ALL = "nonEstAll";
+
+    public static final String NON_EST_NONE = "nonEstNone";
+
+    public static final String NON_EST_REMINDER_TIME = "nonEstimatedRemindTime";
+
+    public static final String NON_EST_SELECT = "nonEstSelect";
+
+    public static final String NON_EST_SELECTED = "nonEstSelected";
+
+    public static final String SELECT_TIME_ZONE = "selectTimeZone";
+  }
+
+  /**
    * Keys for properties.
    */
   public static final class PropertiesKey {
+
+    public static final String INVALID_NON_ESTIMATE_REMIND_TIME =
+        "plugin.setting.invalid.non.estimate.time";
 
     public static final String PLUGIN_NONESTIMATED_EMPTY_VALUE = "plugin.nonestimated.empty.value";
 
@@ -59,6 +95,8 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
 
   }
 
+  private static final String ANALYTICS_ENABLE = "enable";
+
   private static final String JIRA_HOME_URL = "/secure/Dashboard.jspa";
 
   /**
@@ -66,16 +104,12 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   private static final Logger LOGGER = Logger.getLogger(AdminSettingsWebAction.class);
 
-  private static final String NON_EST_ALL = "nonEstAll";
-
-  private static final String NON_EST_NONE = "nonEstNone";
-
-  private static final String NON_EST_SELECTED = "nonEstSelected";
-
   /**
    * Serial version UID.
    */
   private static final long serialVersionUID = 1L;
+
+  private static final String TIMEZONE_SELECT_USER = "selectUserTimeZone";
 
   /**
    * Check if the analytics is disable or enable.
@@ -98,6 +132,8 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    * The first day of the week.
    */
   private String contextPath;
+
+  private NonEstimatedReminderManager estimatedReminderManager;
 
   /**
    * The exclude dates in UNIX long format. Sorted by natural order.
@@ -128,6 +164,8 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   private String message = "";
 
+  private String nonEstimatedRemindTime;
+
   private String pluginId;
 
   /**
@@ -148,10 +186,12 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   public AdminSettingsWebAction(
       final SupportManager supportManager, final AnalyticsSender analyticsSender,
-      final TimeTrackerSettingsHelper settingsHelper) {
+      final TimeTrackerSettingsHelper settingsHelper,
+      final NonEstimatedReminderManager estimatedReminderManager) {
     this.supportManager = supportManager;
     this.analyticsSender = analyticsSender;
     this.settingsHelper = settingsHelper;
+    this.estimatedReminderManager = estimatedReminderManager;
   }
 
   @Override
@@ -197,7 +237,10 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
         setReturnUrl("/secure/admin/TimetrackerAdminSettingsWebAction!default.jspa");
         return parseResult;
       }
-      savePluginSettings();
+      String saveResult = savePluginSettingsAndUpdateReminder();
+      if (saveResult.equals(ERROR)) {
+        return ERROR;
+      }
     }
     setReturnUrl("/secure/admin/TimetrackerAdminSettingsWebAction!default.jspa");
     return getRedirect(INPUT);
@@ -235,17 +278,21 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     return message;
   }
 
+  public String getNonEstimatedRemindTime() {
+    return nonEstimatedRemindTime;
+  }
+
   /**
    * Decide which check box is selected.
    */
   public String getNonEstSelect() {
     if (collectorIssuePatterns.isEmpty()) {
-      return NON_EST_ALL;
+      return Parameter.NON_EST_ALL;
     } else if ((collectorIssuePatterns.size() == 1)
         && collectorIssuePatterns.get(0).pattern().equals(".*")) {
-      return NON_EST_NONE;
+      return Parameter.NON_EST_NONE;
     } else {
-      return NON_EST_SELECTED;
+      return Parameter.NON_EST_SELECTED;
     }
   }
 
@@ -280,10 +327,15 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     for (Pattern issuePattern : collectorIssuePatterns) {
       collectorIssueKey += issuePattern.toString() + " ";
     }
+
     excludeDates = loadGlobalSettings.getExcludeDatesAsLong();
     includeDates = loadGlobalSettings.getIncludeDatesAsLong();
     analyticsCheck = loadGlobalSettings.getAnalyticsCheck();
     timeZoneType = loadGlobalSettings.getTimeZone();
+    int remindTimeInMinutes = loadGlobalSettings.getNonEstimatedRemindTime();
+    Date convertMinsToCurrentTime =
+        DateTimeConverterUtil.convertMinsToCurrentTime(remindTimeInMinutes);
+    nonEstimatedRemindTime = DateTimeConverterUtil.dateTimeToString(convertMinsToCurrentTime);
   }
 
   private void normalizeContextPath() {
@@ -311,9 +363,10 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
   }
 
   private boolean parseNonEstValues(final HttpServletRequest request) {
-    String nonEstSelectValue = request.getParameter("nonEstSelect");
-    if (nonEstSelectValue.equals(NON_EST_SELECTED)) {
-      String[] collectorIssueSelectValue = request.getParameterValues("issueSelect_collector");
+    String nonEstSelectValue = request.getParameter(Parameter.NON_EST_SELECT);
+    if (nonEstSelectValue.equals(Parameter.NON_EST_SELECTED)) {
+      String[] collectorIssueSelectValue =
+          request.getParameterValues(Parameter.ISSUE_SELECT_COLLECTOR);
       if ((collectorIssueSelectValue != null) && (collectorIssueSelectValue.length != 0)) {
         for (String filteredIssueKey : collectorIssueSelectValue) {
           collectorIssuePatterns.add(Pattern.compile(filteredIssueKey));
@@ -322,7 +375,7 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
         message = PropertiesKey.PLUGIN_NONESTIMATED_EMPTY_VALUE;
         return true;
       }
-    } else if (nonEstSelectValue.equals(NON_EST_NONE)) {
+    } else if (nonEstSelectValue.equals(Parameter.NON_EST_NONE)) {
       collectorIssuePatterns.add(Pattern.compile(".*"));
     }
     return false;
@@ -335,19 +388,19 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    *          The HttpServletRequest.
    */
   public String parseSaveSettings(final HttpServletRequest request) {
-    String[] issueSelectValue = request.getParameterValues("issueSelect");
-    String[] excludeDatesValue = request.getParameterValues("excludedates");
-    String[] includeDatesValue = request.getParameterValues("includedates");
-    String analyticsCheckValue = request.getParameter("analyticsCheck");
-    String timeZoneValue = request.getParameter("selectTimeZone");
+    String[] issueSelectValue = request.getParameterValues(Parameter.ISSUE_SELECT);
+    String[] excludeDatesValue = request.getParameterValues(Parameter.EXCLUDE_DATES);
+    String[] includeDatesValue = request.getParameterValues(Parameter.INCLUDE_DATES);
+    String analyticsCheckValue = request.getParameter(Parameter.ANALYTICS_CHECK);
+    String timeZoneValue = request.getParameter(Parameter.SELECT_TIME_ZONE);
 
-    if ((analyticsCheckValue != null) && "enable".equals(analyticsCheckValue)) {
+    if ((analyticsCheckValue != null) && ANALYTICS_ENABLE.equals(analyticsCheckValue)) {
       analyticsCheck = true;
     } else {
       analyticsCheck = false;
     }
 
-    if ((timeZoneValue != null) && "selectUserTimeZone".equals(timeZoneValue)) {
+    if ((timeZoneValue != null) && TIMEZONE_SELECT_USER.equals(timeZoneValue)) {
       timeZoneType = TimeZoneTypes.USER;
     } else {
       timeZoneType = TimeZoneTypes.SYSTEM;
@@ -361,7 +414,6 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     }
     collectorIssuePatterns = new ArrayList<>();
     boolean parseNonEstException = parseNonEstValues(request);
-
     excludeDates = parseDates(excludeDatesValue);
     includeDates = parseDates(includeDatesValue);
     HashSet<Long> interSect = new HashSet<>(excludeDates);
@@ -370,6 +422,15 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
       message = PropertiesKey.PLUGIN_SETTING_DATE_EXITST_INCLUDE_EXCLUDE;
       return SUCCESS;
     }
+
+    nonEstimatedRemindTime = request.getParameter(Parameter.NON_EST_REMINDER_TIME);
+    try {
+      DateTimeConverterUtil.stringTimeToDateTime(nonEstimatedRemindTime);
+    } catch (IllegalArgumentException e) {
+      message = PropertiesKey.INVALID_NON_ESTIMATE_REMIND_TIME;
+      return INPUT;
+    }
+
     if (parseNonEstException) {
       return SUCCESS;
     }
@@ -385,16 +446,33 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
   /**
    * Save the plugin settings.
    */
-  public void savePluginSettings() {
+  public String savePluginSettingsAndUpdateReminder() {
+    DateTime remindTimeInUserFormat =
+        DateTimeConverterUtil.stringToDateAndTime(DateTime.now(), nonEstimatedRemindTime);
+    int minutesAfterMidnight =
+        (remindTimeInUserFormat.getHourOfDay() * DateTimeConverterUtil.MINUTES_IN_HOUR)
+            + remindTimeInUserFormat.getMinuteOfHour();
     TimeTrackerGlobalSettings globalSettings = new TimeTrackerGlobalSettings();
     globalSettings.excludeDates(excludeDates)
         .includeDates(includeDates)
         .filteredSummaryIssues(issuesPatterns)
         .collectorIssues(collectorIssuePatterns)
+        .nonEstimatedRemindTime(minutesAfterMidnight)
         .analyticsCheck(analyticsCheck)
         .timeZone(timeZoneType);
     settingsHelper.saveGlobalSettings(globalSettings);
-    sendAnaliticsEvent();
+    if (loadGlobalSettings.getNonEstimatedRemindTime() != minutesAfterMidnight) {
+      estimatedReminderManager.unregisterNonEstimatedReminder();
+      try {
+        estimatedReminderManager.registerNonEstimatedReminder();
+      } catch (SchedulerServiceException e) {
+        LOGGER.error("Error when try set the plugin variables.", e);
+        stacktrace = ExceptionUtil.getStacktrace(e);
+        return ERROR;
+      }
+      sendAnaliticsEvent();
+    }
+    return INPUT;
   }
 
   /**

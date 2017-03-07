@@ -136,11 +136,16 @@ everit.jttp.admin = everit.jttp.admin || {};
   }
 
   jttpadmin.handleNonEstClick= function(element){
-  if(element.value=="nonEstSelected"){
-	  jQuery( "#issueSelect_collector_container").show();
-   } else {
-	  jQuery( "#issueSelect_collector_container").hide();
-   }
+    if(element.value=="nonEstSelected"){
+	    jQuery( "#issueSelect_collector_container").show();
+    } else {
+	    jQuery( "#issueSelect_collector_container").hide();
+    }
+    if(element.value=="nonEstNone"){
+      jQuery("#nonEstimatedRemindTime").prop( "readonly", true );
+    } else {
+      jQuery("#nonEstimatedRemindTime").prop( "readonly", false );
+    }
  }
     jttpadmin.getTimeWithoutTimezone= function(date){
 	  return date.getTime()-(date.getTimezoneOffset()*60000);

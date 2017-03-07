@@ -34,6 +34,8 @@ import org.joda.time.DateTimeZone;
  */
 public class TimeTrackerGlobalSettings {
 
+  public static final int DEFAULT_NON_ESTIMTED_REMINDER_TIME = 1200;
+
   private Map<GlobalSettingsKey, Object> pluginSettingsKeyValues = new HashMap<>();
 
   /**
@@ -192,6 +194,20 @@ public class TimeTrackerGlobalSettings {
   }
 
   /**
+   * Get saved non estimated time in minutes after midnight.
+   *
+   * @return the default time or the saved time.
+   */
+  public int getNonEstimatedRemindTime() {
+    Object savedTime = pluginSettingsKeyValues.get(GlobalSettingsKey.NON_ESTIMATED_TIME);
+    if (savedTime == null) {
+      return DEFAULT_NON_ESTIMTED_REMINDER_TIME;
+    } else {
+      return Integer.parseInt(savedTime.toString());
+    }
+  }
+
+  /**
    * Get the non working issue filters.
    */
   public List<Pattern> getNonWorkingIssuePatterns() {
@@ -281,6 +297,15 @@ public class TimeTrackerGlobalSettings {
    */
   public TimeTrackerGlobalSettings latestVersion(final String latestVersion) {
     pluginSettingsKeyValues.put(GlobalSettingsKey.UPDATE_NOTIFIER_LATEST_VERSION, latestVersion);
+    return this;
+  }
+
+  /**
+   * Put the non estimated issues notification time.
+   */
+  public TimeTrackerGlobalSettings nonEstimatedRemindTime(final int minutesIn) {
+    pluginSettingsKeyValues.put(GlobalSettingsKey.NON_ESTIMATED_TIME,
+        String.valueOf(minutesIn));
     return this;
   }
 

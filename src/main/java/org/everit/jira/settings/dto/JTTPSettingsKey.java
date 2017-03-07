@@ -105,6 +105,9 @@ public final class JTTPSettingsKey {
    */
   public static final String JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_ISSUES = "NonEstimated";
 
+  public static final String JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_NOTIFICATION_TIME =
+      "NON_ESTIMATED_NOTIFICATION_TIME";
+
   /**
    * The plugin setting Plugin Permission key.
    */
@@ -151,7 +154,6 @@ public final class JTTPSettingsKey {
   public static final String JTTP_PLUGIN_SETTINGS_SUMMARY_FILTERS = "SummaryFilters";
 
   public static final String JTTP_PLUGIN_SETTINGS_TIME_ZONE = "timeZoneSetting";
-
   /**
    * The plugin setting Timetracker Permission key.
    */

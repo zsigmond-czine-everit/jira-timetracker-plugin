@@ -111,10 +111,16 @@ public final class DateTimeConverterUtil {
 
   private static final int MINUTES_GROUP_2 = 4;
 
+  public static final int MINUTES_IN_HOUR = 60;
+
+  private static final int MINUTES_IN_ONE_DAY = 1440;
+
   /**
    * The number of minutes per hour.
    */
   public static final int MINUTES_PER_HOUR = 60;
+
+  private static final int ONE_MINUTE_IN_MILISEC = 60000;
 
   /**
    * The number of quaters in hour.
@@ -148,6 +154,33 @@ public final class DateTimeConverterUtil {
     DateTimeServer converter =
         DateTimeServer.getInstanceBasedOnSystemTimeZone(systemTimestamp.getTime());
     return new Timestamp(converter.getUserTimeZoneDate().getTime());
+  }
+
+  /**
+   * Count the milliseconds between the time and the minutes after midnight. The system time zone is
+   * used to calculate the milliseconds
+   */
+  public static long calculateTimeBetweenTimeAndDayTime(final long time, final int minutesInDay) {
+    return DateTimeConverterUtil.calculateTimeBetweenTimeAndDayTime(time, minutesInDay,
+        TimeZone.getDefault());
+  }
+
+  /**
+   * Calculate milliseconds between a time and a time in the day (i.e: 15:15 ).
+   */
+  public static long calculateTimeBetweenTimeAndDayTime(final long time, final int minutesInDay,
+      final TimeZone timeZone) {
+    Calendar now = Calendar.getInstance();
+    now.setTime(new Date(time));
+    now.setTimeZone(timeZone);
+    long hoursdiff = now.get(Calendar.HOUR_OF_DAY);
+    long minutesdiff = now.get(Calendar.MINUTE);
+    long initialDelay =
+        minutesInDay - ((hoursdiff * MINUTES_IN_HOUR) + minutesdiff);
+    if (initialDelay < 0) {
+      initialDelay = initialDelay + MINUTES_IN_ONE_DAY;
+    }
+    return initialDelay * ONE_MINUTE_IN_MILISEC;
   }
 
   /**
@@ -191,6 +224,18 @@ public final class DateTimeConverterUtil {
   public static DateTime convertDateZoneToUserTimeZone(final DateTime date) {
     DateTime inUserTimeZone = date.withZone(TimetrackerUtil.getLoggedUserTimeZone());
     return inUserTimeZone;
+  }
+
+  /**
+   * Convert minutes as a date object with current date and the minutes.
+   */
+  public static Date convertMinsToCurrentTime(final int minutesAfterMidnight) {
+    DateTime dateTime = new DateTime();
+    dateTime = dateTime.withHourOfDay(minutesAfterMidnight / MINUTES_IN_HOUR);
+    dateTime = dateTime.withMinuteOfHour(minutesAfterMidnight % MINUTES_IN_HOUR);
+    dateTime = dateTime.withSecondOfMinute(0);
+    return dateTime.toDate();
+
   }
 
   /**
@@ -621,5 +666,4 @@ public final class DateTimeConverterUtil {
    */
   private DateTimeConverterUtil() {
   }
-
 }

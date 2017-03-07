@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.easymock.EasyMock;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
 import org.everit.jira.settings.dto.TimeTrackerGlobalSettings;
 import org.everit.jira.settings.dto.TimeZoneTypes;
@@ -194,11 +193,12 @@ public class EveritWorklogTest {
 
     BigDecimal daysPerWeek = new BigDecimal(5);
     BigDecimal hoursPerDay = new BigDecimal(8);
-    TimeTrackingConfiguration ttConfig = EasyMock.createNiceMock(TimeTrackingConfiguration.class);
-    EasyMock.expect(ttConfig.getDaysPerWeek()).andReturn(daysPerWeek).anyTimes();
-    EasyMock.expect(ttConfig.getHoursPerDay()).andReturn(hoursPerDay).anyTimes();
-    EasyMock.expect(ttConfig.getTimeFormat()).andReturn(TimeFormat.pretty).anyTimes();
-    EasyMock.replay(ttConfig);
+    TimeTrackingConfiguration ttConfig =
+        Mockito.mock(TimeTrackingConfiguration.class, Mockito.RETURNS_DEEP_STUBS);
+    Mockito.when(ttConfig.getDaysPerWeek()).thenReturn(daysPerWeek);
+    Mockito.when(ttConfig.getHoursPerDay()).thenReturn(hoursPerDay);
+    Mockito.when(ttConfig.getTimeFormat()).thenReturn(TimeFormat.pretty);
+    // EasyMock.replay(ttConfig);
     mockComponentWorker.addMock(TimeTrackingConfiguration.class, ttConfig).init();
   }
 

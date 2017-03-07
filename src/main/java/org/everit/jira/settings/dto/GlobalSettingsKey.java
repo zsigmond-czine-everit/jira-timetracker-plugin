@@ -51,6 +51,12 @@ public enum GlobalSettingsKey implements SettingsMapper {
     }
 
   },
+  NON_ESTIMATED_TIME {
+    @Override
+    public String getSettingsKey() {
+      return JTTPSettingsKey.JTTP_PLUGIN_SETTINGS_NON_ESTIMATED_NOTIFICATION_TIME;
+    }
+  },
   PLUGIN_PERMISSION {
 
     @Override
