@@ -53,6 +53,34 @@ import com.atlassian.scheduler.SchedulerServiceException;
 public class AdminSettingsWebAction extends JiraWebActionSupport {
 
   /**
+   * HTTP parameters.
+   */
+  public static final class Parameter {
+
+    public static final String ANALYTICS_CHECK = "analyticsCheck";
+
+    public static final String EXCLUDE_DATES = "excludedates";
+
+    public static final String INCLUDE_DATES = "includedates";
+
+    public static final String ISSUE_SELECT = "issueSelect";
+
+    public static final String ISSUE_SELECT_COLLECTOR = "issueSelect_collector";
+
+    public static final String NON_EST_ALL = "nonEstAll";
+
+    public static final String NON_EST_NONE = "nonEstNone";
+
+    public static final String NON_EST_REMINDER_TIME = "nonEstimatedRemindTime";
+
+    public static final String NON_EST_SELECT = "nonEstSelect";
+
+    public static final String NON_EST_SELECTED = "nonEstSelected";
+
+    public static final String SELECT_TIME_ZONE = "selectTimeZone";
+  }
+
+  /**
    * Keys for properties.
    */
   public static final class PropertiesKey {
@@ -67,6 +95,8 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
 
   }
 
+  private static final String ANALYTICS_ENABLE = "enable";
+
   private static final String JIRA_HOME_URL = "/secure/Dashboard.jspa";
 
   /**
@@ -74,16 +104,12 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   private static final Logger LOGGER = Logger.getLogger(AdminSettingsWebAction.class);
 
-  private static final String NON_EST_ALL = "nonEstAll";
-
-  private static final String NON_EST_NONE = "nonEstNone";
-
-  private static final String NON_EST_SELECTED = "nonEstSelected";
-
   /**
    * Serial version UID.
    */
   private static final long serialVersionUID = 1L;
+
+  private static final String TIMEZONE_SELECT_USER = "selectUserTimeZone";
 
   /**
    * Check if the analytics is disable or enable.
@@ -261,12 +287,12 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    */
   public String getNonEstSelect() {
     if (collectorIssuePatterns.isEmpty()) {
-      return NON_EST_ALL;
+      return Parameter.NON_EST_ALL;
     } else if ((collectorIssuePatterns.size() == 1)
         && collectorIssuePatterns.get(0).pattern().equals(".*")) {
-      return NON_EST_NONE;
+      return Parameter.NON_EST_NONE;
     } else {
-      return NON_EST_SELECTED;
+      return Parameter.NON_EST_SELECTED;
     }
   }
 
@@ -337,9 +363,10 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
   }
 
   private boolean parseNonEstValues(final HttpServletRequest request) {
-    String nonEstSelectValue = request.getParameter("nonEstSelect");
-    if (nonEstSelectValue.equals(NON_EST_SELECTED)) {
-      String[] collectorIssueSelectValue = request.getParameterValues("issueSelect_collector");
+    String nonEstSelectValue = request.getParameter(Parameter.NON_EST_SELECT);
+    if (nonEstSelectValue.equals(Parameter.NON_EST_SELECTED)) {
+      String[] collectorIssueSelectValue =
+          request.getParameterValues(Parameter.ISSUE_SELECT_COLLECTOR);
       if ((collectorIssueSelectValue != null) && (collectorIssueSelectValue.length != 0)) {
         for (String filteredIssueKey : collectorIssueSelectValue) {
           collectorIssuePatterns.add(Pattern.compile(filteredIssueKey));
@@ -348,7 +375,7 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
         message = PropertiesKey.PLUGIN_NONESTIMATED_EMPTY_VALUE;
         return true;
       }
-    } else if (nonEstSelectValue.equals(NON_EST_NONE)) {
+    } else if (nonEstSelectValue.equals(Parameter.NON_EST_NONE)) {
       collectorIssuePatterns.add(Pattern.compile(".*"));
     }
     return false;
@@ -361,19 +388,19 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
    *          The HttpServletRequest.
    */
   public String parseSaveSettings(final HttpServletRequest request) {
-    String[] issueSelectValue = request.getParameterValues("issueSelect");
-    String[] excludeDatesValue = request.getParameterValues("excludedates");
-    String[] includeDatesValue = request.getParameterValues("includedates");
-    String analyticsCheckValue = request.getParameter("analyticsCheck");
-    String timeZoneValue = request.getParameter("selectTimeZone");
+    String[] issueSelectValue = request.getParameterValues(Parameter.ISSUE_SELECT);
+    String[] excludeDatesValue = request.getParameterValues(Parameter.EXCLUDE_DATES);
+    String[] includeDatesValue = request.getParameterValues(Parameter.INCLUDE_DATES);
+    String analyticsCheckValue = request.getParameter(Parameter.ANALYTICS_CHECK);
+    String timeZoneValue = request.getParameter(Parameter.SELECT_TIME_ZONE);
 
-    if ((analyticsCheckValue != null) && "enable".equals(analyticsCheckValue)) {
+    if ((analyticsCheckValue != null) && ANALYTICS_ENABLE.equals(analyticsCheckValue)) {
       analyticsCheck = true;
     } else {
       analyticsCheck = false;
     }
 
-    if ((timeZoneValue != null) && "selectUserTimeZone".equals(timeZoneValue)) {
+    if ((timeZoneValue != null) && TIMEZONE_SELECT_USER.equals(timeZoneValue)) {
       timeZoneType = TimeZoneTypes.USER;
     } else {
       timeZoneType = TimeZoneTypes.SYSTEM;
@@ -387,7 +414,6 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
     }
     collectorIssuePatterns = new ArrayList<>();
     boolean parseNonEstException = parseNonEstValues(request);
-    nonEstimatedRemindTime = request.getParameter("nonEstimatedRemindTime");
     excludeDates = parseDates(excludeDatesValue);
     includeDates = parseDates(includeDatesValue);
     HashSet<Long> interSect = new HashSet<>(excludeDates);
@@ -396,12 +422,15 @@ public class AdminSettingsWebAction extends JiraWebActionSupport {
       message = PropertiesKey.PLUGIN_SETTING_DATE_EXITST_INCLUDE_EXCLUDE;
       return SUCCESS;
     }
+
+    nonEstimatedRemindTime = request.getParameter(Parameter.NON_EST_REMINDER_TIME);
     try {
       DateTimeConverterUtil.stringTimeToDateTime(nonEstimatedRemindTime);
     } catch (IllegalArgumentException e) {
       message = PropertiesKey.INVALID_NON_ESTIMATE_REMIND_TIME;
       return INPUT;
     }
+
     if (parseNonEstException) {
       return SUCCESS;
     }

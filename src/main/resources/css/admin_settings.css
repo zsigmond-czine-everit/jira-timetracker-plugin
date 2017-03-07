@@ -48,3 +48,15 @@ form.aui.rightMargin{
 .jttpDataPickerAddButton{
 	margin-top: 10px;
 }
+
+#nonEstimatedRemindTime:-moz-read-only { /* For Firefox */
+    background-color:#EBEBE4;
+    border:1px solid #ABADB3;
+    color:rgb(84, 84, 84);
+}
+
+#nonEstimatedRemindTime:read-only { 
+    background-color:#EBEBE4;
+    border:1px solid #ABADB3;
+    color:rgb(84, 84, 84);
+}
