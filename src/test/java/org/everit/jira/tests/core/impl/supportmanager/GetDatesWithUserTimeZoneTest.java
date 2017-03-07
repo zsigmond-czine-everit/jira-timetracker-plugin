@@ -63,7 +63,7 @@ import com.atlassian.jira.user.preferences.UserPreferencesManager;
 import com.atlassian.jira.util.I18nHelper;
 import com.atlassian.jira.util.I18nHelper.BeanFactory;
 
-public class GetDatesTestWithUserTimeZone {
+public class GetDatesWithUserTimeZoneTest {
 
   static class DummyGenericValue extends GenericValue {
     private static final long serialVersionUID = 3415063923321743460L;
@@ -356,7 +356,7 @@ public class GetDatesTestWithUserTimeZone {
    *
    */
   @Test
-  public void testGetDates() throws GenericEntityException {
+  public void getDatesTest() throws GenericEntityException {
     initMockComponentWorker();
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     DateTimeServer today = DateTimeServer
