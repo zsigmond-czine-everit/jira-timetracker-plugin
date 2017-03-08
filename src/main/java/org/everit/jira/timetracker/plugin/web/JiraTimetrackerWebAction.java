@@ -108,10 +108,13 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
 
     public static final String TODAY = "today";
 
+    public static final String USER_WIZARD_CLOSE = "user-wizard-close";
+
+    public static final String USER_WIZARD_SAVE = "user-wizard-save";
+
     public static final String WORKLOG_VALUES_JSON = "worklogValuesJson";
 
     public static final String WORKLOGS_IDS = "worklogsIds";
-
   }
 
   /**
@@ -898,12 +901,12 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
       result = moveAllAction();
     } else if (ACTION_DELETE.equals(actionFlag) && (actionWorklogId != null)) {
       result = deleteWorklog();
-    } else if (getHttpRequest().getParameter("user-wizard-close") != null) {
+    } else if (getHttpRequest().getParameter(Parameter.USER_WIZARD_CLOSE) != null) {
       userSettings.setShowUserWizardVersion();
       settingsHelper.saveUserSettings(userSettings);
       showUserWizardVersion = false;
       result = SUCCESS;
-    } else if (getHttpRequest().getParameter("user-wizard-save") != null) {
+    } else if (getHttpRequest().getParameter(Parameter.USER_WIZARD_SAVE) != null) {
       result = parseUserWizardValues(getHttpRequest());
       userSettings = TimetrackerUserSettingsUtil.saveUserSettingValues(userSettingsValues);
       userSettings.setShowUserWizardVersion();
@@ -924,6 +927,7 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   private void initUserWizard() {
     showUserWizardVersion = userSettings.isShowUserWizardVersion();
     userSettingsValues = TimetrackerUserSettingsUtil.loadUserSettingValues(userSettings);
+    showUserWizardVersion = true;
   }
 
   public boolean isDefaultCommand() {
