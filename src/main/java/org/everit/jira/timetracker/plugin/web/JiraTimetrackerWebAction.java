@@ -927,7 +927,6 @@ public class JiraTimetrackerWebAction extends JiraWebActionSupport {
   private void initUserWizard() {
     showUserWizardVersion = userSettings.isShowUserWizardVersion();
     userSettingsValues = TimetrackerUserSettingsUtil.loadUserSettingValues(userSettings);
-    showUserWizardVersion = true;
   }
 
   public boolean isDefaultCommand() {
