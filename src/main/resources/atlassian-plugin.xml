@@ -382,4 +382,20 @@
     <context>org.everit.jira.timetracker.popup.jttp-survey-dialog-resources</context>
   </web-resource>
 
+<!-- Gadget section -->
+<gadget key="JTTP_WORKLOG_SUMMARY" name="JTTP_WORKLOG_SUMMARY" location="gadgets/worklog_summary.xml">
+    <description>Timetracker Worklog Summary</description>
+    <param name="roles-required">use</param>
+</gadget>
+  <web-resource key="jttp_worklog_summary_resources" name="jttp_worklog_summary_resources">
+    <resource type="i18n" location="i18n/gadget" name="i18n-jttp-gadget" />
+    <resource type="download" name="images/" location="images/" />
+    <resource type="download" name="gadget.css" location="/css/gadget.css" />
+    <resource type="download" name="flot.js" location="/js/lib/flot/jquery.flot.js" />
+    <resource type="download" name="flot.pie.js" location="/js/lib/flot/jquery.flot.pie.min.js" />
+    <resource type="download" name="flot.categories.js" location="/js/lib/flot/jquery.flot.categories.js" />
+    <resource type="download" name="flot.stack.js" location="/js/lib/flot/jquery.flot.stack.min.js" />
+    <resource type="download" name="flot.tooltip.js" location="/js/lib/flot/jquery.flot.tooltip.min.js" />
+    <resource type="download" name="jttp_worklog_summary.js" location="/js/gadget/jttp_worklog_summary.js" />
+  </web-resource>
 </atlassian-plugin>
