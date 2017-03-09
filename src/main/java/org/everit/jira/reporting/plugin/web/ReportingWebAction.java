@@ -243,6 +243,40 @@ public class ReportingWebAction extends JiraWebActionSupport {
     }
   }
 
+  private void callCorrectReportQuery(final String selectedActiveTab, final String activeMainTab,
+      final ConvertedSearchParam convertedSearchParam) {
+    if ((activeMainTab == null) || "".equals(activeMainTab)
+        || PageTabs.MAIN_DETAILS.equals(activeMainTab)) {
+      worklogDetailsReport =
+          reportingPlugin.getWorklogDetailsReport(convertedSearchParam.reportSearchParam,
+              OrderBy.DEFAULT);
+      if (worklogDetailsReport.getWorklogDetailsCount() == 0) {
+        worklogDetailsEmpty = true;
+      }
+    } else if (PageTabs.MAIN_SUMMARIES.equals(activeMainTab)) {
+      if (PageTabs.SUB_PROJECT.equals(selectedActiveTab)) {
+        projectSummaryReport =
+            reportingPlugin.getProjectSummaryReport(convertedSearchParam.reportSearchParam);
+      } else if (PageTabs.SUB_ISSUE.equals(selectedActiveTab)) {
+        issueSummaryReport =
+            reportingPlugin.getIssueSummaryReport(convertedSearchParam.reportSearchParam);
+      } else if (PageTabs.SUB_USER.equals(selectedActiveTab)) {
+        userSummaryReport =
+            reportingPlugin.getUserSummaryReport(convertedSearchParam.reportSearchParam);
+      } else if (PageTabs.SUB_VERSION.equals(selectedActiveTab)) {
+        versionSummaryReport =
+            reportingPlugin.getVersionSummaryReport(convertedSearchParam.reportSearchParam);
+      } else if (PageTabs.SUB_COMPONENT.equals(selectedActiveTab)) {
+        componentSummaryReport =
+            reportingPlugin.getComponentSummaryReport(convertedSearchParam.reportSearchParam);
+      } else {
+        throw new JTRPException("jtrp.plugin.wrong.tab.information");
+      }
+    } else {
+      throw new JTRPException("jtrp.plugin.wrong.tab.information");
+    }
+  }
+
   private String checkConditions() {
     boolean isUserLogged = TimetrackerUtil.isUserLogged();
     if (!isUserLogged) {
@@ -340,36 +374,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
     }
 
     try {
-      if ((activeMainTab == null) || "".equals(activeMainTab)
-          || PageTabs.MAIN_DETAILS.equals(activeMainTab)) {
-        worklogDetailsReport =
-            reportingPlugin.getWorklogDetailsReport(convertedSearchParam.reportSearchParam,
-                OrderBy.DEFAULT);
-        if (worklogDetailsReport.getWorklogDetailsCount() == 0) {
-          worklogDetailsEmpty = true;
-        }
-      } else if (PageTabs.MAIN_SUMMARIES.equals(activeMainTab)) {
-        if (PageTabs.SUB_PROJECT.equals(selectedActiveTab)) {
-          projectSummaryReport =
-              reportingPlugin.getProjectSummaryReport(convertedSearchParam.reportSearchParam);
-        } else if (PageTabs.SUB_ISSUE.equals(selectedActiveTab)) {
-          issueSummaryReport =
-              reportingPlugin.getIssueSummaryReport(convertedSearchParam.reportSearchParam);
-        } else if (PageTabs.SUB_USER.equals(selectedActiveTab)) {
-          userSummaryReport =
-              reportingPlugin.getUserSummaryReport(convertedSearchParam.reportSearchParam);
-        } else if (PageTabs.SUB_VERSION.equals(selectedActiveTab)) {
-          versionSummaryReport =
-              reportingPlugin.getVersionSummaryReport(convertedSearchParam.reportSearchParam);
-        } else if (PageTabs.SUB_COMPONENT.equals(selectedActiveTab)) {
-          componentSummaryReport =
-              reportingPlugin.getComponentSummaryReport(convertedSearchParam.reportSearchParam);
-        } else {
-          throw new JTRPException("jtrp.plugin.wrong.tab.information");
-        }
-      } else {
-        throw new JTRPException("jtrp.plugin.wrong.tab.information");
-      }
+      callCorrectReportQuery(selectedActiveTab, activeMainTab, convertedSearchParam);
       grandTotal = reportingPlugin.getGrandTotal(convertedSearchParam.reportSearchParam);
       notBrowsableProjectKeys = convertedSearchParam.notBrowsableProjectKeys;
     } catch (JTRPException e) {

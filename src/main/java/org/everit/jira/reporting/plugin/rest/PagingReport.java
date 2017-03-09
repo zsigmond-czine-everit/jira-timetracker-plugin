@@ -107,6 +107,32 @@ public class PagingReport {
     contextParameters.put("i18n", i18nHelper);
   }
 
+  private void appendSummaryToContextParameters(final String subTabForProcess,
+      final HashMap<String, Object> contextParameters,
+      final ConvertedSearchParam converSearchParam) {
+    if (PageTabs.SUB_PROJECT.equals(subTabForProcess)) {
+      ProjectSummaryReportDTO projectSummaryReport =
+          reportingPlugin.getProjectSummaryReport(converSearchParam.reportSearchParam);
+      contextParameters.put("projectSummaryReport", projectSummaryReport);
+    } else if (PageTabs.SUB_ISSUE.equals(subTabForProcess)) {
+      IssueSummaryReportDTO issueSummaryReport =
+          reportingPlugin.getIssueSummaryReport(converSearchParam.reportSearchParam);
+      contextParameters.put("issueSummaryReport", issueSummaryReport);
+    } else if (PageTabs.SUB_USER.equals(subTabForProcess)) {
+      UserSummaryReportDTO userSummaryReport =
+          reportingPlugin.getUserSummaryReport(converSearchParam.reportSearchParam);
+      contextParameters.put("userSummaryReport", userSummaryReport);
+    } else if (PageTabs.SUB_VERSION.equals(subTabForProcess)) {
+      VersionSummaryReportDTO versionSummaryReport =
+          reportingPlugin.getVersionSummaryReport(converSearchParam.reportSearchParam);
+      contextParameters.put("versionSummaryReport", versionSummaryReport);
+    } else if (PageTabs.SUB_COMPONENT.equals(subTabForProcess)) {
+      ComponentSummaryReportDTO componentSummaryReport =
+          reportingPlugin.getComponentSummaryReport(converSearchParam.reportSearchParam);
+      contextParameters.put("componentSummaryReport", componentSummaryReport);
+    }
+  }
+
   private Response buildResponse(final String templateFileName,
       final Map<String, Object> contextParameters) {
     String encodedBody = velocityManager.getEncodedBody(TEMPLATE_DIRECTORY,
@@ -177,41 +203,14 @@ public class PagingReport {
       }
       FilterCondition filterCondition = convertJsonToFilterCondition(filterConditionJson);
 
+      HashMap<String, Object> contextParameters = new HashMap<>();
       ConvertedSearchParam converSearchParam = ConverterUtil
           .convertFilterConditionToConvertedSearchParam(filterCondition, settingsHelper);
-      ProjectSummaryReportDTO projectSummaryReport = null;
-      IssueSummaryReportDTO issueSummaryReport = null;
-      UserSummaryReportDTO userSummaryReport = null;
-      VersionSummaryReportDTO versionSummaryReport = null;
-      ComponentSummaryReportDTO componentSummaryReport = null;
-      if (PageTabs.SUB_PROJECT.equals(subTabForProcess)) {
-        projectSummaryReport =
-            reportingPlugin.getProjectSummaryReport(converSearchParam.reportSearchParam);
-      } else if (PageTabs.SUB_ISSUE.equals(subTabForProcess)) {
-        issueSummaryReport =
-            reportingPlugin.getIssueSummaryReport(converSearchParam.reportSearchParam);
-      } else if (PageTabs.SUB_USER.equals(subTabForProcess)) {
-        userSummaryReport =
-            reportingPlugin.getUserSummaryReport(converSearchParam.reportSearchParam);
-      } else if (PageTabs.SUB_VERSION.equals(subTabForProcess)) {
-        versionSummaryReport =
-            reportingPlugin.getVersionSummaryReport(converSearchParam.reportSearchParam);
-      } else if (PageTabs.SUB_COMPONENT.equals(subTabForProcess)) {
-        componentSummaryReport =
-            reportingPlugin.getComponentSummaryReport(converSearchParam.reportSearchParam);
-      } else {
-        return Response.status(Status.BAD_REQUEST)
-            .build();
-      }
+
+      appendSummaryToContextParameters(subTabForProcess, contextParameters, converSearchParam);
 
       Long grandTotal = reportingPlugin.getGrandTotal(converSearchParam.reportSearchParam);
 
-      HashMap<String, Object> contextParameters = new HashMap<>();
-      contextParameters.put("projectSummaryReport", projectSummaryReport);
-      contextParameters.put("issueSummaryReport", issueSummaryReport);
-      contextParameters.put("userSummaryReport", userSummaryReport);
-      contextParameters.put("versionSummaryReport", versionSummaryReport);
-      contextParameters.put("componentSummaryReport", componentSummaryReport);
       contextParameters.put("selectedActiveTab", subTabForProcess);
       contextParameters.put("grandTotal", grandTotal);
 
