@@ -22,6 +22,8 @@ import java.util.List;
 import org.everit.jira.querydsl.support.QuerydslCallable;
 import org.everit.jira.querydsl.support.QuerydslSupport;
 import org.everit.jira.querydsl.support.ri.QuerydslSupportImpl;
+import org.everit.jira.reporting.plugin.dto.ComponentSummaryDTO;
+import org.everit.jira.reporting.plugin.dto.ComponentSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryDTO;
 import org.everit.jira.reporting.plugin.dto.IssueSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
@@ -34,14 +36,18 @@ import org.everit.jira.reporting.plugin.dto.ProjectSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ReportSearchParam;
 import org.everit.jira.reporting.plugin.dto.UserSummaryDTO;
 import org.everit.jira.reporting.plugin.dto.UserSummaryReportDTO;
+import org.everit.jira.reporting.plugin.dto.VersionSummaryDTO;
+import org.everit.jira.reporting.plugin.dto.VersionSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsReportDTO;
+import org.everit.jira.reporting.plugin.query.ComponentSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.IssueSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.PickerComponentQuery;
 import org.everit.jira.reporting.plugin.query.PickerLabelQuery;
 import org.everit.jira.reporting.plugin.query.PickerVersionQuery;
 import org.everit.jira.reporting.plugin.query.ProjectSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.UserSummaryReportQueryBuilder;
+import org.everit.jira.reporting.plugin.query.VersionSummaryReportQueryBuilder;
 import org.everit.jira.reporting.plugin.query.WorklogDetailsReportQueryBuilder;
 import org.everit.jira.timetracker.plugin.util.DateTimeConverterUtil;
 import org.springframework.beans.factory.DisposableBean;
@@ -107,6 +113,39 @@ public class ReportingPluginImpl implements ReportingPlugin, InitializingBean,
 
   @Override
   public void destroy() throws Exception {
+  }
+
+  @Override
+  public ComponentSummaryReportDTO getComponentSummaryReport(
+      final ReportSearchParam reportSearchParam) {
+    ComponentSummaryReportQueryBuilder componentSummaryQueryBuilder =
+        new ComponentSummaryReportQueryBuilder(reportSearchParam);
+
+    QuerydslCallable<List<ComponentSummaryDTO>> componentSummaryQuery = componentSummaryQueryBuilder
+        .buildQuery();
+
+    QuerydslCallable<Long> componentSummaryCountQuery =
+        componentSummaryQueryBuilder.buildCountQuery();
+
+    List<ComponentSummaryDTO> componentSummaries = querydslSupport.execute(componentSummaryQuery);
+
+    Long componentSummaryCount = querydslSupport.execute(componentSummaryCountQuery);
+
+    PagingDTO paging = createPagingDTO(reportSearchParam.offset,
+        reportSearchParam.limit,
+        componentSummaryCount);
+
+    return new ComponentSummaryReportDTO()
+        .paging(paging)
+        .componentSummaries(componentSummaries)
+        .componentSummaryCount(componentSummaryCount);
+  }
+
+  @Override
+  public Long getGrandTotal(final ReportSearchParam reportSearchParam) {
+    WorklogDetailsReportQueryBuilder worklogDetailsReportQueryBuilder =
+        new WorklogDetailsReportQueryBuilder(reportSearchParam, OrderBy.DEFAULT);
+    return querydslSupport.execute(worklogDetailsReportQueryBuilder.buildGrandTotalQuery());
   }
 
   @Override
@@ -183,6 +222,31 @@ public class ReportingPluginImpl implements ReportingPlugin, InitializingBean,
   }
 
   @Override
+  public VersionSummaryReportDTO getVersionSummaryReport(
+      final ReportSearchParam reportSearchParam) {
+    VersionSummaryReportQueryBuilder versionSummaryQueryBuilder =
+        new VersionSummaryReportQueryBuilder(reportSearchParam);
+
+    QuerydslCallable<List<VersionSummaryDTO>> versionSummaryQuery = versionSummaryQueryBuilder
+        .buildQuery();
+
+    QuerydslCallable<Long> versionSummaryCountQuery = versionSummaryQueryBuilder.buildCountQuery();
+
+    List<VersionSummaryDTO> versionSummaries = querydslSupport.execute(versionSummaryQuery);
+
+    Long versionSummaryCount = querydslSupport.execute(versionSummaryCountQuery);
+
+    PagingDTO paging = createPagingDTO(reportSearchParam.offset,
+        reportSearchParam.limit,
+        versionSummaryCount);
+
+    return new VersionSummaryReportDTO()
+        .paging(paging)
+        .versionSummaries(versionSummaries)
+        .versionSummaryCount(versionSummaryCount);
+  }
+
+  @Override
   public WorklogDetailsReportDTO getWorklogDetailsReport(
       final ReportSearchParam reportSearchParam, final OrderBy orderBy) {
     WorklogDetailsReportQueryBuilder worklogDetailsReportQueryBuilder =
@@ -193,9 +257,6 @@ public class ReportingPluginImpl implements ReportingPlugin, InitializingBean,
 
     QuerydslCallable<Long> worklogDetailsCountQuery =
         worklogDetailsReportQueryBuilder.buildCountQuery();
-
-    QuerydslCallable<Long> grandTotalQuery =
-        worklogDetailsReportQueryBuilder.buildGrandTotalQuery();
 
     List<WorklogDetailsDTO> worklogDetails = querydslSupport.execute(worklogDetailsQuery);
     for (WorklogDetailsDTO worklogDetail : worklogDetails) {
@@ -214,8 +275,6 @@ public class ReportingPluginImpl implements ReportingPlugin, InitializingBean,
 
     Long worklogDetailsCount = querydslSupport.execute(worklogDetailsCountQuery);
 
-    Long grandTotal = querydslSupport.execute(grandTotalQuery);
-
     PagingDTO paging = createPagingDTO(reportSearchParam.offset,
         reportSearchParam.limit,
         worklogDetailsCount);
@@ -223,7 +282,6 @@ public class ReportingPluginImpl implements ReportingPlugin, InitializingBean,
     return new WorklogDetailsReportDTO()
         .worklogDetails(worklogDetails)
         .worklogDetailsCount(worklogDetailsCount)
-        .grandTotal(grandTotal)
         .paging(paging);
   }
 

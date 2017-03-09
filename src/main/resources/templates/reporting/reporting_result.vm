@@ -13,14 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *#
+        #set($isSummariesActiveTab = $activeMainTab == 'summaries')
         <div class="aui-page-panel">
           <div class="aui-page-panel-inner">
             <section id="reporting-result" class="aui-page-panel-content">
-                <div id="aui-message-bar"></div>
-
-                #parse("templates/reporting/reporting_result_worklog_details.vm")
-
-                #parse("templates/reporting/reporting_result_summaries.vm")
+              <nav class="aui-navgroup aui-navgroup-horizontal">
+                <div class="aui-navgroup-inner">
+                    <div id="main-tab" class="aui-navgroup-primary">
+                        <ul class="aui-nav">
+                            <li class="jtrp-main-tab #if(!$isSummariesActiveTab)aui-nav-selected#end" data-jtrp-value="details" onclick="everit.reporting.main.selectMainTab(this);">
+                              <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.tab.main.details")</a>
+                            </li>
+                            <li class="jtrp-main-tab #if($isSummariesActiveTab) aui-nav-selected#end" data-jtrp-value="summaries" onclick="everit.reporting.main.selectMainTab(this);">
+                              <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.tab.main.summary")</a>
+                            </li>
+                        </ul>
+                    </div><!-- .aui-navgroup-primary -->
+                </div><!-- .aui-navgroup-inner -->
+              </nav><!-- .aui-navgroup -->
+              <div id="aui-message-bar" class="jtrp-message-bar"></div>
+              <div id="nav-inner-content">
+                #if($isSummariesActiveTab) 
+                  #parse("templates/reporting/reporting_result_summaries.vm")
+                #else 
+                  #parse("templates/reporting/reporting_result_worklog_details.vm")
+                #end
+              </div>
             </section>
           </div>
         </div>

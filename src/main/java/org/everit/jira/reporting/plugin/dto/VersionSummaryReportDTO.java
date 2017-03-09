@@ -19,40 +19,40 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Contains information to worklog details report table.
+ * Contains information to version summary report table.
  */
-public class WorklogDetailsReportDTO {
+public class VersionSummaryReportDTO {
 
   private PagingDTO paging = new PagingDTO();
 
-  private List<WorklogDetailsDTO> worklogDetails = Collections.emptyList();
+  private List<VersionSummaryDTO> versionSummaries = Collections.emptyList();
 
-  private Long worklogDetailsCount = 0L;
+  private Long versionSummaryCount = 0L;
 
   public PagingDTO getPaging() {
     return paging;
   }
 
-  public List<WorklogDetailsDTO> getWorklogDetails() {
-    return worklogDetails;
+  public List<VersionSummaryDTO> getVersionSummaries() {
+    return versionSummaries;
   }
 
-  public Long getWorklogDetailsCount() {
-    return worklogDetailsCount;
+  public Long getVersionSummaryCount() {
+    return versionSummaryCount;
   }
 
-  public WorklogDetailsReportDTO paging(final PagingDTO paging) {
+  public VersionSummaryReportDTO paging(final PagingDTO paging) {
     this.paging = paging;
     return this;
   }
 
-  public WorklogDetailsReportDTO worklogDetails(final List<WorklogDetailsDTO> worklogDetails) {
-    this.worklogDetails = worklogDetails;
+  public VersionSummaryReportDTO versionSummaries(final List<VersionSummaryDTO> versionSummaries) {
+    this.versionSummaries = versionSummaries;
     return this;
   }
 
-  public WorklogDetailsReportDTO worklogDetailsCount(final Long worklogDetailsCount) {
-    this.worklogDetailsCount = worklogDetailsCount;
+  public VersionSummaryReportDTO versionSummaryCount(final Long versionSummaryCount) {
+    this.versionSummaryCount = versionSummaryCount;
     return this;
   }
 

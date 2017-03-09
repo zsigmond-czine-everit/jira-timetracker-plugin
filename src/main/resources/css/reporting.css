@@ -333,3 +333,11 @@ table.aui > thead > tr > th, div.grand-total p.grand-total-header {
 	float: right;
     margin-bottom: 10px;
 }
+
+div.jtrp-module-header {
+  padding-top: 15px;
+}
+
+div.jtrp-message-bar {
+  padding: 10px 0px;
+}

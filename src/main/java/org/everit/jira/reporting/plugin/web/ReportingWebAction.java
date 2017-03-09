@@ -36,6 +36,7 @@ import org.everit.jira.reporting.plugin.ReportingCondition;
 import org.everit.jira.reporting.plugin.ReportingPlugin;
 import org.everit.jira.reporting.plugin.column.WorklogDetailsColumns;
 import org.everit.jira.reporting.plugin.dto.ComponentPickerContainerDTO;
+import org.everit.jira.reporting.plugin.dto.ComponentSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.GroupForPickerDTO;
@@ -51,8 +52,10 @@ import org.everit.jira.reporting.plugin.dto.UserForPickerDTO;
 import org.everit.jira.reporting.plugin.dto.UserPickerContainerDTO;
 import org.everit.jira.reporting.plugin.dto.UserSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.VersionPickerContainerDTO;
+import org.everit.jira.reporting.plugin.dto.VersionSummaryReportDTO;
 import org.everit.jira.reporting.plugin.dto.WorklogDetailsReportDTO;
 import org.everit.jira.reporting.plugin.exception.JTRPException;
+import org.everit.jira.reporting.plugin.rest.PageTabs;
 import org.everit.jira.reporting.plugin.util.ConverterUtil;
 import org.everit.jira.reporting.plugin.util.PermissionUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
@@ -93,22 +96,26 @@ import com.google.gson.Gson;
  */
 public class ReportingWebAction extends JiraWebActionSupport {
 
-  private static final String HTTP_PARAM_COLLAPSED_DETAILS_MODULE = "collapsedDetailsModule";
+  /**
+   * HTTP parameters.
+   */
+  private static final class Paramter {
 
-  private static final String HTTP_PARAM_COLLAPSED_SUMMARY_MODULE = "collapsedSummaryModule";
+    public static final String ACTIVE_MAIN_TAB = "activeMainTab";
 
-  private static final String HTTP_PARAM_FILTER_CONDITION_JSON = "filterConditionJson";
+    public static final String FILTER_CONDITION_JSON = "filterConditionJson";
 
-  private static final String HTTP_PARAM_REPORTING_TUTORIAL_BUTTON = "reporting-tutorial-button";
+    public static final String REPORTING_TUTORIAL_BUTTON = "reporting-tutorial-button";
 
-  private static final String HTTP_PARAM_SELECTED_ACTIVE_TAB = "selectedActiveTab";
+    public static final String SELECTED_ACTIVE_TAB = "selectedActiveTab";
 
-  private static final String HTTP_PARAM_SELECTED_MORE_JSON = "selectedMoreJson";
+    public static final String SELECTED_MORE_JSON = "selectedMoreJson";
 
-  private static final String HTTP_PARAM_SELECTED_WORKLOG_DETAILS_COLUMNS =
-      "selectedWorklogDetailsColumns";
+    public static final String TUTORIAL_DNS = "tutorial_dns";
 
-  private static final String HTTP_PARAM_TUTORIAL_DNS = "tutorial_dns";
+    public static final String WORKLOG_DETAILS_COLUMNS = "selectedWorklogDetailsColumns";
+
+  }
 
   private static final String JIRA_HOME_URL = "/secure/Dashboard.jspa";
 
@@ -121,17 +128,17 @@ public class ReportingWebAction extends JiraWebActionSupport {
    */
   private static final long serialVersionUID = 1L;
 
+  private String activeMainTab;
+
   private AnalyticsDTO analyticsDTO;
 
   private AnalyticsSender analyticsSender;
 
   private JiraRendererPlugin atlassianWikiRenderer;
 
-  private boolean collapsedDetailsModule = false;
-
-  private boolean collapsedSummaryModule = false;
-
   private ComponentPickerContainerDTO componentPicker = new ComponentPickerContainerDTO();
+
+  private ComponentSummaryReportDTO componentSummaryReport;
 
   private String contextPath;
 
@@ -146,6 +153,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
   private FilterCondition filterCondition;
 
   private String filterConditionJson = "";
+
+  private Long grandTotal = 0L;
 
   private Gson gson;
 
@@ -200,6 +209,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private VersionPickerContainerDTO versionPicker = new VersionPickerContainerDTO();
 
+  private VersionSummaryReportDTO versionSummaryReport;
+
   private List<String> worklogDetailsAllColumns = WorklogDetailsColumns.ALL_COLUMNS;
 
   private boolean worklogDetailsEmpty = false;
@@ -229,6 +240,46 @@ public class ReportingWebAction extends JiraWebActionSupport {
     ApplicationUser user = getLoggedInUser();
     for (String userKey : convertedSearchParam.reportSearchParam.users) {
       userHistoryManager.addItemToHistory(UserHistoryItem.USED_USER, user, userKey);
+    }
+  }
+
+  private void callCorrectMainReportQuery(final String selectedActiveTab,
+      final String activeMainTab,
+      final ConvertedSearchParam convertedSearchParam) {
+    if ((activeMainTab == null) || "".equals(activeMainTab)
+        || PageTabs.MAIN_DETAILS.equals(activeMainTab)) {
+      worklogDetailsReport =
+          reportingPlugin.getWorklogDetailsReport(convertedSearchParam.reportSearchParam,
+              OrderBy.DEFAULT);
+      if (worklogDetailsReport.getWorklogDetailsCount() == 0) {
+        worklogDetailsEmpty = true;
+      }
+    } else if (PageTabs.MAIN_SUMMARIES.equals(activeMainTab)) {
+      callCorrectSubSummaryReportQuery(selectedActiveTab, convertedSearchParam);
+    } else {
+      throw new JTRPException("jtrp.plugin.wrong.tab.information");
+    }
+  }
+
+  private void callCorrectSubSummaryReportQuery(final String selectedActiveTab,
+      final ConvertedSearchParam convertedSearchParam) {
+    if (PageTabs.SUB_PROJECT.equals(selectedActiveTab)) {
+      projectSummaryReport =
+          reportingPlugin.getProjectSummaryReport(convertedSearchParam.reportSearchParam);
+    } else if (PageTabs.SUB_ISSUE.equals(selectedActiveTab)) {
+      issueSummaryReport =
+          reportingPlugin.getIssueSummaryReport(convertedSearchParam.reportSearchParam);
+    } else if (PageTabs.SUB_USER.equals(selectedActiveTab)) {
+      userSummaryReport =
+          reportingPlugin.getUserSummaryReport(convertedSearchParam.reportSearchParam);
+    } else if (PageTabs.SUB_VERSION.equals(selectedActiveTab)) {
+      versionSummaryReport =
+          reportingPlugin.getVersionSummaryReport(convertedSearchParam.reportSearchParam);
+    } else if (PageTabs.SUB_COMPONENT.equals(selectedActiveTab)) {
+      componentSummaryReport =
+          reportingPlugin.getComponentSummaryReport(convertedSearchParam.reportSearchParam);
+    } else {
+      throw new JTRPException("jtrp.plugin.wrong.tab.information");
     }
   }
 
@@ -266,7 +317,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
   }
 
   private void createGroupUserPickersValue() {
-    ApplicationUser loggedUser = ComponentAccessor.getJiraAuthenticationContext().getUser();
+    ApplicationUser loggedUser = getLoggedInUser();
     userPicker.setSuggestedUsers(createSuggestedUsers(loggedUser));
     List<GroupForPickerDTO> groupsForPickerDTOFromFilterCondition =
         ConverterUtil.getGroupsForPickerDTOFromFilterCondition(filterCondition.getGroupUsers());
@@ -308,10 +359,12 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   private String createReport(final String selectedMoreJson, final String selectedActiveTab,
       final String filterConditionJsonValue, final String selectedWorklogDetailsColumnsJson,
-      final String collapsedDetailsModuleVal, final String collapsedSummaryModuleVal) {
+      final String activeMainTab) {
+
+    this.activeMainTab = activeMainTab;
 
     morePickerParse(selectedMoreJson);
-    setParametersActiveTab(selectedActiveTab, collapsedDetailsModuleVal, collapsedSummaryModuleVal);
+    setParametersActiveTab(selectedActiveTab);
 
     ConvertedSearchParam convertedSearchParam = null;
     filterConditionJson = filterConditionJsonValue;
@@ -327,21 +380,8 @@ public class ReportingWebAction extends JiraWebActionSupport {
     }
 
     try {
-      worklogDetailsReport =
-          reportingPlugin.getWorklogDetailsReport(convertedSearchParam.reportSearchParam,
-              OrderBy.DEFAULT);
-      if (worklogDetailsReport.getWorklogDetailsCount() == 0) {
-        worklogDetailsEmpty = true;
-      }
-      projectSummaryReport =
-          reportingPlugin.getProjectSummaryReport(convertedSearchParam.reportSearchParam);
-
-      issueSummaryReport =
-          reportingPlugin.getIssueSummaryReport(convertedSearchParam.reportSearchParam);
-
-      userSummaryReport =
-          reportingPlugin.getUserSummaryReport(convertedSearchParam.reportSearchParam);
-
+      callCorrectMainReportQuery(selectedActiveTab, activeMainTab, convertedSearchParam);
+      grandTotal = reportingPlugin.getGrandTotal(convertedSearchParam.reportSearchParam);
       notBrowsableProjectKeys = convertedSearchParam.notBrowsableProjectKeys;
     } catch (JTRPException e) {
       message = e.getMessage();
@@ -500,9 +540,9 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
     HttpServletRequest httpRequest = getHttpRequest();
 
-    if (httpRequest.getParameter(HTTP_PARAM_REPORTING_TUTORIAL_BUTTON) != null) {
+    if (httpRequest.getParameter(Paramter.REPORTING_TUTORIAL_BUTTON) != null) {
       boolean isDoNotShow = true;
-      if (httpRequest.getParameter(HTTP_PARAM_TUTORIAL_DNS) != null) {
+      if (httpRequest.getParameter(Paramter.TUTORIAL_DNS) != null) {
         isDoNotShow = false;
       }
       saveIsShowTutorial(isDoNotShow);
@@ -510,26 +550,25 @@ public class ReportingWebAction extends JiraWebActionSupport {
       return SUCCESS;
     }
 
-    String selectedMoreJson = httpRequest.getParameter(HTTP_PARAM_SELECTED_MORE_JSON);
-    String selectedActiveTab = httpRequest.getParameter(HTTP_PARAM_SELECTED_ACTIVE_TAB);
-    String filterConditionJsonValue = httpRequest.getParameter(HTTP_PARAM_FILTER_CONDITION_JSON);
+    String activeMainTab = httpRequest.getParameter(Paramter.ACTIVE_MAIN_TAB);
+
+    String selectedMoreJson = httpRequest.getParameter(Paramter.SELECTED_MORE_JSON);
+    String selectedActiveTab = httpRequest.getParameter(Paramter.SELECTED_ACTIVE_TAB);
+    String filterConditionJsonValue =
+        httpRequest.getParameter(Paramter.FILTER_CONDITION_JSON);
     String selectedWorklogDetailsColumnsJson =
-        httpRequest.getParameter(HTTP_PARAM_SELECTED_WORKLOG_DETAILS_COLUMNS);
-    String collapsedDetailsModuleVal =
-        httpRequest.getParameter(HTTP_PARAM_COLLAPSED_DETAILS_MODULE);
-    String collapsedSummaryModuleVal =
-        httpRequest.getParameter(HTTP_PARAM_COLLAPSED_SUMMARY_MODULE);
+        httpRequest.getParameter(Paramter.WORKLOG_DETAILS_COLUMNS);
     String createReportResult =
         createReport(selectedMoreJson, selectedActiveTab, filterConditionJsonValue,
-            selectedWorklogDetailsColumnsJson, collapsedDetailsModuleVal,
-            collapsedSummaryModuleVal);
+            selectedWorklogDetailsColumnsJson, activeMainTab);
     if (SUCCESS.equals(createReportResult)) {
       ReportingQueryParams reportingSaveData =
-          new ReportingQueryParams().selectedMoreJson(selectedMoreJson)
-              .selectedActiveTab(selectedActiveTab).filterConditionJson(filterConditionJsonValue)
-              .selectedWorklogDetailsColumnsJson(selectedWorklogDetailsColumnsJson)
-              .collapsedDetailsModuleVal(collapsedDetailsModuleVal)
-              .collapsedSummaryModuleVal(collapsedSummaryModuleVal);
+          new ReportingQueryParams()
+              .selectedMoreJson(selectedMoreJson)
+              .selectedActiveTab(selectedActiveTab)
+              .selectedMainActiveTab(activeMainTab)
+              .filterConditionJson(filterConditionJsonValue)
+              .selectedWorklogDetailsColumnsJson(selectedWorklogDetailsColumnsJson);
       saveReportingData(reportingSaveData);
       CreateReportEvent analyticsEvent =
           new CreateReportEvent(analyticsDTO.getInstalledPluginId(), filterCondition,
@@ -545,6 +584,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return createReportResult;
   }
 
+  public String getActiveMainTab() {
+    return activeMainTab;
+  }
+
   public AnalyticsDTO getAnalyticsDTO() {
     return analyticsDTO;
   }
@@ -555,6 +598,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   public ComponentPickerContainerDTO getComponentPicker() {
     return componentPicker;
+  }
+
+  public ComponentSummaryReportDTO getComponentSummaryReport() {
+    return componentSummaryReport;
   }
 
   public String getContextPath() {
@@ -598,6 +645,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
 
   public String getFilterConditionJson() {
     return filterConditionJson;
+  }
+
+  public Long getGrandTotal() {
+    return grandTotal;
   }
 
   public boolean getHasBrowseUsersPermission() {
@@ -699,6 +750,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
     return versionPicker;
   }
 
+  public VersionSummaryReportDTO getVersionSummaryReport() {
+    return versionSummaryReport;
+  }
+
   public List<String> getWorklogDetailsAllColumns() {
     return worklogDetailsAllColumns;
   }
@@ -737,8 +792,7 @@ public class ReportingWebAction extends JiraWebActionSupport {
       createReport(reportingSavedData.selectedMoreJson, reportingSavedData.selectedActiveTab,
           filterConditionJsonFixedPageSize,
           reportingSavedData.selectedWorklogDetailsColumnsJson,
-          reportingSavedData.collapsedDetailsModuleVal,
-          reportingSavedData.collapsedSummaryModuleVal);
+          reportingSavedData.selectedMainActiveTab);
       // FIXME This check is necessary because of the date parse errors not handeled well. In the
       // feature
       // try to avoid the formated dates store, better if we user timestamp
@@ -760,14 +814,6 @@ public class ReportingWebAction extends JiraWebActionSupport {
     String[] selectedWorklogDetailsColumnsArray =
         gson.fromJson(selectedWorklogDetailsColumnsJson, String[].class);
     selectedWorklogDetailsColumns = Arrays.asList(selectedWorklogDetailsColumnsArray);
-  }
-
-  public boolean isCollapsedDetailsModule() {
-    return collapsedDetailsModule;
-  }
-
-  public boolean isCollapsedSummaryModule() {
-    return collapsedSummaryModule;
   }
 
   public boolean isDefaultCommand() {
@@ -855,14 +901,10 @@ public class ReportingWebAction extends JiraWebActionSupport {
     this.message = message;
   }
 
-  private void setParametersActiveTab(final String selectedActiveTab,
-      final String collapsedDetailsModuleVal, final String collapsedSummaryModuleVal) {
+  private void setParametersActiveTab(final String selectedActiveTab) {
     if (selectedActiveTab != null) {
       this.selectedActiveTab = selectedActiveTab;
     }
-
-    collapsedDetailsModule = Boolean.parseBoolean(collapsedDetailsModuleVal);
-    collapsedSummaryModule = Boolean.parseBoolean(collapsedSummaryModuleVal);
   }
 
   public void setSelectedMore(final List<String> selectedMore) {

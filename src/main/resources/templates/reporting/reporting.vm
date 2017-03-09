@@ -628,8 +628,7 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.popu
                                             <input type="hidden" id="formType" name="formType" value="basic" />
                                             <input type="hidden" id="selectedMoreJson" name="selectedMoreJson" value="" />
                                             <input type="hidden" id="selectedActiveTab" name="selectedActiveTab" value="" />
-                                            <input type="hidden" id="collapsedDetailsModule" name="collapsedDetailsModule" value=""/>
-                                            <input type="hidden" id="collapsedSummaryModule" name="collapsedSummaryModule" value=""/>
+                                            <input type="hidden" id="activeMainTab" name="activeMainTab" value="" />
                                             <button id="create-report-button" type="submit" class="aui-button aui-button-primary" >$i18n.getText("jtrp.report.btn.create.report")</button> <!-- Submit the search form -->
                                             <div class="create-report-button-spinner"></div>
                                         </form>

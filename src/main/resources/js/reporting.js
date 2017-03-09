@@ -889,13 +889,6 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     jQuery(button).text(newButtonText);
   };
 
-  reporting.toggleModContent = function(type) {
-    var module = jQuery("#" + type + "Module");
-    jQuery(".mod-content", module).toggle(0, function() {
-        module.toggleClass("collapsed");
-    });
-  }
-
   reporting.changeFilterType = function(type) {
     var searchWrap = jQuery(".search-wrap");
     var formType = jQuery("input[name=formType]");
@@ -1028,7 +1021,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
 	    $detailsCustomExport.attr('href', href + '?json=' + encodeURIComponent(json) + "&orderBy=" + getOrderBy());
 	    return true;
   }
-  reporting.updateSummariesExportHref = function(element) {
+  reporting.updateSummariesExportHref = function(element, subTab) {
     var filterConditionString = jQuery('#filterConditionJson').val();
     var filterCondition = JSON.parse(filterConditionString);
     var createdPicker = jQuery('#createdPicker').val();
@@ -1040,7 +1033,7 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     var json = JSON.stringify(filterCondition);
     var $detailsCustomExport = jQuery(element)
     var href = $detailsCustomExport.attr('data-jttp-href');
-    $detailsCustomExport.attr('href', href + '?json=' + encodeURIComponent(json));
+    $detailsCustomExport.attr('href', href + '?json=' + encodeURIComponent(json) + "&subtab=" + subTab);
     return true;
   }
   
@@ -1112,15 +1105,12 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     var selectedMore = jQuery('#morePicker').val();
     jQuery('#selectedMoreJson').val('[' + selectedMore + ']');
     
-    var activeTabId = jQuery('.active-pane').attr('id');
+    var activeTabId = jQuery('#summaryModule .active-pane').attr('id');
     jQuery('#selectedActiveTab').val(activeTabId);
     
-    var collapsedDetailsModuleVal = jQuery('#detailsModule').hasClass('collapsed');
-    jQuery('#collapsedDetailsModule').val(collapsedDetailsModuleVal);
-    
-    var collapsedSummaryModuleVal = jQuery('#summaryModule').hasClass('collapsed');
-    jQuery('#collapsedSummaryModule').val(collapsedSummaryModuleVal);
-    
+    var activeMainTab = jQuery('#main-tab li.aui-nav-selected').attr('data-jtrp-value');
+    jQuery('#activeMainTab').val(activeMainTab);
+
     jQuery('#reporting-result').addClass('pending');
     var $createReportButton = jQuery('#create-report-button');
     $createReportButton.attr('disabled', 'disabled');
@@ -1180,6 +1170,38 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
     });
   }
   
+  reporting.getVersionSummaryPage = function(offset) {
+    var url = contextPath + "/rest/jttp-rest/1/paging-report/pageVersionSummary?filterConditionJson=";
+    var filterConditionJson = jQuery('#filterConditionJson').val();
+    var filterCondition = JSON.parse(filterConditionJson);
+    filterCondition["offset"] = offset;
+    var filterConditionJson = JSON.stringify(filterCondition);
+    var $summaryModule = jQuery("summaryModule");
+    $summaryModule.addClass("pending");
+    jQuery.get(url + filterConditionJson, function(data) {
+      jQuery('#tabs-version-content').replaceWith(data);
+    }).done(function(){
+      $summaryModule.removeClass("pending");
+      addTooltips();
+    });
+  }
+  
+  reporting.getVersionSummaryPage = function(offset) {
+    var url = contextPath + "/rest/jttp-rest/1/paging-report/pageComponentSummary?filterConditionJson=";
+    var filterConditionJson = jQuery('#filterConditionJson').val();
+    var filterCondition = JSON.parse(filterConditionJson);
+    filterCondition["offset"] = offset;
+    var filterConditionJson = JSON.stringify(filterCondition);
+    var $summaryModule = jQuery("summaryModule");
+    $summaryModule.addClass("pending");
+    jQuery.get(url + filterConditionJson, function(data) {
+      jQuery('#tabs-component-content').replaceWith(data);
+    }).done(function(){
+      $summaryModule.removeClass("pending");
+      addTooltips();
+    });
+  }
+
   reporting.getUserSummaryPage = function(offset) {
     var url = contextPath + "/rest/jttp-rest/1/paging-report/pageUserSummary?filterConditionJson=";
     var filterConditionJson = jQuery('#filterConditionJson').val();
@@ -1197,6 +1219,9 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
   }
   
   function initWorklogDetailsColumns(){
+    if(jQuery("#detailsColumns").length == 0) {
+      return false;
+    }
     var selectedArray =  reporting.values.worklogDetailsColumns; 
     var $options = jQuery("#detailsColumns option");
     for (i = 0; i < $options.length; i++){
@@ -1255,7 +1280,13 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
   };
   
   function collectSelectedWorklogDetailsColumns() {
-    return jQuery('#detailsColumns').val() || [];
+    var $detailsColumns = jQuery('#detailsColumns');
+    var values = reporting.values.worklogDetailsColumns;
+    if($detailsColumns.length) {
+      values = jQuery('#detailsColumns').val() || [];
+      reporting.values.worklogDetailsColumns = values;
+    }
+    return values;
   }
   
   function addTooltips(){
@@ -1334,5 +1365,44 @@ const MAX_ELEMENTS_DISPLAYED = 100; // EQUAL TO JIRA.Issues.SearcherGroupListDia
 	      }
 	    });
   }
+
+  reporting.selectMainTab = function(obj) {
+    var $obj = jQuery(obj);
+    jQuery('li.jtrp-main-tab').removeClass('aui-nav-selected');
+    $obj.addClass('aui-nav-selected');
+
+    var mainTab = $obj.attr('data-jtrp-value');
+    var subTab = jQuery('#summaryModule .active-pane').attr('id') || '';
+    pageUpdate(mainTab, subTab);
+  }
+
+  reporting.selectSubTab = function(mainTab, obj) {
+    var $obj = jQuery(obj);
+    jQuery('li.jtrp-sub-tab').removeClass('jtrp-selected-sub-tab');
+    $obj.addClass('jtrp-selected-sub-tab');
+    var subTab = $obj.attr('data-jtrp-value');
+    pageUpdate(mainTab, subTab);
+  }
   
+  function pageUpdate(mainTab, subTab) {
+    var url = contextPath + "/rest/jttp-rest/1/paging-report/page?filterConditionJson=";
+    var filterConditionJson = jQuery('#filterConditionJson').val();
+    var filterCondition = JSON.parse(filterConditionJson);
+    filterCondition["offset"] = 0;
+    var filterConditionJson = JSON.stringify(filterCondition);
+    var selectedWorklogDetailsColumns = collectSelectedWorklogDetailsColumns();
+    var selectedColumnsJson = JSON.stringify(selectedWorklogDetailsColumns);
+
+    var $navInnerContent = jQuery('#nav-inner-content');
+    $navInnerContent.addClass("pending");
+    jQuery.get(url + filterConditionJson + "&selectedColumnsJson=" + selectedColumnsJson + "&orderBy=" + getOrderBy() + "&maintab=" + mainTab + "&subtab=" + subTab, function(data) {
+      $navInnerContent.html(data);
+    }).done(function() {
+      if('details' == mainTab) {
+        initWorklogDetailsColumns();
+      }
+      $navInnerContent.removeClass("pending");
+      addTooltips();
+    });
+  }
 })(everit.reporting.main, jQuery);
