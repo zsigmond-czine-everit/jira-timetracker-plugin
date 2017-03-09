@@ -103,12 +103,24 @@ public class VersionSummaryDTO {
     return released;
   }
 
+  /**
+   * Gets release date.
+   */
   public Timestamp getReleaseDate() {
-    return releaseDate;
+    if (releaseDate == null) {
+      return null;
+    }
+    return (Timestamp) releaseDate.clone();
   }
 
+  /**
+   * Gets start date.
+   */
   public Timestamp getStartDate() {
-    return startDate;
+    if (startDate == null) {
+      return null;
+    }
+    return (Timestamp) startDate.clone();
   }
 
   public long getWorkloggedTimeSum() {
