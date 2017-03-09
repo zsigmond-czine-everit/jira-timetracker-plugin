@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.easymock.EasyMock;
 import org.everit.jira.core.impl.DateTimeServer;
 import org.everit.jira.core.impl.WorklogComponent;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
@@ -290,10 +289,11 @@ public class GetWorklogsTest {
 
     BigDecimal daysPerWeek = new BigDecimal(5);
     BigDecimal hoursPerDay = new BigDecimal(8);
-    TimeTrackingConfiguration ttConfig = EasyMock.createNiceMock(TimeTrackingConfiguration.class);
-    EasyMock.expect(ttConfig.getDaysPerWeek()).andReturn(daysPerWeek).anyTimes();
-    EasyMock.expect(ttConfig.getHoursPerDay()).andReturn(hoursPerDay).anyTimes();
-    EasyMock.replay(ttConfig);
+    TimeTrackingConfiguration ttConfig =
+        Mockito.mock(TimeTrackingConfiguration.class, Mockito.RETURNS_DEEP_STUBS);
+    Mockito.when(ttConfig.getDaysPerWeek()).thenReturn(daysPerWeek);
+    Mockito.when(ttConfig.getHoursPerDay()).thenReturn(hoursPerDay);
+    // EasyMock.replay(ttConfig);
 
     DateTimeFormatterFactory mockDateTimeFormatterFactory =
         Mockito.mock(DateTimeFormatterFactory.class, Mockito.RETURNS_DEEP_STUBS);

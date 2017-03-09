@@ -44,6 +44,11 @@
     class="org.everit.jira.settings.TimeTrackerSettingsHelperImpl">
     <interface public="true">org.everit.jira.settings.TimeTrackerSettingsHelper</interface>
   </component>
+  
+  <component public="true" key="NonEstimatedScheduler" name="TimeTrackerNonEstimatedScheduler"
+    class="org.everit.jira.core.impl.NonEstimatedManagerImpl">
+    <interface public="true">org.everit.jira.core.NonEstimatedReminderManager</interface>
+  </component>
 
   <component key="EVWorklogManager" name="EVWorklogManager"
     class="org.everit.jira.core.impl.WorklogComponent">

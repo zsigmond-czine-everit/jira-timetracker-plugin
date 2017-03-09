@@ -138,6 +138,8 @@ public class ExportWorklogDetailsListReport extends AbstractExportListReport {
     columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
         WorklogDetailsColumns.RESOLUTION, worklogDetailsDTO.getResolutionName());
     columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
+        WorklogDetailsColumns.LABEL, worklogDetailsDTO.getLabels());
+    columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
         WorklogDetailsColumns.PARENT_ISSUE_KEY, worklogDetailsDTO.getParentIssueKey());
     columnIndex = insertWorklogDetailsBodyCell(row, columnIndex,
         WorklogDetailsColumns.SUB_TASKS, worklogDetailsDTO.getSubTasks());
@@ -189,6 +191,8 @@ public class ExportWorklogDetailsListReport extends AbstractExportListReport {
         insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.FIX_VERSIONS);
     columnIndex =
         insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.RESOLUTION);
+    columnIndex =
+        insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.LABEL);
     columnIndex =
         insertWorklogDetailsHeaderCell(row, columnIndex, WorklogDetailsColumns.PARENT_ISSUE_KEY);
     columnIndex =

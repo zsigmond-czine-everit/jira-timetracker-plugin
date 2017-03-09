@@ -16,7 +16,6 @@
 package org.everit.jira.reporting.plugin.query;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,7 @@ import org.everit.jira.querydsl.schema.QCustomfieldvalue;
 import org.everit.jira.querydsl.schema.QIssuelink;
 import org.everit.jira.querydsl.schema.QIssuelinktype;
 import org.everit.jira.querydsl.schema.QJiraissue;
+import org.everit.jira.querydsl.schema.QLabel;
 import org.everit.jira.querydsl.schema.QNodeassociation;
 import org.everit.jira.querydsl.schema.QProject;
 import org.everit.jira.querydsl.schema.QProjectversion;
@@ -238,8 +238,12 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
 
     Map<Long, List<String>> issueAffectedVersions = selectAffectedVersions(connection,
         configuration, collectIssueIds);
+
     Map<Long, List<String>> subTaskIssues =
         selectSubTaskIssues(connection, configuration, collectIssueIds);
+
+    Map<Long, List<String>> issueLabels =
+        selectIssueLabels(connection, configuration, collectIssueIds);
 
     for (WorklogDetailsDTO worklogDetailsDTO : result) {
       Long issueId = worklogDetailsDTO.getIssueId();
@@ -258,9 +262,15 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
       if (fixedVersions != null) {
         worklogDetailsDTO.setIssueFixedVersions(fixedVersions);
       }
+
       List<String> subTaskForCurrentIssue = subTaskIssues.get(issueId);
       if (subTaskForCurrentIssue != null) {
         worklogDetailsDTO.setSubTasks(subTaskForCurrentIssue);
+      }
+
+      List<String> labels = issueLabels.get(issueId);
+      if (labels != null) {
+        worklogDetailsDTO.setLabels(labels);
       }
     }
 
@@ -268,64 +278,54 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
 
   @Override
   protected QuerydslCallable<Long> getCountQuery() {
-    return new QuerydslCallable<Long>() {
-      @Override
-      public Long call(final Connection connection, final Configuration configuration)
-          throws SQLException {
-        NumberPath<Long> worklogCountPath = Expressions.numberPath(Long.class,
-            new PathMetadata(null, "worklogCount", PathType.VARIABLE));
+    return (connection, configuration) -> {
+      NumberPath<Long> worklogCountPath = Expressions.numberPath(Long.class,
+          new PathMetadata(null, "worklogCount", PathType.VARIABLE));
 
-        SQLQuery<Long> fromQuery = new SQLQuery<Long>(connection, configuration)
-            .select(qWorklog.id.count().as(worklogCountPath));
+      SQLQuery<Long> fromQuery = new SQLQuery<Long>(connection, configuration)
+          .select(qWorklog.id.count().as(worklogCountPath));
 
-        appendBaseFromAndJoin(fromQuery);
-        appendBaseWhere(fromQuery);
-        fromQuery.groupBy(qWorklog.id);
+      appendBaseFromAndJoin(fromQuery);
+      appendBaseWhere(fromQuery);
+      fromQuery.groupBy(qWorklog.id);
 
-        SQLQuery<Long> query = new SQLQuery<Long>(connection, configuration)
-            .select(worklogCountPath.count())
-            .from(fromQuery.as("fromCount"));
+      SQLQuery<Long> query = new SQLQuery<Long>(connection, configuration)
+          .select(worklogCountPath.count())
+          .from(fromQuery.as("fromCount"));
 
-        return query.fetchOne();
-      }
+      return query.fetchOne();
     };
   }
 
   @Override
   protected QuerydslCallable<List<WorklogDetailsDTO>> getQuery() {
-    return new QuerydslCallable<List<WorklogDetailsDTO>>() {
+    return (connection, configuration) -> {
 
-      @Override
-      public List<WorklogDetailsDTO> call(final Connection connection,
-          final Configuration configuration) throws SQLException {
+      SQLQuery<WorklogDetailsDTO> query =
+          new SQLQuery<WorklogDetailsDTO>(connection, configuration)
+              .select(createQuerySelectProjection());
 
-        SQLQuery<WorklogDetailsDTO> query =
-            new SQLQuery<WorklogDetailsDTO>(connection, configuration)
-                .select(createQuerySelectProjection());
+      appendBaseFromAndJoin(query);
+      appendBaseWhere(query);
+      appendQueryRange(query);
 
-        appendBaseFromAndJoin(query);
-        appendBaseWhere(query);
-        appendQueryRange(query);
-
-        Expression<?> expression = orderByMap.get(orderBy.columnName);
-        Order order = Order.DESC;
-        if (expression == null) {
-          expression = orderByMap.get(OrderBy.DEFAULT.columnName);
+      Expression<?> expression = orderByMap.get(orderBy.columnName);
+      Order order = Order.DESC;
+      if (expression == null) {
+        expression = orderByMap.get(OrderBy.DEFAULT.columnName);
+        order = Order.ASC;
+      } else {
+        if (orderBy.asc) {
           order = Order.ASC;
-        } else {
-          if (orderBy.asc) {
-            order = Order.ASC;
-          }
         }
-        query.orderBy(new OrderSpecifier(order, expression));
-
-        List<WorklogDetailsDTO> result = query.fetch();
-
-        extendResult(connection, configuration, result);
-
-        return result;
       }
+      query.orderBy(new OrderSpecifier(order, expression));
 
+      List<WorklogDetailsDTO> result = query.fetch();
+
+      extendResult(connection, configuration, result);
+
+      return result;
     };
   }
 
@@ -381,6 +381,18 @@ public class WorklogDetailsReportQueryBuilder extends AbstractReportQuery<Worklo
             .and(qNodeassociation.sourceNodeEntity.eq(Entity.Name.ISSUE))
             .and(qIssue.id.in(issueIds)))
         .transform(GroupBy.groupBy(qIssue.id).as(GroupBy.list(qProjectversion.vname)));
+  }
+
+  private Map<Long, List<String>> selectIssueLabels(final Connection connection,
+      final Configuration configuration, final Set<Long> issueIds) {
+    QJiraissue qIssue = new QJiraissue("na_issue");
+    QLabel qLabel = new QLabel("label");
+
+    return new SQLQuery<>(connection, configuration).select(qIssue.id, qLabel.label)
+        .from(qLabel)
+        .join(qIssue).on(qLabel.issue.eq(qIssue.id))
+        .where(qIssue.id.in(issueIds))
+        .transform(GroupBy.groupBy(qIssue.id).as(GroupBy.list(qLabel.label)));
   }
 
   private Map<Long, List<String>> selectSubTaskIssues(final Connection connection,
