@@ -19,17 +19,21 @@
             <section id="reporting-result" class="aui-page-panel-content">
               <nav class="aui-navgroup aui-navgroup-horizontal">
                 <div class="aui-navgroup-inner">
-                    <div class="aui-navgroup-primary">
+                    <div id="main-tab" class="aui-navgroup-primary">
                         <ul class="aui-nav">
-                            <li #if(!$isSummariesActiveTab)class="aui-nav-selected"#end><a href="#">TODO Details</a></li>
-                            <li #if($isSummariesActiveTab)class="aui-nav-selected"#end><a href="#">TODO Summary</a></li>
+                            <li class="jtrp-main-tab #if(!$isSummariesActiveTab)aui-nav-selected#end" data-jtrp-value="details" onclick="everit.reporting.main.selectMainTab(this);">
+                              <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.tab.main.details")</a>
+                            </li>
+                            <li class="jtrp-main-tab #if($isSummariesActiveTab) aui-nav-selected#end" data-jtrp-value="summaries" onclick="everit.reporting.main.selectMainTab(this);">
+                              <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.tab.main.summary")</a>
+                            </li>
                         </ul>
                     </div><!-- .aui-navgroup-primary -->
                 </div><!-- .aui-navgroup-inner -->
               </nav><!-- .aui-navgroup -->
+              <div id="aui-message-bar" class="jtrp-message-bar"></div>
               <div id="nav-inner-content">
-                <div id="aui-message-bar"></div>
-                #if($isSummariesActiveTab == 'summaries') 
+                #if($isSummariesActiveTab) 
                   #parse("templates/reporting/reporting_result_summaries.vm")
                 #else 
                   #parse("templates/reporting/reporting_result_worklog_details.vm")

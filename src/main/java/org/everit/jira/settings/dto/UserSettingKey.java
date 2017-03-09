@@ -113,20 +113,6 @@ public enum UserSettingKey implements SettingsMapper {
 
   },
 
-  REPRTING_COLLAPSE_DDETAILS_MODULE_VAL {
-    @Override
-    public String getSettingsKey() {
-      return JTTPSettingsKey.JTTP_REPORTING_COLLAPSE_DDETAILS_MODULE_VAL;
-    }
-  },
-
-  REPRTING_COLLAPSED_SUMMARY_MODULE_VAL {
-    @Override
-    public String getSettingsKey() {
-      return JTTPSettingsKey.JTTP_REPORTING_COLLAPSED_SUMMARY_MODULE_VAL;
-    }
-  },
-
   REPRTING_FILTER_CONDITION_JSON {
     @Override
     public String getSettingsKey() {
@@ -146,6 +132,14 @@ public enum UserSettingKey implements SettingsMapper {
       return JTTPSettingsKey.JTTP_REPORTING_SELECTED_ACTIVE_TAB;
     }
   },
+
+  REPRTING_SELECTED_MAIN_ACTIVE_TAB {
+    @Override
+    public String getSettingsKey() {
+      return JTTPSettingsKey.JTTP_REPORTING_SELECTED_MAIN_ACTIVE_TAB;
+    }
+  },
+
   SHOW_FUTURE_LOG_WARNING {
 
     @Override

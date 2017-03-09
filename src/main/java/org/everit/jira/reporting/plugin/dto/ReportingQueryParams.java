@@ -28,27 +28,15 @@ public class ReportingQueryParams implements Serializable {
    */
   private static final long serialVersionUID = 6059112912342079835L;
 
-  public String collapsedDetailsModuleVal;
-
-  public String collapsedSummaryModuleVal;
-
   public String filterConditionJson;
 
   public String selectedActiveTab;
 
+  public String selectedMainActiveTab;
+
   public String selectedMoreJson;
 
   public String selectedWorklogDetailsColumnsJson;
-
-  public ReportingQueryParams collapsedDetailsModuleVal(final String collapsedDetailsModuleVal) {
-    this.collapsedDetailsModuleVal = collapsedDetailsModuleVal;
-    return this;
-  }
-
-  public ReportingQueryParams collapsedSummaryModuleVal(final String collapsedSummaryModuleVal) {
-    this.collapsedSummaryModuleVal = collapsedSummaryModuleVal;
-    return this;
-  }
 
   public ReportingQueryParams filterConditionJson(final String filterConditionJson) {
     this.filterConditionJson = filterConditionJson;
@@ -60,15 +48,19 @@ public class ReportingQueryParams implements Serializable {
    * {@code selectedWorklogDetailsColumnsJson} field has default value.
    */
   public boolean hasNullValue() {
-    return ((collapsedDetailsModuleVal == null)
-        || (collapsedSummaryModuleVal == null)
-        || (filterConditionJson == null)
+    return ((filterConditionJson == null)
         || (selectedActiveTab == null)
+        || (selectedMainActiveTab == null)
         || (selectedMoreJson == null));
   }
 
   public ReportingQueryParams selectedActiveTab(final String selectedActiveTab) {
     this.selectedActiveTab = selectedActiveTab;
+    return this;
+  }
+
+  public ReportingQueryParams selectedMainActiveTab(final String selectedMainActiveTab) {
+    this.selectedMainActiveTab = selectedMainActiveTab;
     return this;
   }
 

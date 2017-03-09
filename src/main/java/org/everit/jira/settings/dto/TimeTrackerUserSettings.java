@@ -174,20 +174,16 @@ public class TimeTrackerUserSettings {
     return pluginSettingsKeyValues;
   }
 
-  public String getReportingCollapsedDetailsModuleVal() {
-    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_COLLAPSE_DDETAILS_MODULE_VAL);
-  }
-
-  public String getReportingCollapsedSummaryModuleVal() {
-    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_COLLAPSED_SUMMARY_MODULE_VAL);
-  }
-
   public String getReportingFilterConditionJson() {
     return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_FILTER_CONDITION_JSON);
   }
 
   public String getReportingSelectedActiveTab() {
     return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_SELECTED_ACTIVE_TAB);
+  }
+
+  public String getReportingSelectedMainActiveTab() {
+    return pluginSettingsKeyValues.get(UserSettingKey.REPRTING_SELECTED_MAIN_ACTIVE_TAB);
   }
 
   /**
@@ -212,9 +208,8 @@ public class TimeTrackerUserSettings {
     return new ReportingQueryParams().selectedMoreJson(getReprotingSelectedMoreJson())
         .selectedActiveTab(getReportingSelectedActiveTab())
         .filterConditionJson(getReportingFilterConditionJson())
-        .selectedWorklogDetailsColumnsJson(getReportingSelectedWorklogDetailsColumns())
-        .collapsedDetailsModuleVal(getReportingCollapsedDetailsModuleVal())
-        .collapsedSummaryModuleVal(getReportingCollapsedSummaryModuleVal());
+        .selectedMainActiveTab(getReportingSelectedMainActiveTab())
+        .selectedWorklogDetailsColumnsJson(getReportingSelectedWorklogDetailsColumns());
   }
 
   public String getReprotingSelectedMoreJson() {
@@ -436,16 +431,6 @@ public class TimeTrackerUserSettings {
     return this;
   }
 
-  public void setReportingCollapsedDetailsModuleVal(final String collapsedDetailsModuleVal) {
-    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_COLLAPSE_DDETAILS_MODULE_VAL,
-        collapsedDetailsModuleVal);
-  }
-
-  public void setReportingCollapsedSummaryModuleVal(final String collapsedSummaryModuleVal) {
-    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_COLLAPSED_SUMMARY_MODULE_VAL,
-        collapsedSummaryModuleVal);
-  }
-
   public void setReportingFilterConditionJson(final String filterConditionJson) {
     pluginSettingsKeyValues.put(UserSettingKey.REPRTING_FILTER_CONDITION_JSON,
         filterConditionJson);
@@ -456,17 +441,21 @@ public class TimeTrackerUserSettings {
    */
   public TimeTrackerUserSettings setReportingQueryParams(
       final ReportingQueryParams reportingSavedData) {
-    setReportingCollapsedDetailsModuleVal(reportingSavedData.collapsedDetailsModuleVal);
-    setReportingCollapsedSummaryModuleVal(reportingSavedData.collapsedSummaryModuleVal);
     setReportingFilterConditionJson(reportingSavedData.filterConditionJson);
     setReportingSelectedActiveTab(reportingSavedData.selectedActiveTab);
     setReprotingSelectedMoreJson(reportingSavedData.selectedMoreJson);
     selectedColumnsJSon(reportingSavedData.selectedWorklogDetailsColumnsJson);
+    setReportingSelectedMainActiveTab(reportingSavedData.selectedMainActiveTab);
     return this;
   }
 
   public void setReportingSelectedActiveTab(final String selectedActiveTab) {
     pluginSettingsKeyValues.put(UserSettingKey.REPRTING_SELECTED_ACTIVE_TAB, selectedActiveTab);
+  }
+
+  public void setReportingSelectedMainActiveTab(final String selectedMainActiveTab) {
+    pluginSettingsKeyValues.put(UserSettingKey.REPRTING_SELECTED_MAIN_ACTIVE_TAB,
+        selectedMainActiveTab);
   }
 
   public void setReprotingSelectedMoreJson(final String moreConditionJson) {

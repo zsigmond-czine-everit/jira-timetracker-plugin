@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *#
-                <div id="detailsModule" class="module toggle-wrap expanded #if( $collapsedDetailsModule )collapsed#end">
-                    <div id="detailsModuleHeading" class="mod-header">
-                        <h2 class="toggle-title"  onclick="everit.reporting.main.toggleModContent('details')">$i18n.getText("jtrp.report.head.worklog.detials")</h2>
+                <div id="detailsModule" class="jtrp-module-header">
+                    <div id="detailsModuleHeading">
+                        <h2>$i18n.getText("jtrp.report.head.worklog.detials")</h2>
                     </div>
-                    <div class="mod-content">
+                    <div>
                         <div class="aui-group aui-group-split action-button-container">
                             <div class="aui-item jtrp-export">
                                 <a id="detailsColumnsButton" href="#detailsColumnsDropDown" aria-owns="detailsColumnsDropDown" aria-haspopup="true" class="criteria-selector aui-button aui-button-subtle drop-arrow aui-dropdown2-trigger">$i18n.getText("jtrp.report.btn.columns")</a>
@@ -704,5 +704,6 @@
                                 </div>
                             </div>
                         </div>
+                        #parse("templates/reporting/reporting_result_grand_total.vm")
                     </div>
                 </div>

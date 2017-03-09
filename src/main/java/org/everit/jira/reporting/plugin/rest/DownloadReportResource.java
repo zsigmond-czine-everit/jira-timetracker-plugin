@@ -44,9 +44,15 @@ import org.everit.jira.reporting.plugin.dto.ConvertedSearchParam;
 import org.everit.jira.reporting.plugin.dto.DownloadWorklogDetailsParam;
 import org.everit.jira.reporting.plugin.dto.FilterCondition;
 import org.everit.jira.reporting.plugin.dto.OrderBy;
+import org.everit.jira.reporting.plugin.exception.JTRPException;
+import org.everit.jira.reporting.plugin.export.AbstractExportListReport;
 import org.everit.jira.reporting.plugin.export.ExcelToCsvConverter;
-import org.everit.jira.reporting.plugin.export.ExportSummariesListReport;
+import org.everit.jira.reporting.plugin.export.ExportComponentSummaryListReport;
+import org.everit.jira.reporting.plugin.export.ExportIssueSummaryListReport;
+import org.everit.jira.reporting.plugin.export.ExportProjectSummaryListReport;
 import org.everit.jira.reporting.plugin.export.ExportTableReport;
+import org.everit.jira.reporting.plugin.export.ExportUserSummaryListReport;
+import org.everit.jira.reporting.plugin.export.ExportVersionSummaryListReport;
 import org.everit.jira.reporting.plugin.export.ExportWorklogDetailsListReport;
 import org.everit.jira.reporting.plugin.util.ConverterUtil;
 import org.everit.jira.settings.TimeTrackerSettingsHelper;
@@ -124,18 +130,44 @@ public class DownloadReportResource {
         .build();
   }
 
-  private HSSFWorkbook createSummaryExcel(final String json) {
+  private HSSFWorkbook createSummaryExcel(final String json, final String subTab) {
     FilterCondition filterCondition = new Gson()
         .fromJson(json, FilterCondition.class);
 
     ConvertedSearchParam converSearchParam = ConverterUtil
         .convertFilterConditionToConvertedSearchParam(filterCondition, settingsHelper);
 
-    ExportSummariesListReport exportSummariesListReport =
-        new ExportSummariesListReport(querydslSupport, converSearchParam.reportSearchParam,
-            converSearchParam.notBrowsableProjectKeys, settingsHelper.loadUserSettings());
+    AbstractExportListReport report = null;
+    if (PageTabs.SUB_ISSUE.equals(subTab)) {
+      report = new ExportIssueSummaryListReport(querydslSupport,
+          converSearchParam.reportSearchParam,
+          converSearchParam.notBrowsableProjectKeys,
+          settingsHelper.loadUserSettings());
+    } else if (PageTabs.SUB_PROJECT.equals(subTab)) {
+      report = new ExportProjectSummaryListReport(querydslSupport,
+          converSearchParam.reportSearchParam,
+          converSearchParam.notBrowsableProjectKeys,
+          settingsHelper.loadUserSettings());
+    } else if (PageTabs.SUB_USER.equals(subTab)) {
+      report = new ExportUserSummaryListReport(querydslSupport,
+          converSearchParam.reportSearchParam,
+          converSearchParam.notBrowsableProjectKeys,
+          settingsHelper.loadUserSettings());
+    } else if (PageTabs.SUB_VERSION.equals(subTab)) {
+      report = new ExportVersionSummaryListReport(querydslSupport,
+          converSearchParam.reportSearchParam,
+          converSearchParam.notBrowsableProjectKeys,
+          settingsHelper.loadUserSettings());
+    } else if (PageTabs.SUB_COMPONENT.equals(subTab)) {
+      report = new ExportComponentSummaryListReport(querydslSupport,
+          converSearchParam.reportSearchParam,
+          converSearchParam.notBrowsableProjectKeys,
+          settingsHelper.loadUserSettings());
+    } else {
+      throw new JTRPException("jtrp.plugin.wrong.tab.information");
+    }
 
-    HSSFWorkbook workbook = exportSummariesListReport.exportToXLS();
+    HSSFWorkbook workbook = report.exportToXLS();
     return workbook;
   }
 
@@ -177,8 +209,9 @@ public class DownloadReportResource {
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   @Path("/downloadSummariesReport")
   public Response downloadSummariesReport(
-      @QueryParam("json") @DefaultValue("{}") final String json) {
-    HSSFWorkbook workbook = createSummaryExcel(json);
+      @QueryParam("json") @DefaultValue("{}") final String json,
+      @QueryParam("subtab") final String subTab) {
+    HSSFWorkbook workbook = createSummaryExcel(json, subTab);
     ExportSummaryReportEvent exportSummaryReportEvent =
         new ExportSummaryReportEvent(pluginId, ExportSummaryReportEvent.EVENT_ACTION_EXCEL);
     analyticsSender.send(exportSummaryReportEvent);
@@ -198,8 +231,9 @@ public class DownloadReportResource {
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   @Path("/downloadSummariesReportAsCSV")
   public Response downloadSummariesReportAsCSV(
-      @QueryParam("json") @DefaultValue("{}") final String json) {
-    HSSFWorkbook workbook = createSummaryExcel(json);
+      @QueryParam("json") @DefaultValue("{}") final String json,
+      @QueryParam("subtab") final String subTab) {
+    HSSFWorkbook workbook = createSummaryExcel(json, subTab);
     ExportSummaryReportEvent exportSummaryReportEvent =
         new ExportSummaryReportEvent(pluginId, ExportSummaryReportEvent.EVENT_ACTION_CSV);
     analyticsSender.send(exportSummaryReportEvent);
