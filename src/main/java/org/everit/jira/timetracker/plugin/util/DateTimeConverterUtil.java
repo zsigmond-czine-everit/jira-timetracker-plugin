@@ -34,6 +34,7 @@ import org.everit.jira.core.util.TimetrackerUtil;
 import org.everit.jira.timetracker.plugin.DurationFormatter;
 import org.everit.jira.timetracker.plugin.exception.WorklogException;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 
 import com.atlassian.jira.component.ComponentAccessor;
@@ -74,6 +75,8 @@ public final class DateTimeConverterUtil {
    */
   private static final String FIX_TIME_FORMAT = "HH:mm";
 
+  private static final int HOUR_23 = 23;
+
   /**
    * The hour eight.
    */
@@ -106,6 +109,8 @@ public final class DateTimeConverterUtil {
    * The number of mins in quater.
    */
   public static final int MINS_IN_QUATER = 15;
+
+  private static final int MINUTE_59 = 59;
 
   private static final int MINUTES_GROUP = 6;
 
@@ -489,12 +494,20 @@ public final class DateTimeConverterUtil {
     return seconds;
   }
 
+  private static DateTime setDateToDayEnd(final DateTime date) {
+    DateTime dateStartOfTheDay = date.withHourOfDay(HOUR_23);
+    dateStartOfTheDay = dateStartOfTheDay.withMinuteOfHour(MINUTE_59);
+    dateStartOfTheDay = dateStartOfTheDay.withSecondOfMinute(MINUTE_59);
+    dateStartOfTheDay = dateStartOfTheDay.withMillisOfSecond(0);
+    return dateStartOfTheDay;
+  }
+
   /**
-   * Return a Calendar with time set by the start of the given day.
+   * Return a DateTime with time set by the start of the given day.
    *
    * @param date
    *          The time to set the calendar
-   * @return The calendar which represents the start of the day
+   * @return The dateTime which represents the start of the day
    */
   public static DateTime setDateToDayStart(final DateTime date) {
     DateTime dateStartOfTheDay = date.withHourOfDay(0);
@@ -502,6 +515,44 @@ public final class DateTimeConverterUtil {
     dateStartOfTheDay = dateStartOfTheDay.withSecondOfMinute(0);
     dateStartOfTheDay = dateStartOfTheDay.withMillisOfSecond(0);
     return dateStartOfTheDay;
+  }
+
+  public static DateTime setDateToMonthEnd(final DateTime date) {
+    DateTime dateEndOfTheWeek = DateTimeConverterUtil.setDateToDayEnd(date);
+    return dateEndOfTheWeek.dayOfMonth().withMaximumValue();
+  }
+
+  public static DateTime setDateToMonthStart(final DateTime date) {
+    DateTime dateStartOfTheMonth = DateTimeConverterUtil.setDateToDayStart(date);
+    return dateStartOfTheMonth.withDayOfMonth(1);
+  }
+
+  /**
+   * Set create a date with the week last day midnight.
+   */
+  public static DateTime setDateToWeekEnd(final DateTime date,
+      final boolean isMondayTheFirstDay) {
+    DateTime dateEndOfTheWeek = DateTimeConverterUtil.setDateToDayEnd(date);
+    if (isMondayTheFirstDay) {
+      dateEndOfTheWeek = dateEndOfTheWeek.withDayOfWeek(DateTimeConstants.SUNDAY);
+    } else {
+      dateEndOfTheWeek = dateEndOfTheWeek.withDayOfWeek(DateTimeConstants.SATURDAY);
+    }
+    return dateEndOfTheWeek;
+  }
+
+  /**
+   * Set create a date with the week last day midnight.
+   */
+  public static DateTime setDateToWeekStart(final DateTime date,
+      final boolean isMondayTheFirstDay) {
+    DateTime dateStartOfTheWeek = DateTimeConverterUtil.setDateToDayStart(date);
+    if (isMondayTheFirstDay) {
+      dateStartOfTheWeek = dateStartOfTheWeek.withDayOfWeek(DateTimeConstants.MONDAY);
+    } else {
+      dateStartOfTheWeek = dateStartOfTheWeek.minusWeeks(1).withDayOfWeek(DAYS_PER_WEEK);
+    }
+    return dateStartOfTheWeek;
   }
 
   /**

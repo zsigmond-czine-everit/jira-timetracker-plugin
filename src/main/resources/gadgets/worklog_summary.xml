@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+    
+-->
+<Module>
+<!-- TODO  screenshot='#staticResourceUrl("biz.everit.jira.feature.score:fs-pie-gadget-resources",
+     "images/FeatureScorePieScreenShot.png")'
+    thumbnail='#staticResourceUrl("biz.everit.jira.feature.score:fs-pie-gadget-resources",
+     "images/FeatureScorePieThumb.png")' width="120" height="60" title_url="TODO"-->
+  <ModulePrefs title="__MSG_jttp.gadget.wlsummary.addscrean.name__" 
+    description="__MSG_jttp.gadget.wlsummary.addscrean.description__" author="Everit KFT"
+   >
+    <Optional feature="gadget-directory">
+      <Param name="categories">
+        Other
+      </Param>
+    </Optional>
+    <Optional feature="atlassian.util"/>
+    <Optional feature="auth-refresh"/>
+    <Require feature="oauthpopup" />
+    <Require feature="dynamic-height" />
+    <Require feature="setprefs" />
+    <Require feature="views" />
+    <Require feature="settitle"/>
+    #supportedLocales("gadget.common,jttp.gadget,jttp.gadget.settings,jttp.gadget.validation,jttp.gadget.wlsummary.addscrean")
+  </ModulePrefs>
+  <UserPref name="gadgetTitle" datatype="hidden"  />
+  <UserPref name="isConfigured" datatype="hidden" default_value="false" />
+  <UserPref name="filterId" datatype="hidden" required="true" />
+  <UserPref name="groupBy" datatype="hidden" required="true" />
+  <UserPref name="display" datatype="hidden" required="true"/>
+  <UserPref name="period" datatype="hidden" required="true"/>
+  <UserPref name="refresh" datatype="hidden" default_value="false"/>
+  <Content type="html" view="default,canvas">
+        <![CDATA[
+        #requireResource("com.atlassian.jira.gadgets:common")
+        #requireResource("com.atlassian.gadgets:common-resources")
+        #requireResource("com.atlassian.jira.gadgets:autocomplete")
+        #requireResource("org.everit.jira.timetracker.plugin:jttp_worklog_summary_resources")
+        #includeResources()
+   
+      <script type="text/javascript">
+    (function () {
+        var gadget = AJS.Gadget({
+             baseUrl: "__ATLASSIAN_BASE_URL__",
+             config: {
+                       descriptor:worklogSummaryGadget.getDescriptor,
+                       
+                      },
+              view: {
+                enableReload: true,
+                onResizeAdjustHeight: true,
+                template: worklogSummaryGadget.getTemplate,
+                args: [{key: "selectedFilter",
+                        ajaxOptions: function() {
+                           var jqlId=this.getPref("filterId").replace("filter-","");
+                           return {
+                                  headers: { 
+                                          'Accept': 'application/json',
+                                          'Content-Type': 'application/json' 
+                                      },
+                                     url: "/rest/api/2/filter/"+jqlId,
+                                     contentType: "application/json"
+                                     }
+                               }
+                        },
+                      {key: "worlogSummaryData",
+                          ajaxOptions: function() {
+                          var jqlId=this.getPref("filterId").replace("filter-","");
+                          var period=this.getPref("period");
+                          
+                          return {
+                           url: "/rest/jttp-rest/1/worklog-summary-gadget/getWorklogSummaryData?jqlId="
+                           +jqlId
+                           +"&period="+period+"&display="+this.getPref("display")
+                           +"&groupBy="+this.getPref("groupBy")
+                          };
+                       }
+                     }
+                ]
+        }
+      })
+
+  })();
+      </script>
+        ]]>
+  </Content>
+</Module>
+
