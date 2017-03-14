@@ -18,6 +18,7 @@ package org.everit.jira.gadget.rest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -77,6 +78,38 @@ public class WorklogSummary {
     this.settingsHelper = settingsHelper;
   }
 
+  private Response buildResponse(final String groupBy, final String display,
+      final FilterCondition filterCondition) {
+    ConvertedSearchParam reportParam = null;
+    try {
+      reportParam = ConverterUtil
+          .convertFilterConditionToConvertedSearchParam(filterCondition, settingsHelper);
+    } catch (IllegalArgumentException e) {
+      return Response.serverError()
+          .entity("Failed to create search parameters, cause: " + e.getMessage())
+          .build();
+    }
+    List<GadgetDataDTO> result = null;
+
+    if ("Issue".equalsIgnoreCase(groupBy)) {
+      IssueSummaryReportDTO issueSummaryReport =
+          reportingPlugin.getIssueSummaryReport(reportParam.reportSearchParam);
+      result = getIssueSummaryGadgetData(issueSummaryReport, display);
+    } else if ("User".equalsIgnoreCase(groupBy)) {
+      ProjectSummaryReportDTO projectSummaryReport =
+          reportingPlugin.getProjectSummaryReport(reportParam.reportSearchParam);
+      result = getProjectSummaryGadgetData(projectSummaryReport, display);
+    } else {
+      UserSummaryReportDTO userSummaryReport =
+          reportingPlugin.getUserSummaryReport(reportParam.reportSearchParam);
+      result = getUserSummaryGadgetData(userSummaryReport, display);
+    }
+
+    return Response
+        .ok(result)
+        .build();
+  }
+
   /**
    * Get the end date based on the system time and the specified period.
    */
@@ -93,7 +126,6 @@ public class WorklogSummary {
     } else {
       return new DateTime(TimetrackerUtil.getLoggedUserTimeZone()).getMillis();
     }
-
   }
 
   private List<GadgetDataDTO> getIssueSummaryGadgetData(
@@ -194,35 +226,27 @@ public class WorklogSummary {
     filterCondition.setWorklogEndDate(getEndDateFromPeriod(period));
     filterCondition.setFilter(Arrays.asList(filterId));
     filterCondition.setSearcherValue(SearcherValue.FILTER.lowerCaseValue);
-    ConvertedSearchParam reportParam = null;
-    try {
-      reportParam = ConverterUtil
-          .convertFilterConditionToConvertedSearchParam(filterCondition, settingsHelper);
-    } catch (IllegalArgumentException e) {
-      return Response.serverError()
-          .entity("Failed to create search parameters, cause: " + e.getMessage())
-          .build();
-    }
-    List<GadgetDataDTO> result = null;
+    return buildResponse(groupBy, display, filterCondition);
 
-    if ("Issue".equalsIgnoreCase(groupBy)) {
-      IssueSummaryReportDTO issueSummaryReport =
-          reportingPlugin.getIssueSummaryReport(reportParam.reportSearchParam);
-      result = getIssueSummaryGadgetData(issueSummaryReport, display);
-    } else if ("User".equalsIgnoreCase(groupBy)) {
-      ProjectSummaryReportDTO projectSummaryReport =
-          reportingPlugin.getProjectSummaryReport(reportParam.reportSearchParam);
-      result = getProjectSummaryGadgetData(projectSummaryReport, display);
-    } else {
-      UserSummaryReportDTO userSummaryReport =
-          reportingPlugin.getUserSummaryReport(reportParam.reportSearchParam);
-      result = getUserSummaryGadgetData(userSummaryReport, display);
-    }
+  }
 
-    return Response
-        .ok(result)
-        .build();
-
+  /**
+   * Get the worklog summary data.
+   */
+  @Path("/getWorklogSummaryDataForChart")
+  @GET
+  @Produces({ MediaType.APPLICATION_JSON })
+  public Response getWorklogSummaryDataForChart(@QueryParam("users") final List<String> users,
+      @QueryParam("groupBy") final String groupBy, @QueryParam("display") final String display,
+      @QueryParam("start") final String start, @QueryParam("end") final String end) {
+    FilterCondition filterCondition = new FilterCondition();
+    filterCondition.setWorklogStartDate(Long.valueOf(start));
+    filterCondition.setWorklogEndDate(Long.valueOf(end));
+    filterCondition.setSearcherValue(SearcherValue.BASIC.lowerCaseValue);
+    filterCondition.setGroupUsers(users.stream()
+        .map(user -> "users:" + user)
+        .collect(Collectors.toList()));
+    return buildResponse(groupBy, display, filterCondition);
   }
 
   /**

@@ -66,7 +66,7 @@ everit.jttp.report_common_scripts = everit.jttp.report_common_scripts || {};
     return correctMil;
   }
   
-  function timeZoneCorrection(date){
+  jttp.timeZoneCorrection = function(date){
     var osTimeZoneOffset = date.getTimezoneOffset() * -60000;
     var correctMil = date.getTime() + osTimeZoneOffset;
     return correctMil;
@@ -112,7 +112,6 @@ everit.jttp.report_common_scripts = everit.jttp.report_common_scripts || {};
     }
   }
  
- 
  jttp.beforeSubmitReport = function() {
    try{
      var dateFrom = jQuery('#dateFrom').val();
@@ -121,7 +120,7 @@ everit.jttp.report_common_scripts = everit.jttp.report_common_scripts || {};
        showErrorMessage("error_message_label_df");
        return false;
      }
-     jQuery('#dateFromMil').val(timeZoneCorrection(dateFromMil));
+     jQuery('#dateFromMil').val(everit.jttp.report_common_scripts.timeZoneCorrection(dateFromMil));
    }catch(err){
      showErrorMessage("error_message_label_df");
      return false;
@@ -133,7 +132,7 @@ everit.jttp.report_common_scripts = everit.jttp.report_common_scripts || {};
        showErrorMessage("error_message_label_dt");
        return false;
      }
-     jQuery('#dateToMil').val(timeZoneCorrection(dateToMil));
+     jQuery('#dateToMil').val(everit.jttp.report_common_scripts.timeZoneCorrection(dateToMil));
    }catch(err){
      showErrorMessage("error_message_label_dt");
      return false;

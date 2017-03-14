@@ -275,6 +275,11 @@
     <resource type="download" name="reporting.css" location="/css/reporting.css" />
     <resource type="download" name="report_common_scripts.js" location="/js/report_common_scripts.js" />
     <resource type="download" name="chart_report.js" location="/js/chart_report.js" />
+    <resource type="download" name="flot.js" location="/js/lib/flot/jquery.flot.js" />
+    <resource type="download" name="flot.pie.js" location="/js/lib/flot/jquery.flot.pie.min.js" />
+    <resource type="download" name="flot.categories.js" location="/js/lib/flot/jquery.flot.categories.js" />
+    <resource type="download" name="flot.stack.js" location="/js/lib/flot/jquery.flot.stack.min.js" />
+    <resource type="download" name="flot.tooltip.js" location="/js/lib/flot/jquery.flot.tooltip.min.js" />
   </web-resource>
 
   <web-resource name="JTTP Resources" key="update_notifier-resources-${project.version}-${build.time}">

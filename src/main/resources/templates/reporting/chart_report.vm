@@ -25,52 +25,54 @@ $webResourceManager.requireResource("jira.webresources:dwr", null)
 $webResourceManager.requireResource("jira.webresources:ajax-preview", null)
 $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.plugin.chart_report-resources")
 <body>
-#set($rendererType = "atlassian-wiki-renderer")
-#if($currentCalendar.useISO8601 == true)
-	#set ($firstDay = 1)
-#else
-	#set ($firstDay = 0)
-#end
+  #set($rendererType = "atlassian-wiki-renderer")
+  #if($currentCalendar.useISO8601 == true)
+    #set ($firstDay = 1)
+  #else
+    #set ($firstDay = 0)
+  #end
 
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript">
+  <script type="text/javascript">
 
-	window.everit = window.everit || {};
-	everit.jttp = everit.jttp || {};
-	everit.jttp.report_common_scripts = everit.jttp.report_common_scripts || {};
+  window.everit = window.everit || {};
+  everit.jttp = everit.jttp || {};
+  everit.jttp.report_common_scripts = everit.jttp.report_common_scripts || {};
 
-	(function(jttp, jQuery) {
-		jttp.options = jQuery.extend( 
-			{},
-			jttp.options,
-			{
-				firstDay : ${firstDay},
-				useISO8601 : ${currentCalendar.useISO8601},
-				hasBrowseUsersPermission: ${hasBrowseUsersPermission},
-				dateFromFormated : ${dateFromFormated},
-				dateToFormated : ${dateToFormated},
-				dateToInJSFormat: "${endDateInJSDatePickerFormat}",
-				dateFromInJSFormat: "${fromDateInJSDatePickerFormat}",
-				dateFormat: "${dateFormat}"
-			}
-		);
-	})(everit.jttp.report_common_scripts, AJS.$);
-	
-	
-	everit.jttp.chart_report = everit.jttp.chart_report || {};
-	#disable_html_escaping()
-	(function(jttp, jQuery) {
-		jttp.options = jQuery.extend( 
-			{},
-			jttp.options,
-			{	
-				chartDataList : ${chartDataList}
-			}
-		);
-	})(everit.jttp.chart_report, AJS.$);
-	#enable_html_escaping()
+  (function(jttp, jQuery) {
+    jttp.options = jQuery.extend( 
+      {},
+      jttp.options,
+      {
+        firstDay : ${firstDay},
+        useISO8601 : ${currentCalendar.useISO8601},
+        hasBrowseUsersPermission: ${hasBrowseUsersPermission},
+        dateFromFormated : ${dateFromFormated},
+        dateToFormated : ${dateToFormated},
+        dateToInJSFormat: "${endDateInJSDatePickerFormat}",
+        dateFromInJSFormat: "${fromDateInJSDatePickerFormat}",
+        dateFormat: "${dateFormat}"
+      }
+    );
+  })(everit.jttp.report_common_scripts, AJS.$);
 
-</script>
+  (function(jttp, jQuery) {
+    jttp.options = jQuery.extend( 
+      {},
+      jttp.options,
+      {
+        firstDay : ${firstDay},
+        useISO8601 : ${currentCalendar.useISO8601},
+        hasBrowseUsersPermission: ${hasBrowseUsersPermission},
+        dateFromFormated : ${dateFromFormated},
+        dateToFormated : ${dateToFormated},
+        dateToInJSFormat: "${endDateInJSDatePickerFormat}",
+        dateFromInJSFormat: "${fromDateInJSDatePickerFormat}",
+        dateFormat: "${dateFormat}"
+      }
+    );
+  })(everit.jttp.chart_report, AJS.$);
+
+  </script>
   #parse("templates/common/updatenotifier.vm")
   <header class="aui-page-header">
     <div class="aui-page-header-inner">
@@ -100,96 +102,146 @@ $webResourceManager.requireResourcesForContext("org.everit.jira.timetracker.plug
   </header>
   
   <div class="chart-search-criteria-container">
-               <div id="error_message"  #if($message.isEmpty()) style="display:none;" #end>
-                 <label id="error_message_label" #if($message.isEmpty()) style="display:none;" #end>$i18n.getText($message)</label>
-                 <label id="error_message_label_df" style="display:none;">$i18n.getText('plugin.invalid_startTime')</label>
-                 <label id="error_message_label_dt" style="display:none;">$i18n.getText('plugin.invalid_endTime')</label>
-               </div>
-               <form name="dummyFormForView" class="aui top-label reporting-form" method="get" onsubmit="return false;" />
-                 <div class="form-body">
-                     <div class="aui-group">
-                        <div class="aui-item search-wrap">
-                            <div class="date-search-container">
-                                <div class="search-criteria-container">
-                                    <div class="search-criteria">
-                                        <div class="from-date inline-calendar">
-                                            <input class="text medium-field datepicker-input" placeholder="From" onkeydown="return everit.jttp.report_common_scripts.checkEnter(event);" id="dateFrom" name="dateFrom" tabindex="1">
-                                                <a href="#" title="Select a date">
-                                                    <span id="date_trigger_from" class="aui-icon aui-icon-small aui-iconfont-calendar">Select a date</span>
-                                                </a>
-                                        </div>
-                                        <div class="to-date inline-calendar">
-                                            <input class="text medium-field datepicker-input" placeholder="To" onkeydown="return everit.jttp.report_common_scripts.checkToEnter(event);" id="dateTo" name="dateTo" tabindex="2">
-                                                <a href="#" title="Select a date">
-                                                    <span id="date_trigger_to" class="aui-icon aui-icon-small aui-iconfont-calendar">Select a date</span>
-                                                </a>
-                                        </div>
-                                    </div>
-                                </div>
+    <div id="error_message" style="display:none;">
+      <label id="error_message_label_df" style="display:none;">$i18n.getText('plugin.invalid_startTime')</label>
+      <label id="error_message_label_dt" style="display:none;">$i18n.getText('plugin.invalid_endTime')</label>
+    </div>
+    <form name="dummyFormForView" class="aui top-label reporting-form" method="get" onsubmit="return false;" />
+      <div class="form-body">
+        <div class="aui-group">
+          <div class="aui-item search-wrap">
+            <div class="user-search-container">
+              <div class="search-criteria-container">
+                <div class="search-criteria">
+                  <!-- User Dropdown  BUTTON-->
+                  <a id="userPickerButton" href="#userPickerDropDown" aria-disabled="false" aria-owns="userPickerDropDown" aria-haspopup="true" class="criteria-selector aui-button aui-button-subtle drop-arrow aui-dropdown2-trigger"  title='$i18n.getText("jtrp.picker.user.tooltip")'></a>
+                  <!-- User Dropdown -->
+                  <div id="userPickerDropDown" class="aui-style-default aui-dropdown2">
+                    <div class="jttr-filter-field">
+                      <div class='ajs-layer box-shadow'>
+                        <div data-query>
+                          <div class='form-body checkboxmultiselect-container'>
+                            <div class='field-gaui-field-issuetype'>
+                              <select id="userPicker" name="userPicker" multiple="multiple">
+                                
+                              </select>
                             </div>
+                          </div>
                         </div>
-                     </div>
-                     <div class="aui-group">
-                        <div class="aui-item search-wrap">
-                            <div class="user-search-container">
-                                <div class="search-criteria-container">
-                                    <div class="search-criteria">
-                                        <div class="from-date inline-calendar">
-                                            <select  id="userPicker" class="js-default-user-picker single-user-picker" name="userPicker">
-                                              #if($userPickerObject)
-                                                <option selected="selected" 
-                                                  value="$userPickerObject.getUsername()"
-                                                  data-field-text="$userPickerObject.getDisplayName()"
-                                                  style="background-image:url('$avatarURL')" >
-                                                  $userPickerObject.getDisplayName()
-                                                </option>
-                                              #end
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- User Dropdown End-->
+                  <!-- GroupBy Dropdown  BUTTON-->
+                  <a id="groupByDropdownButton" data-jtrp-value="" href="#groupByDropdown" aria-owns="groupByDropdown" aria-haspopup="true" class="criteria-selector aui-button aui-button-subtle drop-arrow aui-dropdown2-trigger">
+                    #if( $groupBy == 'project' ) 
+                      $i18n.getText("jtrp.report.chart.groupby.project")
+                    #end
+                    #if( $groupBy == 'issue' )
+                      $i18n.getText("jtrp.report.chart.groupby.issue")
+                    #end
+                    #if( $groupBy == 'user' )
+                      $i18n.getText("jtrp.report.chart.groupby.user")
+                    #end
+                  </a>
+                  <div id="groupByDropdown" class="aui-style-default aui-dropdown2">
+                    <div class="jttr-filter-field">
+                      <div class='ajs-layer box-shadow'>
+                        <div data-query>
+                          <div class='form-body checkboxmultiselect-container'>
+                            <div class='field-group aui-field-issuetype'>
+                              <ul class="aui-list-section">
+                                <li class="aui-list-item" onclick="return everit.jttp.chart_report.changeGroupBy(this);" data-jtrp-value="Project" data-jtrp-label="$i18n.getText("jtrp.report.chart.groupby.project")">
+                                  <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.report.chart.groupby.project")</a>
+                                </li>
+                                <li class="aui-list-item" onclick="return everit.jttp.chart_report.changeGroupBy(this);" data-jtrp-value="Issue" data-jtrp-label="$i18n.getText("jtrp.report.chart.groupby.issue")">
+                                  <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.report.chart.groupby.issue")</a>
+                                </li>
+                                <li class="aui-list-item" onclick="return everit.jttp.chart_report.changeGroupBy(this);" data-jtrp-value="User" data-jtrp-label="$i18n.getText("jtrp.report.chart.groupby.user")">
+                                  <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.report.chart.groupby.user")</a>
+                                </li>
+                              </ul>
                             </div>
+                          </div>
                         </div>
-                     </div>
-                  </form>  
+                      </div>
+                    </div>
+                  </div>
+                  <!-- GroupBy Dropdown End-->
+                  <!-- Display Dropdown  BUTTON-->
+                  <a id="displayDropdownButton" data-jtrp-value="" href="#displayDropdown" aria-owns="displayDropdown" aria-haspopup="true" class="criteria-selector aui-button aui-button-subtle drop-arrow aui-dropdown2-trigger">
+                    #if( $display == 'pie' ) 
+                      $i18n.getText("jtrp.report.chart.display.pie")
+                    #end
+                    #if( $display == 'bar' )
+                      $i18n.getText("jtrp.report.chart.display.bar")
+                    #end
+                  </a>
+                  <div id="displayDropdown" class="aui-style-default aui-dropdown2">
+                    <div class="jttr-filter-field">
+                      <div class='ajs-layer box-shadow'>
+                        <div data-query>
+                          <div class='form-body checkboxmultiselect-container'>
+                            <div class='field-group aui-field-issuetype'>
+                              <ul class="aui-list-section">
+                                <li class="aui-list-item" onclick="return everit.jttp.chart_report.changeDisplay(this);" data-jtrp-value="PieChart" data-jtrp-label="$i18n.getText("jtrp.report.chart.display.pie")">
+                                  <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.report.chart.display.pie")</a>
+                                </li>
+                                <li class="aui-list-item" onclick="return everit.jttp.chart_report.changeDisplay(this);" data-jtrp-value="BarChart" data-jtrp-label="$i18n.getText("jtrp.report.chart.display.bar")">
+                                  <a href="javascript:void(0)" onclick="return false">$i18n.getText("jtrp.report.chart.display.bar")</a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Display Dropdown End-->
+                </div>
               </div>
-                  <form name="chartReportForm" method="get" action="JiraTimetrackerChartWebAction.jspa"  onsubmit="return everit.jttp.report_common_scripts.beforeSubmitReport()"/>
-                    <input type="hidden" id="dateFromMil" name="dateFromMil">
-                    <input type="hidden" id="dateToMil" name="dateToMil">
-                    <input type="hidden" id="selectedUser" name="selectedUser">
-                    <div class="aui-group">
-                        <div class="aui-item">
-                            <button id="search" tabindex="3" class="aui-button aui-button-primary"  onclick="return everit.jttp.report_common_scripts.jttpSearchOnClick('Chart');">$i18n.getText('plugin.search')</button> <!-- Submit the search form -->
-                        </div>
-                    </div>
-                  </form>
-        </div>
-        <div class="aui-page-panel">
-          <div class="aui-page-panel-inner">
-            <section class="aui-page-panel-content">
-              #if($chartDataList && $chartDataList.size() == 0)
-                <div id="message" class="message" >
-                  $i18n.getText("plugin.no.worklogs")
-                </div>
-                <div id="warn_message" class="warn-message" >
-                  $i18n.getText("plugin.worklog.permission.warning")
-                </div>
-              #elseif($chartDataList)
-                <div id="dashboard">
-                    <div class="aui-group">
-                        <div id="control_div" class="aui-item control_div">
-                        </div>
-                        <div id="chart_div" class="aui-item chart_div">
-                        </div>
-                    </div>
-                </div>
-              #end
-            </section>
+            </div>
           </div>
         </div>
-    <script type="text/javascript" src="$issueCollectorSrc"></script>
-    #if($analyticsDTO.analyticsCheck)
-      #parse("templates/common/analytics.vm")
-    #end
-  </body>
+        <div class="aui-group">
+          <div class="aui-item search-wrap">
+            <div class="date-search-container">
+              <div class="search-criteria-container">
+                <div class="search-criteria">
+                  <div class="from-date inline-calendar">
+                    <input class="text medium-field datepicker-input" placeholder="From" onkeydown="return everit.jttp.report_common_scripts.checkEnter(event);" id="dateFrom" name="dateFrom" tabindex="1">
+                    <a href="#" title="Select a date">
+                      <span id="date_trigger_from" class="aui-icon aui-icon-small aui-iconfont-calendar">Select a date</span>
+                    </a>
+                  </div>
+                  <div class="to-date inline-calendar">
+                    <input class="text medium-field datepicker-input" placeholder="To" onkeydown="return everit.jttp.report_common_scripts.checkToEnter(event);" id="dateTo" name="dateTo" tabindex="2">
+                    <a href="#" title="Select a date">
+                      <span id="date_trigger_to" class="aui-icon aui-icon-small aui-iconfont-calendar">Select a date</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="aui-group">
+          <div class="aui-item">
+            <button id="search" tabindex="3" class="aui-button aui-button-primary"  onclick="everit.jttp.chart_report.beforeSubmitChartReport();">$i18n.getText('plugin.search')</button> <!-- Submit the search form -->
+          </div>
+        </div>
+      </form>  
+    </div>
+  </div>
+  <div class="aui-page-panel">
+    <div class="aui-page-panel-inner">
+      <section id="chart-panel" class="aui-page-panel-content">
+      </section>
+    </div>
+  </div>
+  <script type="text/javascript" src="$issueCollectorSrc"></script>
+  #if($analyticsDTO.analyticsCheck)
+    #parse("templates/common/analytics.vm")
+  #end
+</body>
 </html>
